@@ -1,0 +1,37 @@
+{
+	"name": "cartesian.frontend",
+	"private": true,
+	"version": "0.0.1",
+	"type": "module",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "vite preview",
+		"prepare": "svelte-kit sync || echo ''",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"format": "prettier --write .",
+		"lint": "prettier --check .",
+		"typegen": "svelte-kit sync && openapi-typescript ../Cartesian.Services/obj/Cartesian.Services.json -o ./src/lib/generated/services.d.ts && prettier --write ./src/lib/generated/services.d.ts"
+	},
+	"devDependencies": {
+		"@prettier/plugin-oxc": "^0.0.4",
+		"@sveltejs/adapter-static": "^3.0.10",
+		"@sveltejs/kit": "^2.47.1",
+		"@sveltejs/vite-plugin-svelte": "^6.2.1",
+		"@tailwindcss/vite": "^4.1.14",
+		"openapi-fetch": "^0.15.0",
+		"openapi-typescript": "^7.10.1",
+		"prettier": "^3.6.2",
+		"prettier-plugin-organize-attributes": "^1.0.0",
+		"prettier-plugin-organize-imports": "^4.3.0",
+		"prettier-plugin-svelte": "^3.4.0",
+		"prettier-plugin-tailwindcss": "^0.7.1",
+		"svelte": "^5.41.0",
+		"svelte-check": "^4.3.3",
+		"tailwindcss": "^4.1.14",
+		"typescript": "^5.9.3",
+		"vite": "^7.1.10"
+	},
+	"packageManager": "pnpm@10.20.0+sha512.cf9998222162dd85864d0a8102e7892e7ba4ceadebbf5a31f9c2fce48dfce317a9c53b9f6464d1ef9042cba2e02ae02a9f7c143a2b438cd93c91840f0192b9dd"
+}
