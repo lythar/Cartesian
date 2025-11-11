@@ -6,6 +6,7 @@ riderModule.iml
 .idea/
 **/*.user
 node_modules
+.husky/_
 .output
 .vercel
 .netlify

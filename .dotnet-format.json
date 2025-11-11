@@ -1,0 +1,11 @@
+{
+	"version": "1.0",
+	"indentSize": 4,
+	"useTabs": false,
+	"exclude": [
+		"**/bin/**",
+		"**/obj/**",
+		"**/.vs/**",
+		"**/.vscode/**"
+	]
+}
