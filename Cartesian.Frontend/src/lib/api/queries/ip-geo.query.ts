@@ -1,39 +1,21 @@
 import { Effect, Schema } from "effect";
 import { createQuery } from "@tanstack/svelte-query";
 import type { CreateQueryOptions, CreateQueryResult, QueryClient } from "@tanstack/svelte-query";
+import { IpGeoError, IpGeoSchema, type IpGeo } from "$lib/effects/schemas/ip-geo.schema";
+import { fetchJson, FetchJsonError } from "$lib/effects/utils/fetch-json.effect";
 
-export const IpGeoSchema = Schema.Struct({
-	status: Schema.String,
-	countryCode: Schema.String,
-	lat: Schema.Number,
-	lon: Schema.Number,
-});
-
-export type IpGeo = typeof IpGeoSchema.Type;
-
-export class IpGeoError extends Schema.TaggedError<IpGeoError>()("IpGeoError", {
-	message: Schema.String,
-}) {}
-
-const fetchIpGeo = Effect.gen(function* () {
-	const response = yield* Effect.tryPromise({
-		try: () => fetch("http://ip-api.com/json/?fields=49346"),
-		catch: (error) => new IpGeoError({ message: String(error) }),
-	});
-
-	if (!response.ok) {
-		return yield* Effect.fail(
-			new IpGeoError({ message: `HTTP ${response.status}: ${response.statusText}` }),
-		);
-	}
-
-	const data = yield* Effect.tryPromise({
-		try: () => response.json(),
-		catch: (error) => new IpGeoError({ message: String(error) }),
-	});
-
-	return yield* Schema.decodeUnknown(IpGeoSchema)(data);
-});
+export const fetchIpGeo = (ip?: string) =>
+	fetchJson<unknown>({
+		url: `http://ip-api.com/json/${ip ?? ""}`,
+		params: { fields: "49346" },
+	}).pipe(
+		Effect.flatMap((data) => Schema.decodeUnknown(IpGeoSchema)(data)),
+		Effect.catchAll((error) => {
+			const message =
+				error instanceof FetchJsonError ? error.message : "Invalid geolocation data";
+			return Effect.fail(new IpGeoError({ message }));
+		}),
+	);
 
 export function createIpGeoQuery<TData = IpGeo, TError = IpGeoError>(
 	options?: { query?: Partial<CreateQueryOptions<IpGeo, TError, TData>> },
@@ -41,7 +23,7 @@ export function createIpGeoQuery<TData = IpGeo, TError = IpGeoError>(
 ): CreateQueryResult<TData, TError> {
 	const queryOptions = {
 		queryKey: ["ip-geo"] as const,
-		queryFn: () => Effect.runPromise(fetchIpGeo),
+		queryFn: () => Effect.runPromise(fetchIpGeo()),
 		staleTime: 1000 * 60 * 5,
 		...options?.query,
 	};

@@ -2,7 +2,6 @@
 	import { ColorPicker } from "$lib/material-gen";
 	import { createGetExample, createIpGeoQuery } from "$lib/api";
 
-	const exampleQuery = createGetExample();
 	const ipGeoQuery = createIpGeoQuery();
 
 	$effect(() => {
@@ -62,19 +61,6 @@
 		</div>
 
 		<div class="grid gap-4 md:grid-cols-2">
-			<div class="rounded-lg border border-border bg-background p-6">
-				<h3 class="mb-2 font-semibold">Cartesian API</h3>
-				{#if exampleQuery.isLoading}
-					<p class="text-sm text-muted-foreground">Loading...</p>
-				{:else if exampleQuery.error}
-					<p class="text-sm text-destructive">Error: {String(exampleQuery.error)}</p>
-				{:else if exampleQuery.data}
-					<p class="text-sm text-primary">{exampleQuery.data}</p>
-				{:else}
-					<p class="text-sm text-muted-foreground">No data</p>
-				{/if}
-			</div>
-
 			<div class="rounded-lg border border-border bg-background p-6">
 				<h3 class="mb-2 font-semibold">IP Geolocation (Effect.ts)</h3>
 				{#if ipGeoQuery.isLoading}

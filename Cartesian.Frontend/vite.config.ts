@@ -2,11 +2,33 @@ import tailwindcss from "@tailwindcss/vite";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig } from "vite";
 
-export default defineConfig({
-	plugins: [tailwindcss(), sveltekit()],
-	server: {
-		// @ts-ignore: node
-		port: Number(process.env.VITE_PORT ?? "5173"),
-		host: "0.0.0.0",
-	},
+let publicIp = "127.0.0.1";
+
+const getPublicIp = async () => {
+	try {
+		const response = await fetch("https://api.ipify.org?format=json");
+		const data = (await response.json()) as { ip: string };
+		return data.ip;
+	} catch {
+		return "127.0.0.1";
+	}
+};
+
+export default defineConfig(async ({ command }) => {
+	const define: Record<string, string> = {};
+
+	if (command === "serve") {
+		publicIp = await getPublicIp();
+		define.__PUBLIC_IP__ = JSON.stringify(publicIp);
+	}
+
+	return {
+		plugins: [tailwindcss(), sveltekit()],
+		server: {
+			// @ts-ignore: node
+			port: Number(process.env.VITE_PORT ?? "5173"),
+			host: "0.0.0.0",
+		},
+		define,
+	};
 });

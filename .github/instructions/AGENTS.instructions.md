@@ -16,8 +16,10 @@ General preferences:
 - Be sure to reference file names
 - Be concise. Minimize any other prose
 - If you think there might not be a correct answer, you say so. If you do not know the answer, say so instead of guessing
-- Never write comments explaining what the line does unless expcliticly given permission by the user. If you need to, add why? comments and not what something does.
+- Never write comments explaining what the line does unless expcliticly given permission by the user. If you need to, add why? comments.
 - Never use stupid emojis. They're not needed. When you need an icon. Use `@lucide/svelte`. No emojis in code / logs directly.
+- Absolutely do not create any .MD documentations of the work you've just created.
+- Keep your message response small and concise - like talking to a chill bro instead of a lot of yapping.
 
 Key Principles
 
@@ -26,6 +28,7 @@ Key Principles
 - Prioritize performance optimization and minimal JavaScript for optimal user experience.
 - Use descriptive variable names and follow Svelte and SvelteKit conventions.
 - Organize files using SvelteKit's file-based routing system.
+- Use Effect.TS for any functionality regarding logic.
 
 Code Style and Structure
 
@@ -33,7 +36,9 @@ Code Style and Structure
 - Use functional and declarative programming patterns; avoid unnecessary classes except for state machines.
 - Prefer iteration and modularization over code duplication.
 - Structure files: component logic, markup, styles, helpers, types.
+- Use Effect.TS for any logic.
 - Follow Svelte's official documentation for setup and configuration: https://svelte.dev/docs
+- Follow Effect.TS LLM's txt for best practices and functions.
 
 Naming Conventions
 
@@ -51,31 +56,31 @@ TypeScript Usage
 Svelte Runes
 
 - `$state`: Declare reactive state
-    ```typescript
-    let count = $state(0);
-    ```
+  ```typescript
+  let count = $state(0);
+  ```
 - `$derived`: Compute derived values
-    ```typescript
-    let doubled = $derived(count * 2);
-    ```
+  ```typescript
+  let doubled = $derived(count * 2);
+  ```
 - `$effect`: Manage side effects and lifecycle
-    ```typescript
-    $effect(() => {
-    	console.log(`Count is now ${count}`);
-    });
-    ```
+  ```typescript
+  $effect(() => {
+    console.log(`Count is now ${count}`);
+  });
+  ```
 - `$props`: Declare component props
-    ```typescript
-    let { optionalProp = 42, requiredProp } = $props();
-    ```
+  ```typescript
+  let { optionalProp = 42, requiredProp } = $props();
+  ```
 - `$bindable`: Create two-way bindable props
-    ```typescript
-    let { bindableProp = $bindable() } = $props();
-    ```
+  ```typescript
+  let { bindableProp = $bindable() } = $props();
+  ```
 - `$inspect`: Debug reactive state (development only)
-    ```typescript
-    $inspect(count);
-    ```
+  ```typescript
+  $inspect(count);
+  ```
 
 UI and Styling
 
@@ -90,40 +95,40 @@ Shadcn Color Conventions
 
 - Use `background` and `foreground` convention for colors.
 - Define CSS variables without color space function:
-    ```css
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    ```
+  ```css
+  --primary: 222.2 47.4% 11.2%;
+  --primary-foreground: 210 40% 98%;
+  ```
 - Usage example:
-    ```svelte
-    <div class="bg-primary text-primary-foreground">Hello</div>
-    ```
+  ```svelte
+  <div class="bg-primary text-primary-foreground">Hello</div>
+  ```
 - Key color variables:
-    - `--background`, `--foreground`: Default body colors
-    - `--muted`, `--muted-foreground`: Muted backgrounds
-    - `--card`, `--card-foreground`: Card backgrounds
-    - `--popover`, `--popover-foreground`: Popover backgrounds
-    - `--border`: Default border color
-    - `--input`: Input border color
-    - `--primary`, `--primary-foreground`: Primary button colors
-    - `--secondary`, `--secondary-foreground`: Secondary button colors
-    - `--accent`, `--accent-foreground`: Accent colors
-    - `--destructive`, `--destructive-foreground`: Destructive action colors
-    - `--ring`: Focus ring color
-    - `--radius`: Border radius for components
+  - `--background`, `--foreground`: Default body colors
+  - `--muted`, `--muted-foreground`: Muted backgrounds
+  - `--card`, `--card-foreground`: Card backgrounds
+  - `--popover`, `--popover-foreground`: Popover backgrounds
+  - `--border`: Default border color
+  - `--input`: Input border color
+  - `--primary`, `--primary-foreground`: Primary button colors
+  - `--secondary`, `--secondary-foreground`: Secondary button colors
+  - `--accent`, `--accent-foreground`: Accent colors
+  - `--destructive`, `--destructive-foreground`: Destructive action colors
+  - `--ring`: Focus ring color
+  - `--radius`: Border radius for components
 
 SvelteKit Project Structure
 
 - Use the recommended SvelteKit project structure:
-    ```
-    - src/
-      - lib/
-      - routes/
-      - app.html
-    - static/
-    - svelte.config.js
-    - vite.config.js
-    ```
+  ```
+  - src/
+    - lib/
+    - routes/
+    - app.html
+  - static/
+  - svelte.config.js
+  - vite.config.js
+  ```
 
 Component Development
 
@@ -135,41 +140,42 @@ Component Development
 
 State Management
 
+- Use runed FSM's when absolutely needed.
 - Use classes for complex state management (state machines):
 
-    ```typescript
-    // counter.svelte.ts
-    class Counter {
-    	count = $state(0);
-    	incrementor = $state(1);
+  ```typescript
+  // counter.svelte.ts
+  class Counter {
+    count = $state(0);
+    incrementor = $state(1);
 
-    	increment() {
-    		this.count += this.incrementor;
-    	}
-
-    	resetCount() {
-    		this.count = 0;
-    	}
-
-    	resetIncrementor() {
-    		this.incrementor = 1;
-    	}
+    increment() {
+      this.count += this.incrementor;
     }
 
-    export const counter = new Counter();
-    ```
+    resetCount() {
+      this.count = 0;
+    }
+
+    resetIncrementor() {
+      this.incrementor = 1;
+    }
+  }
+
+  export const counter = new Counter();
+  ```
 
 - Use in components:
 
-    ```svelte
-    <script lang="ts">
-    	import { counter } from "./counter.svelte.ts";
-    </script>
+  ```svelte
+  <script lang="ts">
+  	import { counter } from "./counter.svelte.ts";
+  </script>
 
-    <button onclick={() => counter.increment()}>
-    	Count: {counter.count}
-    </button>
-    ```
+  <button onclick={() => counter.increment()}>
+  	Count: {counter.count}
+  </button>
+  ```
 
 Routing and Pages
 
@@ -223,5 +229,27 @@ Documentation
 - Svelte 5 Runes: https://svelte-5-preview.vercel.app/docs/runes
 - Svelte Documentation: https://svelte.dev/docs
 - SvelteKit Documentation: https://kit.svelte.dev/docs
+- Effect.TS Documentation: https://effect.website/llms-full.txt
 
 Refer to Svelte, SvelteKit, and documentation for detailed information on components, and best practices.
+
+Refer to the Effect.TS LLM.txt file for the best practices and methods regarding Effect.TS
+
+You are able to use the Svelte MCP server, where you have access to comprehensive Svelte 5 and SvelteKit documentation. Here's how to use the available tools effectively:
+
+## Available MCP Tools:
+
+### 1. list-sections
+
+Use this FIRST to discover all available documentation sections. Returns a structured list with titles, use_cases, and paths.
+When asked about Svelte or SvelteKit topics, ALWAYS use this tool at the start of the chat to find relevant sections.
+
+### 2. get-documentation
+
+Retrieves full documentation content for specific sections. Accepts single or multiple sections.
+After calling the list-sections tool, you MUST analyze the returned documentation sections (especially the use_cases field) and then use the get-documentation tool to fetch ALL documentation sections that are relevant for the user's task.
+
+### 3. svelte-autofixer
+
+Analyzes Svelte code and returns issues and suggestions.
+You MUST use this tool whenever writing Svelte code before sending it to the user. Keep calling it until no issues or suggestions are returned.

@@ -8,6 +8,12 @@ importers:
 
   .:
     dependencies:
+      '@hugeicons/core-free-icons':
+        specifier: ^1.2.1
+        version: 1.2.1
+      '@hugeicons/svelte':
+        specifier: ^1.0.2
+        version: 1.0.2(svelte@5.43.5)
       '@tanstack/svelte-query':
         specifier: ^6.0.5
         version: 6.0.5(svelte@5.43.5)
@@ -287,6 +293,14 @@ packages:
 
   '@gerrit0/mini-shiki@3.15.0':
     resolution: {integrity: sha512-L5IHdZIDa4bG4yJaOzfasOH/o22MCesY0mx+n6VATbaiCtMeR59pdRqYk4bEiQkIHfxsHPNgdi7VJlZb2FhdMQ==}
+
+  '@hugeicons/core-free-icons@1.2.1':
+    resolution: {integrity: sha512-ho0QdGMkgL+kt+QsZocCsKvJou1rfyVQWARrxIhNLi+9tCKayUUtD9jlHgioaRphmskSl84TxrDm9Ae0G4Uu1g==}
+
+  '@hugeicons/svelte@1.0.2':
+    resolution: {integrity: sha512-JBkirOE361SorXQwU8cFNDH+MVIn7OwBDfVrC+C9LAPtK0Yyt0CmjRwdlO4whlmKTtCPZy2dQ2XW46J826s2qg==}
+    peerDependencies:
+      svelte: ^5.0.0
 
   '@ibm-cloud/openapi-ruleset-utilities@1.9.0':
     resolution: {integrity: sha512-AoFbSarOqFBYH+1TZ9Ahkm2IWYSi5v0pBk88fpV+5b3qGJukypX8PwvCWADjuyIccKg48/F73a6hTTkBzDQ2UA==}
@@ -2498,6 +2512,12 @@ snapshots:
       '@shikijs/themes': 3.15.0
       '@shikijs/types': 3.15.0
       '@shikijs/vscode-textmate': 10.0.2
+
+  '@hugeicons/core-free-icons@1.2.1': {}
+
+  '@hugeicons/svelte@1.0.2(svelte@5.43.5)':
+    dependencies:
+      svelte: 5.43.5
 
   '@ibm-cloud/openapi-ruleset-utilities@1.9.0': {}
 
