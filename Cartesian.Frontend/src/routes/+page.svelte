@@ -1,16 +1,14 @@
 <script lang="ts">
-	import { client } from "$lib/client";
 	import { ColorPicker } from "$lib/material-gen";
-	import { onMount } from "svelte";
+	import { createGetExample, createIpGeoQuery } from "$lib/api";
 
-	let text = $state("Loading...");
+	const exampleQuery = createGetExample();
+	const ipGeoQuery = createIpGeoQuery();
 
-	onMount(async () => {
-		// const res = await client.GET("/example", {
-		// 	parseAs: "text",
-		// });
-
-		// text = res.data ?? res.response.statusText;
+	$effect(() => {
+		if (ipGeoQuery.data) {
+			console.log("User's IP Geolocation:", ipGeoQuery.data);
+		}
 	});
 </script>
 
@@ -34,7 +32,9 @@
 		</div>
 
 		<div class="flex flex-wrap gap-3">
-			<button class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
+			<button
+				class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+			>
 				Primary Button
 			</button>
 			<button
@@ -42,7 +42,9 @@
 			>
 				Secondary Button
 			</button>
-			<button class="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground">
+			<button
+				class="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground"
+			>
 				Accent Button
 			</button>
 			<button
@@ -54,14 +56,52 @@
 
 		<div class="rounded-lg border border-border bg-muted p-6">
 			<p class="text-sm text-muted-foreground">
-				Change the theme color above to see the entire UI update with a harmonious Material 3 color
-				scheme! Your color preference is automatically saved and synced across tabs.
+				Change the theme color above to see the entire UI update with a harmonious Material
+				3 color scheme! Your color preference is automatically saved and synced across tabs.
 			</p>
 		</div>
 
+		<div class="grid gap-4 md:grid-cols-2">
+			<div class="rounded-lg border border-border bg-background p-6">
+				<h3 class="mb-2 font-semibold">Cartesian API</h3>
+				{#if exampleQuery.isLoading}
+					<p class="text-sm text-muted-foreground">Loading...</p>
+				{:else if exampleQuery.error}
+					<p class="text-sm text-destructive">Error: {String(exampleQuery.error)}</p>
+				{:else if exampleQuery.data}
+					<p class="text-sm text-primary">{exampleQuery.data}</p>
+				{:else}
+					<p class="text-sm text-muted-foreground">No data</p>
+				{/if}
+			</div>
+
+			<div class="rounded-lg border border-border bg-background p-6">
+				<h3 class="mb-2 font-semibold">IP Geolocation (Effect.ts)</h3>
+				{#if ipGeoQuery.isLoading}
+					<p class="text-sm text-muted-foreground">Loading...</p>
+				{:else if ipGeoQuery.error}
+					<p class="text-sm text-destructive">Error: {ipGeoQuery.error.message}</p>
+				{:else if ipGeoQuery.data}
+					<div class="space-y-1 text-sm">
+						<p>Country: {ipGeoQuery.data.countryCode}</p>
+						<p>
+							Location: {ipGeoQuery.data.lat.toFixed(4)}, {ipGeoQuery.data.lon.toFixed(
+								4,
+							)}
+						</p>
+					</div>
+				{:else}
+					<p class="text-sm text-muted-foreground">No data</p>
+				{/if}
+			</div>
+		</div>
+
 		<div class="rounded-lg border border-border bg-background p-6">
-			<p class="text-sm">Visit <a href="https://svelte.dev/docs/kit" class="text-primary underline">svelte.dev/docs/kit</a> to read the documentation</p>
-			<p class="mt-2 text-sm text-muted-foreground">{text}</p>
+			<p class="text-sm text-muted-foreground">
+				Visit <a href="https://svelte.dev/docs/kit" class="text-primary underline"
+					>svelte.dev/docs/kit</a
+				> to read the documentation
+			</p>
 		</div>
 	</div>
 </div>

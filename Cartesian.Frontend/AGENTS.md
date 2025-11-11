@@ -14,6 +14,8 @@ General preferences:
 - If you think there might not be a correct answer, you say so. If you do not know the answer, say so instead of guessing
 - Never write comments explaining what the line does unless expcliticly given permission by the user. If you need to, add why? comments.
 - Never use stupid emojis. They're not needed. When you need an icon. Use `@lucide/svelte`. No emojis in code / logs directly.
+- Absolutely do not create any .MD documentations of the work you've just created.
+- Keep your message response small and concise - like talking to a chill bro instead of a lot of yapping.
 
 Key Principles
 
@@ -22,6 +24,7 @@ Key Principles
 - Prioritize performance optimization and minimal JavaScript for optimal user experience.
 - Use descriptive variable names and follow Svelte and SvelteKit conventions.
 - Organize files using SvelteKit's file-based routing system.
+- Use Effect.TS for any functionality regarding logic.
 
 Code Style and Structure
 
@@ -29,7 +32,9 @@ Code Style and Structure
 - Use functional and declarative programming patterns; avoid unnecessary classes except for state machines.
 - Prefer iteration and modularization over code duplication.
 - Structure files: component logic, markup, styles, helpers, types.
+- Use Effect.TS for any logic.
 - Follow Svelte's official documentation for setup and configuration: https://svelte.dev/docs
+- Follow Effect.TS LLM's txt for best practices and functions.
 
 Naming Conventions
 
@@ -131,6 +136,7 @@ Component Development
 
 State Management
 
+- Use runed FSM's when absolutely needed.
 - Use classes for complex state management (state machines):
 
     ```typescript
@@ -219,8 +225,11 @@ Documentation
 - Svelte 5 Runes: https://svelte-5-preview.vercel.app/docs/runes
 - Svelte Documentation: https://svelte.dev/docs
 - SvelteKit Documentation: https://kit.svelte.dev/docs
+- Effect.TS Documentation: https://effect.website/llms-full.txt
 
 Refer to Svelte, SvelteKit, and documentation for detailed information on components, and best practices.
+
+Refer to the Effect.TS LLM.txt file for the best practices and methods regarding Effect.TS
 
 You are able to use the Svelte MCP server, where you have access to comprehensive Svelte 5 and SvelteKit documentation. Here's how to use the available tools effectively:
 
