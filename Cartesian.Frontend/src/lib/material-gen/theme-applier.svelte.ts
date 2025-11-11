@@ -33,7 +33,7 @@ class ThemeApplier {
 				};
 			});
 
-			if (!browser) {
+			if (browser) {
 				const isDark = currentMode === "dark";
 				const scheme = isDark ? schemes.dark : schemes.light;
 				const cssVars = generateCSSVariables(scheme);
