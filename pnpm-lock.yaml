@@ -14,9 +14,6 @@ importers:
       lint-staged:
         specifier: ^15.2.11
         version: 15.5.2
-      prettier:
-        specifier: ^3.6.2
-        version: 3.6.2
 
 packages:
 
@@ -184,11 +181,6 @@ packages:
   pidtree@0.6.0:
     resolution: {integrity: sha512-eG2dWTVw5bzqGRztnHExczNxt5VGsE6OwTeCG3fdUf9KBsZzO3R5OIIIzWR+iZA0NtZ+RDVdaoE2dK1cn6jH4g==}
     engines: {node: '>=0.10'}
-    hasBin: true
-
-  prettier@3.6.2:
-    resolution: {integrity: sha512-I7AIg5boAr5R0FFtJ6rCfD+LFsWHp81dolrFD8S79U9tb8Az2nGrJncnMSnys+bpQJfRUzqs9hnA81OAA3hCuQ==}
-    engines: {node: '>=14'}
     hasBin: true
 
   restore-cursor@5.1.0:
@@ -399,8 +391,6 @@ snapshots:
   picomatch@2.3.1: {}
 
   pidtree@0.6.0: {}
-
-  prettier@3.6.2: {}
 
   restore-cursor@5.1.0:
     dependencies:
