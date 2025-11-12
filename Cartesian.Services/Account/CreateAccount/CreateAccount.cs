@@ -13,10 +13,11 @@ public class CreateAccount : IEndpoint
             .Produces(403, typeof(UserAlreadyExistsError));
     }
 
-    public async Task<IResult> PostCreateAccount(ILogger<CreateAccount> logger, UserManager<CartesianUser> userManager, CreateAccountBody body)
+    async Task<IResult> PostCreateAccount(ILogger<CreateAccount> logger, UserManager<CartesianUser> userManager, CreateAccountBody body)
     {
         var user = new CartesianUser
         {
+            UserName = body.Username,
             Email = body.Email
         };
 
@@ -27,7 +28,7 @@ public class CreateAccount : IEndpoint
             logger.LogInformation("Created new user with ID {UserId}", user.Id);
             return Results.Ok(new CreateAccountSuccess());
         }
-        
+
         throw new Exception("User creation failed for an unknown reason.");
     }
 }

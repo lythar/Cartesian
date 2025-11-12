@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.AddNpgsqlDbContext<CartesianDbContext>("myConnection");
+builder.AddNpgsqlDbContext<CartesianDbContext>("cartesian");
 builder.AddServiceDefaults();
 
 builder.Services.AddCors();
@@ -30,7 +30,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    
+
     app.UseCors(x => x
         .AllowAnyMethod()
         .AllowAnyHeader()
