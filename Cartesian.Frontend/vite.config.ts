@@ -1,4 +1,4 @@
-import { paraglideVitePlugin } from '@inlang/paraglide-js'
+import { paraglideVitePlugin } from "@inlang/paraglide-js";
 import tailwindcss from "@tailwindcss/vite";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig } from "vite";
@@ -24,12 +24,11 @@ export default defineConfig(async ({ command }) => {
 	}
 
 	return {
-		plugins: [paraglideVitePlugin({ project: './project.inlang', outdir: './src/paraglide' }),tailwindcss(), sveltekit()],
-		server: {
-			// @ts-ignore: node
-			port: Number(process.env.VITE_PORT ?? "5173"),
-			host: "0.0.0.0",
-		},
+		plugins: [
+			paraglideVitePlugin({ project: "./project.inlang", outdir: "./src/paraglide" }),
+			tailwindcss(),
+			sveltekit(),
+		],
 		define,
 	};
 });

@@ -11,9 +11,11 @@ var cartesianDb = postgres.AddDatabase("database", "cartesian");
 var services = builder.AddProject<Projects.Cartesian_Services>("services")
     .WithReference(cartesianDb);
 
-builder.AddNpmApp("frontend", "../Cartesian.Frontend", "dev")
+builder.AddNodeApp("frontend", "../Cartesian.Frontend", "dev")
+    .WithPnpm()
+    .WithRunScript("dev")
     .WithReference(services)
-    .WithHttpEndpoint(env: "VITE_PORT", targetPort: 5173, isProxied: false)
+    .WithHttpEndpoint(env: "PORT", targetPort: 5173, isProxied: false)
     .WithExternalHttpEndpoints();
 
 builder.Build().Run();
