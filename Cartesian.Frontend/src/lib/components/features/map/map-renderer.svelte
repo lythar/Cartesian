@@ -31,6 +31,28 @@
 	});
 
 	let selectedLocation: { lng: number; lat: number } | null = $state(null);
+	
+	let markers = $state<mapboxgl.Marker[]>([]);
+
+	const handleMapClick = (e: mapboxgl.MapMouseEvent) => {
+		// Remove previous marker
+		markers.forEach((m) => m.remove());
+		markers = [];
+
+		const markerElement = document.createElement("img");
+		markerElement.src = "/lythar.svg";
+		markerElement.className = "size-12 transform -translate-y-1/2";
+		const marker = new mapboxgl.Marker({
+			color: "#BB0000",
+			element: markerElement,
+		})
+			.setLngLat(e.lngLat)
+			.addTo(map!);
+
+		selectedLocation = { lng: e.lngLat.lng, lat: e.lngLat.lat };
+
+		markers = [marker];
+	};
 
 	onMount(async () => {
 		let center: [number, number];
@@ -66,34 +88,7 @@
 			zoom,
 		});
 
-		let markers = $state<mapboxgl.Marker[]>([]);
-
-		map.on("click", (e: mapboxgl.MapMouseEvent) => {
-			// Remove previous marker (prolly not the best way to do it)
-			markers.forEach((m) => m.remove());
-			markers = [];
-
-			const markerElement = document.createElement("img");
-			markerElement.src = "/lythar.svg";
-			markerElement.className = "size-12 transform -translate-y-1/2";
-			const marker = new mapboxgl.Marker({
-				color: "#BB0000",
-				element: markerElement,
-			})
-				.setLngLat(e.lngLat)
-				.addTo(map!);
-
-			// const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
-			// 	`<h3 class="text-black text-lg">Coordinates</h3><p class="text-gray-500">Longitude: ${e.lngLat.lng.toFixed(
-			// 		4,
-			// 	)}, Latitude: ${e.lngLat.lat.toFixed(4)}</p>`,
-			// );
-
-			selectedLocation = { lng: e.lngLat.lng, lat: e.lngLat.lat };
-
-			// marker.setPopup(popup).togglePopup();
-			markers = [marker];
-		});
+		map.on("click", handleMapClick);
 	});
 
 	$effect(() => {
