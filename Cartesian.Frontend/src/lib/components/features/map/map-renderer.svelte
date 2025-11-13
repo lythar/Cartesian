@@ -30,6 +30,8 @@
 		},
 	});
 
+	let selectedLocation: { lng: number; lat: number } | null = null;
+
 	onMount(async () => {
 		let center: [number, number];
 		let zoom: number;
@@ -63,6 +65,31 @@
 			center,
 			zoom,
 		});
+
+		let markers = $state<mapboxgl.Marker[]>([]);
+
+		map.on("click", (e: mapboxgl.MapMouseEvent) => {
+			// Remove previous marker (prolly not the best way to do it)
+			markers.forEach((m) => m.remove());
+			markers = [];
+
+			const marker = new mapboxgl.Marker({
+				color: "#BB0000",
+			})
+				.setLngLat(e.lngLat)
+				.addTo(map!);
+
+			// const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
+			// 	`<h3 class="text-black text-lg">Coordinates</h3><p class="text-gray-500">Longitude: ${e.lngLat.lng.toFixed(
+			// 		4,
+			// 	)}, Latitude: ${e.lngLat.lat.toFixed(4)}</p>`,
+			// );
+
+			selectedLocation = { lng: e.lngLat.lng, lat: e.lngLat.lat };
+
+			// marker.setPopup(popup).togglePopup();
+			markers = [marker];
+		});
 	});
 
 	$effect(() => {
@@ -94,5 +121,14 @@
 	<div id="lythar-map" class="flex-1 rounded-2xl"></div>
 	{#if map}
 		<GeolocateControl {map} />
+	{/if}
+
+	{#if selectedLocation}
+		<div class="color-white absolute top-8 right-2 bottom-8 z-10 w-auto rounded-lg bg-sidebar/90 px-4 py-10">
+			<button onclick={() => (selectedLocation = null)} class="absolute top-2 right-2">X</button>
+			<p class="text-sm">
+				Selected Location: Longitude: {selectedLocation.lng.toFixed(4)}, Latitude: {selectedLocation.lat.toFixed(4)}
+			</p>
+		</div>
 	{/if}
 </div>
