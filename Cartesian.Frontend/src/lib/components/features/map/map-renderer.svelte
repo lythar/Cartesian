@@ -30,7 +30,7 @@
 		},
 	});
 
-	let selectedLocation: { lng: number; lat: number } | null = null;
+	let selectedLocation: { lng: number; lat: number } | null = $state(null);
 
 	onMount(async () => {
 		let center: [number, number];
