@@ -5,6 +5,7 @@
 		GeolocationService,
 		GeolocationServiceLive,
 	} from "$lib/effects/services/geolocation.service";
+	import { useSidebar } from "$lib/components/ui/sidebar";
 	import { Effect, Runtime } from "effect";
 	import mapboxgl from "mapbox-gl";
 	import { onMount } from "svelte";
@@ -21,6 +22,7 @@
 	let map: mapboxgl.Map | undefined = $state();
 	const mapStyle = "mapbox://styles/mufarodev/cmhty7aqj001h01s9cqw2ao4g";
 	const runtime = Runtime.defaultRuntime;
+	const sidebar = useSidebar();
 
 	const approximateLocation = createIpGeoQuery({
 		query: {
@@ -66,21 +68,29 @@
 	$effect(() => {
 		if (!map) return;
 
-		const handleResize = () => {
-  		if (!map) return;
+		const container = document.getElementById("lythar-map");
+		if (!container) return;
 
-			map.resize();
-		};
+    let resizeTimeout: NodeJS.Timeout;
 
-		window.addEventListener("resize", handleResize);
+		const resizeObserver = new ResizeObserver(() => {
+			clearTimeout(resizeTimeout);
+      // This timeout causes the resize to not flush the canvas data for a split second?
+      resizeTimeout = setTimeout(() => {
+				map?.resize();
+			}, 1);
+		});
+
+		resizeObserver.observe(container);
 
 		return () => {
-			window.removeEventListener("resize", handleResize);
+			clearTimeout(resizeTimeout);
+			resizeObserver.disconnect();
 		};
 	});
 </script>
 
-<div class="relative overflow-hidden w-full h-full flex flex-col p-2 pl-0">
+<div class="relative overflow-hidden w-full h-full flex flex-col">
 	<div id="lythar-map" class="flex-1 rounded-2xl"></div>
 	{#if map}
 		<GeolocateControl {map} />

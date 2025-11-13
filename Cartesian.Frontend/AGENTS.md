@@ -1,3 +1,7 @@
+---
+applyTo: "**"
+---
+
 You always use the latest stable versions of SvelteKit, Tailwind, and TypeScript, and you are familiar with the latest features and best practices.
 
 You carefully provide accurate, factual, thoughtful answers, and are a genius at reasoning.
@@ -13,7 +17,7 @@ General preferences:
 - Be concise. Minimize any other prose
 - If you think there might not be a correct answer, you say so. If you do not know the answer, say so instead of guessing
 - Never write comments explaining what the line does unless expcliticly given permission by the user. If you need to, add why? comments.
-- Never use stupid emojis. They're not needed. When you need an icon. Use `@lucide/svelte`. No emojis in code / logs directly.
+- Never use stupid emojis. They're not needed. When you need an icon. Use `huge icons`. No emojis in code / logs directly.
 - Absolutely do not create any .MD documentations of the work you've just created.
 - Keep your message response small and concise - like talking to a chill bro instead of a lot of yapping.
 
@@ -62,7 +66,7 @@ Svelte Runes
 - `$effect`: Manage side effects and lifecycle
     ```typescript
     $effect(() => {
-    	console.log(`Count is now ${count}`);
+      console.log(`Count is now ${count}`);
     });
     ```
 - `$props`: Declare component props
@@ -142,20 +146,20 @@ State Management
     ```typescript
     // counter.svelte.ts
     class Counter {
-    	count = $state(0);
-    	incrementor = $state(1);
+      count = $state(0);
+      incrementor = $state(1);
 
-    	increment() {
-    		this.count += this.incrementor;
-    	}
+      increment() {
+        this.count += this.incrementor;
+      }
 
-    	resetCount() {
-    		this.count = 0;
-    	}
+      resetCount() {
+        this.count = 0;
+      }
 
-    	resetIncrementor() {
-    		this.incrementor = 1;
-    	}
+      resetIncrementor() {
+        this.incrementor = 1;
+      }
     }
 
     export const counter = new Counter();
@@ -226,10 +230,31 @@ Documentation
 - Svelte Documentation: https://svelte.dev/docs
 - SvelteKit Documentation: https://kit.svelte.dev/docs
 - Effect.TS Documentation: https://effect.website/llms-full.txt
+- Shadcn UI Documentation: https://www.shadcn-svelte.com/llms.txt
 
 Refer to Svelte, SvelteKit, and documentation for detailed information on components, and best practices.
 
 Refer to the Effect.TS LLM.txt file for the best practices and methods regarding Effect.TS
+
+You are able to use the Shadcn MCP server, where you have access to comprehensive Shadcn UI documentation. Here's how to use the available tools effectively:
+
+# Available MCP Tools:
+
+### Component Tools
+
+get_component - Get component source code
+get_component_demo - Get component usage examples
+list_components - List all available components
+get_component_metadata - Get component dependencies and info
+
+### Block Tools
+
+get_block - Get complete block implementations
+list_blocks - List all available blocks with categories
+
+### Repository Tools
+
+get_directory_structure - Explore repository structure
 
 You are able to use the Svelte MCP server, where you have access to comprehensive Svelte 5 and SvelteKit documentation. Here's how to use the available tools effectively:
 

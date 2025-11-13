@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Hosting;
+
 var builder = DistributedApplication.CreateBuilder(args);
 
 // builder.AddDockerComposeEnvironment("cartesian-compose");
