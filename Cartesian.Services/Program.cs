@@ -1,3 +1,5 @@
+using Cartesian.Services.Account;
+using Cartesian.Services.Account.Errors;
 using Cartesian.Services.Database;
 using Cartesian.Services.Endpoints;
 using Microsoft.AspNetCore.Identity;
@@ -24,6 +26,25 @@ builder.Services.AddIdentity<CartesianUser, IdentityRole>(options =>
     })
     .AddEntityFrameworkStores<CartesianDbContext>()
     .AddDefaultTokenProviders();
+builder.Services.AddAuthorization();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Events.OnRedirectToLogin = context =>
+    {
+        context.Response.StatusCode = 401;
+        return context.Response.WriteAsJsonAsync(new AuthorizationFailedError(context.Request.Path));
+    };
+
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        context.Response.StatusCode = 403;
+
+        return Task.CompletedTask;
+    };
+});
+
+builder.Services.AddScoped<ClaimsService>();
 
 var app = builder.Build();
 
@@ -32,11 +53,15 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 
     app.UseCors(x => x
+        .WithOrigins("http://localhost:5173")
         .AllowAnyMethod()
         .AllowAnyHeader()
-        .AllowAnyOrigin()
+        .AllowCredentials()
     );
 }
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseHttpsRedirection();
 

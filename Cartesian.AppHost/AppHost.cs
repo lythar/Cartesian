@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Hosting;
+using Projects;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
@@ -11,7 +11,7 @@ var postgres = builder.AddPostgres("postgres")
 
 var cartesianDb = postgres.AddDatabase("database", "cartesian");
 
-var services = builder.AddProject<Projects.Cartesian_Services>("services")
+var services = builder.AddProject<Cartesian_Services>("services")
     .WithReference(cartesianDb);
 
 builder.AddNodeApp("frontend", "../Cartesian.Frontend", "dev")
