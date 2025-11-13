@@ -73,8 +73,12 @@
 			markers.forEach((m) => m.remove());
 			markers = [];
 
+			const markerElement = document.createElement("img");
+			markerElement.src = "/lythar.svg";
+			markerElement.className = "size-12 transform -translate-y-1/2";
 			const marker = new mapboxgl.Marker({
 				color: "#BB0000",
+				element: markerElement,
 			})
 				.setLngLat(e.lngLat)
 				.addTo(map!);
