@@ -1,4 +1,7 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
-  "example_message": "Hello world {username}"
+  "nav_home": "Home",
+  "nav_map": "Map",
+  "nav_settings": "Settings",
+  "nav_group_main_app": "Application"
 }

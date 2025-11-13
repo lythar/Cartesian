@@ -4,8 +4,11 @@
 	import { QueryClientProvider } from "@tanstack/svelte-query";
 	import { queryClient } from "$lib/api/query-client";
 	import ThemeShell from "$lib/components/theme-shell.svelte";
+	import { createLayoutContext } from "$lib/context/layout.svelte";
 
 	let { children } = $props();
+
+	createLayoutContext();
 </script>
 
 <svelte:head>

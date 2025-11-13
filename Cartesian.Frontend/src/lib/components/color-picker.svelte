@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { getLayoutContext } from "$lib/context/layout.svelte";
 	import { themeApplier } from "$lib/material-gen";
 
 	let color = $state(themeApplier.sourceColor.current);

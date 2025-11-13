@@ -25,7 +25,7 @@ export default defineConfig(async ({ command }) => {
 
 	return {
 		plugins: [
-			paraglideVitePlugin({ project: "./project.inlang", outdir: "./src/paraglide" }),
+			paraglideVitePlugin({ project: "./project.inlang", outdir: "./src/lib/paraglide" }),
 			tailwindcss(),
 			sveltekit(),
 		],

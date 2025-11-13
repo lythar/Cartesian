@@ -62,10 +62,26 @@
 			zoom,
 		});
 	});
+
+	$effect(() => {
+		if (!map) return;
+
+		const handleResize = () => {
+  		if (!map) return;
+
+			map.resize();
+		};
+
+		window.addEventListener("resize", handleResize);
+
+		return () => {
+			window.removeEventListener("resize", handleResize);
+		};
+	});
 </script>
 
-<div class="relative flex min-h-svh w-svw flex-col overflow-hidden">
-	<div id="lythar-map" class="w-full flex-1 rounded-4xl"></div>
+<div class="relative overflow-hidden w-full h-full flex flex-col p-2 pl-0">
+	<div id="lythar-map" class="flex-1 rounded-2xl"></div>
 	{#if map}
 		<GeolocateControl {map} />
 	{/if}

@@ -1,8 +1,9 @@
 <script lang="ts">
 	import mapboxgl from "mapbox-gl";
 	import { onMount } from "svelte";
-	import { Navigation06Icon } from "@hugeicons/core-free-icons";
+	import { Navigation03Icon, Navigation04Icon, Navigation06Icon } from "@hugeicons/core-free-icons";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
+	import { Button } from "$lib/components/ui/button";
 
 	interface Props {
 		map: mapboxgl.Map;
@@ -23,15 +24,18 @@
 		});
 
 		geolocateControl.on("geolocate", () => {
-			geolocateState = "active";
+			// geolocateState = "active";
+      console.log('Geolocation event triggered');
 		});
 
 		geolocateControl.on("trackuserlocationstart", () => {
 			geolocateState = "active";
+      console.log('User location tracking started');
 		});
 
 		geolocateControl.on("trackuserlocationend", () => {
 			geolocateState = "passive";
+      console.log('User location tracking ended');
 		});
 
 		geolocateControl.on("error", () => {
@@ -54,19 +58,21 @@
 	function handleRecenter() {
 		if (geolocateControl) {
 			geolocateControl.trigger();
-		}
-	}
+      geolocateState = "active";
+    }
+  }
 </script>
 
 {#if geolocateState === "passive"}
-	<button
+	<Button
 		type="button"
-		class="absolute top-4 right-4 z-10 flex h-[29px] w-[29px] items-center justify-center rounded bg-white shadow-md transition-opacity hover:bg-gray-50"
+		class="absolute top-4 right-4 z-10 w-28 h-12 flex items-center justify-center"
 		onclick={handleRecenter}
+    size="lg"
 		aria-label="Recenter map on my location"
 	>
-		<HugeiconsIcon icon={Navigation06Icon} />
-	</button>
+		<HugeiconsIcon size={24} strokeWidth={2} className="fill-current/50 size-6" icon={Navigation03Icon} /> Recenter
+	</Button>
 {/if}
 
 <style>

@@ -1,4 +1,7 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
-  "example_message": "Guten Tag {username}"
+  "nav_home": "Dom",
+  "nav_map": "Mapa",
+  "nav_settings": "Ustawienia",
+  "nav_group_main_app": "Aplikacja"
 }
