@@ -8,15 +8,11 @@ const stripAbsolutePath = (filenames) => {
 export default {
   "Cartesian.Frontend/src/**/*.{ts,svelte}": (filenames) => {
     const files = stripAbsolutePath(filenames).join(" ");
-    return [
-      `sh -c "cd Cartesian.Frontend && pnpm exec prettier --write ${files}"`,
-    ];
+    return [`pnpm --filter @repo/frontend exec prettier --write ${files}`];
   },
   "Cartesian.Frontend/**/*.{json,md}": (filenames) => {
     const files = stripAbsolutePath(filenames).join(" ");
-    return [
-      `sh -c "cd Cartesian.Frontend && pnpm exec prettier --write ${files}"`,
-    ];
+    return [`pnpm --filter @repo/frontend exec prettier --write ${files}`];
   },
   "**/*.cs": ["dotnet format --verify-no-changes --include"],
 };
