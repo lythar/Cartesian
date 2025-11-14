@@ -5,6 +5,7 @@
   import { m } from "$lib/paraglide/messages";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import NavigationHeader from "./navigation-header.svelte";
+	import MobileNavigation from "./mobile-navigation.svelte";
 
   const navigationElements = [
     { name: "nav_home", href: "/app/home", icon: Home07Icon },
@@ -15,6 +16,10 @@
   const layout = getLayoutContext();
 
   const { children } = $props();
+
+	function getTranslation(key: string) {
+		return m[key as keyof typeof m]();
+	}
 </script>
 
 {#snippet MainAppNavigation()}
@@ -41,9 +46,7 @@
     <NavigationHeader />
     <Sidebar.Content>
       {#if layout.isMobile}
-        <div>
-
-        </div>
+        
       {:else}
         <Sidebar.Group>
           <Sidebar.GroupLabel>{m.nav_group_main_app()}</Sidebar.GroupLabel>
@@ -57,11 +60,16 @@
     </Sidebar.Content>
   </Sidebar.Root>
   <Sidebar.Inset>
-    <main class="flex flex-1 relative flex-col overflow-hidden">
-      <div class="absolute left-2 top-2 z-10">
-        <Sidebar.Trigger />
-      </div>
+    <main class="flex flex-1 relative flex-col overflow-hidden {layout.isMobile ? 'pb-[72px]' : ''}">
+      {#if !layout.isMobile}
+        <div class="absolute left-2 top-2 z-10">
+          <Sidebar.Trigger />
+        </div>
+      {/if}
       {@render children?.()}
     </main>
   </Sidebar.Inset>
+  {#if layout.isMobile}
+    <MobileNavigation {navigationElements} translationFunction={getTranslation} />
+  {/if}
 </Sidebar.SidebarProvider>
