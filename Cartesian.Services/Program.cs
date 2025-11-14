@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.AddMinioClient("cartesian-storage");
 builder.AddNpgsqlDbContext<CartesianDbContext>("cartesian");
 builder.AddServiceDefaults();
 

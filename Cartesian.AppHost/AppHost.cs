@@ -11,8 +11,13 @@ var postgres = builder.AddPostgres("postgres")
 
 var cartesianDb = postgres.AddDatabase("database", "cartesian");
 
+var cartesianStorage = builder.AddMinioContainer("cartesian-storage")
+    .WithHostPort(41022)
+    .WithDataVolume();
+
 var services = builder.AddProject<Cartesian_Services>("services")
-    .WithReference(cartesianDb);
+    .WithReference(cartesianDb)
+    .WithReference(cartesianStorage);
 
 builder.AddNodeApp("frontend", "../Cartesian.Frontend", "dev")
     .WithPnpm()
