@@ -6,6 +6,7 @@
 	import Label from "$lib/components/ui/label/label.svelte";
 	import { useSidebar } from "$lib/components/ui/sidebar";
 	import Textarea from "$lib/components/ui/textarea/textarea.svelte";
+	import { getLayoutContext } from "$lib/context/layout.svelte";
 	import type { IpGeo } from "$lib/effects/schemas/ip-geo.schema";
 	import {
 		GeolocationService,
@@ -129,7 +130,7 @@
 		<GeolocateControl {map} />
 	{/if}
 
-	{#if selectedLocation}
+	{#if selectedLocation && getLayoutContext().isDesktop}
 		<!-- prolly should be in a seperate component -->
 		<div class="absolute top-10 right-2 bottom-10 rounded-2xl bg-background p-10">
 			<Button
