@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { HugeiconsIcon } from "@hugeicons/svelte";
+	import { getPaneContext } from "$lib/context/pane.svelte";
 
 	interface NavigationElement {
 		name: string;
-		href: string;
+		id: string;
 		icon: any;
 	}
 
@@ -13,6 +14,14 @@
 	}
 
 	const { navigationElements, translationFunction }: Props = $props();
+
+	const paneManager = getPaneContext();
+
+	let isActive = (id: string) => paneManager.activeLeftPane === id || paneManager.activeRightPane === id;
+
+	function handleNavigation(id: string) {
+		paneManager.activatePane(id);
+	}
 
 	let drawerY = $state(0);
 	let isDragging = $state(false);
@@ -115,14 +124,15 @@
 
 	<nav class="fixed bottom-0 left-0 right-0 bg-sidebar z-50" style="height: {NAV_HEIGHT}px;">
 		<div class="flex items-center justify-around h-full px-4">
-			{#each navigationElements as element (element.href)}
-				<a
-					href={element.href}
-					class="flex flex-col items-center justify-center gap-1 flex-1 py-2 text-muted-foreground hover:text-foreground transition-colors active:scale-95"
+			{#each navigationElements as element (element.id)}
+				<button
+					type="button"
+					onclick={() => handleNavigation(element.id)}
+					class="flex flex-col items-center justify-center gap-1 flex-1 py-2 transition-colors active:scale-95 border-b-2 {isActive(element.id) ? 'text-foreground border-primary' : 'text-muted-foreground hover:text-foreground border-transparent'}"
 				>
 					<HugeiconsIcon icon={element.icon} strokeWidth={2} className="w-6 h-6" />
 					<span class="text-xs font-medium">{translationFunction(element.name)}</span>
-				</a>
+				</button>
 			{/each}
 		</div>
 	</nav>

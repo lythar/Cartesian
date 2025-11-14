@@ -10,6 +10,7 @@
 	import mapboxgl from "mapbox-gl";
 	import { onMount } from "svelte";
 	import GeolocateControl from "./geolocate-control.svelte";
+	import PaneRenderer from "$lib/components/layout/pane-renderer.svelte";
 
 	interface Props {
 		ipGeo: IpGeo | null;
@@ -31,7 +32,7 @@
 	});
 
 	let selectedLocation: { lng: number; lat: number } | null = $state(null);
-	
+
 	let markers = $state<mapboxgl.Marker[]>([]);
 
 	const handleMapClick = (e: mapboxgl.MapMouseEvent) => {
@@ -118,6 +119,9 @@
 
 <div class="relative overflow-hidden w-full h-full flex flex-col">
 	<div id="lythar-map" class="flex-1 rounded-2xl"></div>
+
+	<PaneRenderer />
+
 	{#if map}
 		<GeolocateControl {map} />
 	{/if}
