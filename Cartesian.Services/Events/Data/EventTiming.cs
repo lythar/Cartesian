@@ -1,4 +1,4 @@
-namespace Cartesian.Services.Events.Models;
+namespace Cartesian.Services.Events.Data;
 
 public enum EventTiming
 {

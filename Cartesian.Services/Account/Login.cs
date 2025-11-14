@@ -1,5 +1,6 @@
+using Cartesian.Services.Account.Data;
+using Cartesian.Services.Account.Entities;
 using Cartesian.Services.Account.Errors;
-using Cartesian.Services.Account.Types;
 using Cartesian.Services.Database;
 using Cartesian.Services.Endpoints;
 using Microsoft.AspNetCore.Authentication;
@@ -39,10 +40,10 @@ public class Login : IEndpoint
 
         logger.LogInformation("User {Email} logged in at {Time}.", user.Email, DateTime.UtcNow);
 
-        return Results.Ok(new LoginSuccess(new MyUser(user)));
+        return Results.Ok(new LoginSuccess(user.ToMyUserDto()));
     }
 
     private record LoginBody(string Email, string Password);
 
-    private record LoginSuccess(MyUser Me);
+    private record LoginSuccess(MyUserDto Me);
 }

@@ -1,8 +1,8 @@
-using Cartesian.Services.Communities;
-using Cartesian.Services.Database;
-using Cartesian.Services.Events.Models;
+using Cartesian.Services.Account.Entities;
+using Cartesian.Services.Communities.Entities;
+using Cartesian.Services.Events.Data;
 
-namespace Cartesian.Services.Events;
+namespace Cartesian.Services.Events.Entities;
 
 public class Event
 {
@@ -16,4 +16,8 @@ public class Event
     public List<EventTag> Tags { get; set; } = [];
     public List<EventWindow> Windows { get; set; } = [];
     public List<CartesianUser> Subscribers { get; set; } = [];
+
+    public EventDto ToDto() =>
+        new(Id, Name, Description, Owner.ToDto(), Community?.ToDto(), Visibility, Timing, Tags,
+            Windows.Select(w => w.ToDto()), Subscribers.Select(s => s.ToDto()));
 }

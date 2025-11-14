@@ -1,6 +1,6 @@
+using Cartesian.Services.Account.Data;
+using Cartesian.Services.Account.Entities;
 using Cartesian.Services.Account.Errors;
-using Cartesian.Services.Account.Types;
-using Cartesian.Services.Database;
 using Cartesian.Services.Endpoints;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
@@ -39,10 +39,10 @@ public class CreateAccount : IEndpoint
         await httpContext.SignInAsync(IdentityConstants.ApplicationScheme, principal, authProperties);
 
         logger.LogInformation("Created new user with ID {UserId}", user.Id);
-        return Results.Ok(new CreateAccountSuccess(new MyUser(user)));
+        return Results.Ok(new CreateAccountSuccess(user.ToMyUserDto()));
     }
 
     private record CreateAccountBody(string Username, string Email, string Password);
 
-    private record CreateAccountSuccess(MyUser Me);
+    private record CreateAccountSuccess(MyUserDto Me);
 }

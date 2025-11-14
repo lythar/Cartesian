@@ -31,4 +31,8 @@
         <ProjectReference Include="..\Cartesian.ServiceDefaults\Cartesian.ServiceDefaults.csproj"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Media\Data\" />
+    </ItemGroup>
+
 </Project>

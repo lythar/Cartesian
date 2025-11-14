@@ -1,7 +1,8 @@
-using Cartesian.Services.Database;
+using Cartesian.Services.Account.Entities;
+using Cartesian.Services.Events.Data;
 using NetTopologySuite.Geometries;
 
-namespace Cartesian.Services.Events.Models;
+namespace Cartesian.Services.Events.Entities;
 
 public class EventWindow
 {
@@ -13,4 +14,7 @@ public class EventWindow
     public List<CartesianUser> Participants { get; set; } = [];
     public DateTime? StartTime { get; set; }
     public DateTime? EndTime { get; set; }
+
+    public EventWindowDto ToDto() =>
+        new(Id, EventId, Title, Description, Location, Participants.Select(p => p.ToDto()), StartTime, EndTime);
 }

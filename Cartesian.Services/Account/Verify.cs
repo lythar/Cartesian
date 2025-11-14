@@ -1,5 +1,6 @@
 using System.Security.Claims;
-using Cartesian.Services.Account.Types;
+using Cartesian.Services.Account.Data;
+using Cartesian.Services.Account.Entities;
 using Cartesian.Services.Database;
 using Cartesian.Services.Endpoints;
 using Microsoft.AspNetCore.Identity;
@@ -24,10 +25,10 @@ public class Verify : IEndpoint
 
         var claims = claimsPrincipal.Claims.Select(c => new ClaimSummary(c.Type, c.Value));
 
-        return Results.Ok(new VerifySuccess(new MyUser(user), claims));
+        return Results.Ok(new VerifySuccess(user.ToMyUserDto(), claims));
     }
 
     private record ClaimSummary(string Type, string Value);
 
-    private record VerifySuccess(MyUser Me, IEnumerable<ClaimSummary> Claims);
+    private record VerifySuccess(MyUserDto Me, IEnumerable<ClaimSummary> Claims);
 }

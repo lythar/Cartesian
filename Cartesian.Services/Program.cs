@@ -1,4 +1,5 @@
 using Cartesian.Services.Account;
+using Cartesian.Services.Account.Entities;
 using Cartesian.Services.Account.Errors;
 using Cartesian.Services.Database;
 using Cartesian.Services.Endpoints;

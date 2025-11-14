@@ -1,5 +1,4 @@
-using Cartesian.Services.Events;
-using Cartesian.Services.Events.Models;
+using Cartesian.Services.Account.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
