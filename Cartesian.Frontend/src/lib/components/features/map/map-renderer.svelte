@@ -33,12 +33,11 @@
 
 	let selectedLocation: { lng: number; lat: number } | null = $state(null);
 
-	let markers = $state<mapboxgl.Marker[]>([]);
+	let curMarker = $state<mapboxgl.Marker | null>(null);
 
 	const handleMapClick = (e: mapboxgl.MapMouseEvent) => {
 		// Remove previous marker
-		markers.forEach((m) => m.remove());
-		markers = [];
+		curMarker?.remove();
 
 		const markerElement = document.createElement("img");
 		markerElement.src = "/lythar.svg";
@@ -52,7 +51,7 @@
 
 		selectedLocation = { lng: e.lngLat.lng, lat: e.lngLat.lat };
 
-		markers = [marker];
+		curMarker = marker;
 	};
 
 	onMount(async () => {
