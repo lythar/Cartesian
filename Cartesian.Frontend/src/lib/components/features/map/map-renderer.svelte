@@ -10,6 +10,10 @@
 	import mapboxgl from "mapbox-gl";
 	import { onMount } from "svelte";
 	import GeolocateControl from "./geolocate-control.svelte";
+	import SearchBar from "./search-bar.svelte";
+	import UserMenu from "./user-menu.svelte";
+	import FabMenu from "./fab-menu.svelte";
+	import MapControls from "./map-controls.svelte";
 
 	interface Props {
 		ipGeo: IpGeo | null;
@@ -118,7 +122,12 @@
 
 <div class="relative overflow-hidden w-full h-full flex flex-col">
 	<div id="lythar-map" class="flex-1 rounded-2xl"></div>
+
 	{#if map}
+		<SearchBar />
+		<UserMenu />
+		<FabMenu />
+		<MapControls {map} />
 		<GeolocateControl {map} />
 	{/if}
 
