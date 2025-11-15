@@ -1,26 +1,26 @@
 <script lang="ts">
 	import { createIpGeoQuery } from "$lib/api";
+	import Button from "$lib/components/ui/button/button.svelte";
+	import Input from "$lib/components/ui/input/input.svelte";
+	import Label from "$lib/components/ui/label/label.svelte";
+	import { useSidebar } from "$lib/components/ui/sidebar";
+	import Textarea from "$lib/components/ui/textarea/textarea.svelte";
+	import { getLayoutContext } from "$lib/context/layout.svelte";
 	import type { IpGeo } from "$lib/effects/schemas/ip-geo.schema";
 	import {
 		GeolocationService,
 		GeolocationServiceLive,
 	} from "$lib/effects/services/geolocation.service";
-	import { useSidebar } from "$lib/components/ui/sidebar";
 	import { Effect, Runtime } from "effect";
 	import mapboxgl from "mapbox-gl";
+	import { mode } from "mode-watcher";
 	import { onMount } from "svelte";
+	import FabMenu from "./fab-menu.svelte";
 	import GeolocateControl from "./geolocate-control.svelte";
+	import MapControls from "./map-controls.svelte";
+	import { getLightingPreset } from "./map-utils";
 	import SearchBar from "./search-bar.svelte";
 	import UserMenu from "./user-menu.svelte";
-	import FabMenu from "./fab-menu.svelte";
-	import MapControls from "./map-controls.svelte";
-	import Button from "$lib/components/ui/button/button.svelte";
-	import Label from "$lib/components/ui/label/label.svelte";
-	import Input from "$lib/components/ui/input/input.svelte";
-	import { getLayoutContext } from "$lib/context/layout.svelte";
-	import Textarea from "$lib/components/ui/textarea/textarea.svelte";
-	import { mode } from "mode-watcher";
-	import { getLightingPreset } from "./map-utils";
 
 	interface Props {
 		ipGeo: IpGeo | null;
@@ -96,14 +96,52 @@
 			style: mapStyle,
 			center,
 			zoom,
-      config: {
-        basemap: {
-          lightPreset: getLightingPreset(mode.current || "light"),
-        }
-      }
+			config: {
+				basemap: {
+					lightPreset: getLightingPreset(mode.current || "light"),
+				},
+			},
 		});
 
 		map.on("click", handleMapClick);
+
+		map.on("load", () => {
+			map!.addSource("events", {
+				type: "geojson",
+				generateId: true,
+				data: "https://docs.mapbox.com/mapbox-gl-js/assets/earthquakes.geojson", // CHANGE THIS LATER TO ACTUAL EVENTS DATA
+				cluster: true,
+				clusterMaxZoom: 14,
+				clusterRadius: 50,
+			});
+
+			map!.addLayer({
+				id: "clusters",
+				type: "circle",
+				source: "events",
+				filter: ["has", "point_count"],
+				paint: {
+					"circle-color": mode.current == "light" ? "#FFFFFF" : "#101010",
+					"circle-radius": ["step", ["get", "point_count"], 20, 100, 30, 750, 40],
+					"circle-emissive-strength": 1,
+				},
+			});
+
+			map!.addLayer({
+				id: "cluster-count",
+				type: "symbol",
+				source: "events",
+				filter: ["has", "point_count"],
+				layout: {
+					"text-field": ["get", "point_count_abbreviated"],
+					"text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+					"text-size": 12,
+				},
+				paint: {
+					"text-color": mode.current == "light" ? "#101010" : "#FFFFFF",
+				},
+			});
+		});
 	});
 
 	$effect(() => {
@@ -113,7 +151,7 @@
 		if (!currentMode) return;
 
 		const preset = getLightingPreset(currentMode);
-    map.setConfigProperty('basemap', 'lightPreset', preset);
+		map.setConfigProperty("basemap", "lightPreset", preset);
 	});
 
 	$effect(() => {
@@ -122,12 +160,12 @@
 		const container = document.getElementById("lythar-map");
 		if (!container) return;
 
-    let resizeTimeout: NodeJS.Timeout;
+		let resizeTimeout: NodeJS.Timeout;
 
 		const resizeObserver = new ResizeObserver(() => {
 			clearTimeout(resizeTimeout);
-      // This timeout causes the resize to not flush the canvas data for a split second?
-      resizeTimeout = setTimeout(() => {
+			// This timeout causes the resize to not flush the canvas data for a split second?
+			resizeTimeout = setTimeout(() => {
 				map?.resize();
 			}, 1);
 		});
@@ -141,7 +179,7 @@
 	});
 </script>
 
-<div class="relative overflow-hidden w-full h-full flex flex-col">
+<div class="relative flex h-full w-full flex-col overflow-hidden">
 	<div id="lythar-map" class="flex-1 rounded-2xl"></div>
 
 	{#if map}
