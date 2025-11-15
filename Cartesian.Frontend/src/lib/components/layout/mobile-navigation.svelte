@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { HugeiconsIcon } from "@hugeicons/svelte";
-	import { getPaneContext } from "$lib/context/pane.svelte";
+	import { page } from "$app/stores";
 
 	interface NavigationElement {
 		name: string;
-		id: string;
+		href: string;
 		icon: any;
 	}
 
@@ -15,13 +15,7 @@
 
 	const { navigationElements, translationFunction }: Props = $props();
 
-	const paneManager = getPaneContext();
-
-	let isActive = (id: string) => paneManager.activeLeftPane === id || paneManager.activeRightPane === id;
-
-	function handleNavigation(id: string) {
-		paneManager.activatePane(id);
-	}
+	let isActive = (href: string) => $page.url.pathname === href;
 
 	let drawerY = $state(0);
 	let isDragging = $state(false);
@@ -124,15 +118,14 @@
 
 	<nav class="fixed bottom-0 left-0 right-0 bg-sidebar z-50" style="height: {NAV_HEIGHT}px;">
 		<div class="flex items-center justify-around h-full px-4">
-			{#each navigationElements as element (element.id)}
-				<button
-					type="button"
-					onclick={() => handleNavigation(element.id)}
-					class="flex flex-col items-center justify-center gap-1 flex-1 py-2 transition-colors active:scale-95 border-b-2 {isActive(element.id) ? 'text-foreground border-primary' : 'text-muted-foreground hover:text-foreground border-transparent'}"
+			{#each navigationElements as element (element.href)}
+				<a
+					href={element.href}
+					class="flex flex-col items-center justify-center gap-1 flex-1 py-2 transition-colors active:scale-95 border-b-2 {isActive(element.href) ? 'text-foreground border-primary' : 'text-muted-foreground hover:text-foreground border-transparent'}"
 				>
 					<HugeiconsIcon icon={element.icon} strokeWidth={2} className="w-6 h-6" />
 					<span class="text-xs font-medium">{translationFunction(element.name)}</span>
-				</button>
+				</a>
 			{/each}
 		</div>
 	</nav>

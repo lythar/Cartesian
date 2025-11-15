@@ -1,17 +1,11 @@
 <script lang="ts">
 	import { createIpGeoQuery } from "$lib/api";
-	import PaneRenderer from "$lib/components/layout/pane-renderer.svelte";
-	import Button from "$lib/components/ui/button/button.svelte";
-	import Input from "$lib/components/ui/input/input.svelte";
-	import Label from "$lib/components/ui/label/label.svelte";
-	import { useSidebar } from "$lib/components/ui/sidebar";
-	import Textarea from "$lib/components/ui/textarea/textarea.svelte";
-	import { getLayoutContext } from "$lib/context/layout.svelte";
 	import type { IpGeo } from "$lib/effects/schemas/ip-geo.schema";
 	import {
 		GeolocationService,
 		GeolocationServiceLive,
 	} from "$lib/effects/services/geolocation.service";
+	import { useSidebar } from "$lib/components/ui/sidebar";
 	import { Effect, Runtime } from "effect";
 	import mapboxgl from "mapbox-gl";
 	import { onMount } from "svelte";
@@ -38,11 +32,12 @@
 
 	let selectedLocation: { lng: number; lat: number } | null = $state(null);
 
-	let curMarker = $state<mapboxgl.Marker | null>(null);
+	let markers = $state<mapboxgl.Marker[]>([]);
 
 	const handleMapClick = (e: mapboxgl.MapMouseEvent) => {
 		// Remove previous marker
-		curMarker?.remove();
+		markers.forEach((m) => m.remove());
+		markers = [];
 
 		const markerElement = document.createElement("img");
 		markerElement.src = "/lythar.svg";
@@ -56,7 +51,7 @@
 
 		selectedLocation = { lng: e.lngLat.lng, lat: e.lngLat.lat };
 
-		curMarker = marker;
+		markers = [marker];
 	};
 
 	onMount(async () => {
@@ -102,12 +97,12 @@
 		const container = document.getElementById("lythar-map");
 		if (!container) return;
 
-		let resizeTimeout: NodeJS.Timeout;
+    let resizeTimeout: NodeJS.Timeout;
 
 		const resizeObserver = new ResizeObserver(() => {
 			clearTimeout(resizeTimeout);
-			// This timeout causes the resize to not flush the canvas data for a split second?
-			resizeTimeout = setTimeout(() => {
+      // This timeout causes the resize to not flush the canvas data for a split second?
+      resizeTimeout = setTimeout(() => {
 				map?.resize();
 			}, 1);
 		});
@@ -121,38 +116,18 @@
 	});
 </script>
 
-<div class="relative flex h-full w-full flex-col overflow-hidden">
+<div class="relative overflow-hidden w-full h-full flex flex-col">
 	<div id="lythar-map" class="flex-1 rounded-2xl"></div>
-
-	<PaneRenderer />
-
 	{#if map}
 		<GeolocateControl {map} />
 	{/if}
 
-	{#if selectedLocation && getLayoutContext().isDesktop}
-		<!-- prolly should be in a seperate component -->
-		<div class="absolute top-10 right-2 bottom-10 rounded-2xl bg-background p-10">
-			<Button
-				class="absolute top-10 right-10 mb-4 h-9 w-9"
-				onclick={() => (selectedLocation = null)}>X</Button
-			>
-			<h3 class="text-2xl font-bold">Add event</h3>
-			<form action="#" class="">
-				<Label for="event-title" class="mt-4 mb-2 block">Title</Label>
-				<Input id="event-title" type="text" />
-
-				<Label for="event-description" class="mt-4 mb-2 block">Description</Label>
-				<Textarea id="event-description" />
-
-				<Label for="start-time" class="mt-4 mb-2 block">Start Time</Label>
-				<Input id="start-time" type="datetime-local" />
-
-				<Label for="end-time" class="mt-4 mb-2 block">End Time</Label>
-				<Input id="end-time" type="datetime-local" />
-
-				<Button type="submit" class="mt-4 w-full">Create Event</Button>
-			</form>
+	{#if selectedLocation}
+		<div class="color-white absolute top-8 right-2 bottom-8 z-10 w-auto rounded-lg bg-sidebar/90 px-4 py-10">
+			<button onclick={() => (selectedLocation = null)} class="absolute top-2 right-2">X</button>
+			<p class="text-sm">
+				Selected Location: Longitude: {selectedLocation.lng.toFixed(4)}, Latitude: {selectedLocation.lat.toFixed(4)}
+			</p>
 		</div>
 	{/if}
 </div>

@@ -25,7 +25,7 @@
 {#if collapsible === "none"}
 	<div
 		class={cn(
-			"bg-sidebar text-sidebar-foreground w-(--sidebar-width) flex h-full flex-col",
+			"text-sidebar-foreground w-(--sidebar-width) flex h-full flex-col",
 			className
 		)}
 		bind:this={ref}
@@ -42,7 +42,7 @@
 			data-sidebar="sidebar"
 			data-slot="sidebar"
 			data-mobile="true"
-			class="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
+			class="text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
 			style="--sidebar-width: {SIDEBAR_WIDTH_MOBILE};"
 			{side}
 		>
@@ -95,7 +95,7 @@
 			<div
 				data-sidebar="sidebar"
 				data-slot="sidebar-inner"
-				class="bg-sidebar bg-transparent group-data-[variant=floating]:border-none flex h-full w-full flex-col group-data-[variant=floating]:rounded-2xl group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm"
+				class="group-data-[variant=floating]:border-none flex h-full w-full flex-col group-data-[variant=floating]:rounded-2xl group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm"
 			>
 				{@render children?.()}
 			</div>

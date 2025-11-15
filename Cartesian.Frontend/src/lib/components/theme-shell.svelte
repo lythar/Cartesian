@@ -2,7 +2,7 @@
 	import { themeApplier } from "$lib/material-gen";
 	import { ModeWatcher } from "mode-watcher";
 
-	themeApplier.initialize();
+	// themeApplier.initialize();
 </script>
 
 <ModeWatcher />
