@@ -4,6 +4,7 @@
 	import { Navigation03Icon, Navigation04Icon, Navigation06Icon } from "@hugeicons/core-free-icons";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import { Button } from "$lib/components/ui/button";
+	import { geolocateControl } from "./map-state";
 
 	interface Props {
 		map: mapboxgl.Map;
@@ -12,17 +13,8 @@
 	let { map }: Props = $props();
 
 	let geolocateState = $state("disabled");
-	let geolocateControl = $state<mapboxgl.GeolocateControl>();
 
 	onMount(() => {
-		geolocateControl = new mapboxgl.GeolocateControl({
-			positionOptions: {
-				enableHighAccuracy: true,
-			},
-			trackUserLocation: true,
-			showUserHeading: true,
-		});
-
 		geolocateControl.on("geolocate", () => {
 			// geolocateState = "active";
       console.log('Geolocation event triggered');

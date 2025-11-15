@@ -15,9 +15,9 @@
 <div class="absolute top-4 left-4 z-20 flex items-center gap-2">
 	<div
 		bind:this={containerRef}
-		class="relative flex gap-2 items-center rounded-full bg-background backdrop-blur-sm shadow-neu-highlight overflow-hidden px-2 py-2 h-14"
+		class="relative flex gap-2 items-center rounded-full bg-card backdrop-blur-sm shadow-neu-highlight overflow-hidden px-2 py-2 h-14"
 	>
-    <div class="flex items-center gap-2 w-70 h-10 px-2 bg-card rounded-full">
+    <div class="flex items-center gap-2 w-70 h-10 px-2 bg-secondary rounded-full">
       <HugeiconsIcon icon={Search01Icon} className="size-6 duotone-fill" />
       <div bind:this={inputWrapperRef} class="flex-1">
         <Input
@@ -30,7 +30,7 @@
     <Button
       variant={isAIMode ? "default" : "ghost"}
       size="lg"
-      class="rounded-full  bg-card h-10 w-10 flex items-center justify-center  active:scale-[0.98] transition-all duration-50"
+      class="rounded-full  bg-secondary h-10 w-10 flex items-center justify-center  active:scale-[0.98] transition-all duration-50"
       onclick={() => (isAIMode = !isAIMode)}
     >
       <HugeiconsIcon icon={AiMagicIcon} size={30} className="duotone-fill" />

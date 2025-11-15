@@ -1,10 +1,13 @@
 <script lang="ts">
 	import { Button } from "$lib/components/ui/button";
-	import { Plus, Minus, Locate, Map } from "@lucide/svelte";
 	import { animate } from "motion";
-	import type mapboxgl from "mapbox-gl";
 	import { getLightingPreset } from "./map-utils";
 	import { mode } from "mode-watcher";
+	import * as ButtonGroup from "$lib/components/ui/button-group/index";
+	import { HugeiconsIcon } from "@hugeicons/svelte";
+	import { Add01Icon, Gps02Icon, LayerIcon, Remove01Icon } from "@hugeicons/core-free-icons";
+	import { getLayoutContext } from "$lib/context/layout.svelte";
+	import { geolocateControl } from "./map-state";
 
 	interface Props {
 		map: mapboxgl.Map;
@@ -15,6 +18,8 @@
 	let mapStyleButtonRef: HTMLButtonElement | undefined = $state();
 
 	let mapStyle = $state<"streets" | "satellite">("streets");
+
+  const layout = getLayoutContext();
 
 	const styleMap = {
 		streets: "mapbox://styles/mapbox/standard",
@@ -37,78 +42,49 @@
 	}
 
 	function recenterMap() {
-		if (locateButtonRef) {
-			animate(
-				locateButtonRef,
-				{ transform: ["rotate(0deg)", "rotate(360deg)"] },
-				{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }
-			);
-		}
-
-		navigator.geolocation.getCurrentPosition(
-			(position) => {
-				map.flyTo({
-					center: [position.coords.longitude, position.coords.latitude],
-					zoom: 15,
-					essential: true,
-				});
-			},
-			(error) => {
-				console.error("Error getting location:", error);
-			}
-		);
+    geolocateControl.trigger();
 	}
 
 	function handleStyleChange() {
 		cycleMapStyle();
-		if (mapStyleButtonRef) {
-			animate(
-				mapStyleButtonRef,
-				{ transform: ["scale(1)", "scale(1.15)", "scale(1)"] },
-				{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }
-			);
-		}
 	}
 </script>
 
-<div class="absolute bottom-8 left-8 z-20 flex flex-col gap-3">
-	<div class="flex flex-col gap-1.5 rounded-2xl bg-sidebar/95 backdrop-blur-sm shadow-xl border border-border/50 p-1.5">
-		<Button
-			variant="ghost"
-			size="icon-lg"
-			class="size-14 hover:scale-105 transition-all duration-200"
-			onclick={() => map.zoomIn()}
-		>
-			<Plus class="size-5" />
-		</Button>
-		<div class="h-px bg-border mx-1"></div>
-		<Button
-			variant="ghost"
-			size="icon-lg"
-			class="size-14 hover:scale-105 transition-all duration-200"
-			onclick={() => map.zoomOut()}
-		>
-			<Minus class="size-5" />
-		</Button>
-	</div>
-
-	<Button
-		bind:this={locateButtonRef}
-		variant="ghost"
-		size="icon-lg"
-		class="size-14 rounded-2xl bg-sidebar/95 backdrop-blur-sm shadow-xl border border-border/50 hover:scale-105 transition-all duration-200"
-		onclick={recenterMap}
-	>
-		<Locate class="size-5" />
-	</Button>
-
-	<Button
-		bind:this={mapStyleButtonRef}
-		variant="ghost"
-		size="icon-lg"
-		class="size-14 rounded-2xl bg-sidebar/95 backdrop-blur-sm shadow-xl border border-border/50 hover:scale-105 transition-all duration-200"
-		onclick={handleStyleChange}
-	>
-		<Map class="size-5" />
-	</Button>
-</div>
+<ButtonGroup.Root orientation="vertical" class="absolute left-4 bottom-4 z-20 [&_button]:dark:bg-card [&_button]:dark:hover:bg-secondary">
+  {#if layout.isDesktop}
+    <ButtonGroup.Root orientation="vertical">
+      <Button
+        variant="outline"
+        size="icon-lg"
+        onclick={() => map.zoomIn()}
+      >
+        <HugeiconsIcon icon={Add01Icon} strokeWidth={2} />
+      </Button>
+      <Button
+        variant="outline"
+        size="icon-lg"
+        onclick={() => map.zoomOut()}
+      >
+        <HugeiconsIcon icon={Remove01Icon} strokeWidth={2} />
+      </Button>
+    </ButtonGroup.Root>
+  {/if}
+  <ButtonGroup.Root>
+    <Button
+      variant="outline"
+      size="icon-lg"
+      onclick={recenterMap}
+    >
+      <HugeiconsIcon icon={Gps02Icon} strokeWidth={2} />
+    </Button>
+  </ButtonGroup.Root>
+    <ButtonGroup.Root>
+    <Button
+      variant="outline"
+      size="icon-lg"
+      onclick={handleStyleChange}
+    >
+      <HugeiconsIcon icon={LayerIcon} strokeWidth={2} />
+    </Button>
+  </ButtonGroup.Root>
+</ButtonGroup.Root>
