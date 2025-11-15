@@ -14,6 +14,11 @@
 	import UserMenu from "./user-menu.svelte";
 	import FabMenu from "./fab-menu.svelte";
 	import MapControls from "./map-controls.svelte";
+	import Button from "$lib/components/ui/button/button.svelte";
+	import Label from "$lib/components/ui/label/label.svelte";
+	import Input from "$lib/components/ui/input/input.svelte";
+	import { getLayoutContext } from "$lib/context/layout.svelte";
+	import Textarea from "$lib/components/ui/textarea/textarea.svelte";
 
 	interface Props {
 		ipGeo: IpGeo | null;
@@ -131,12 +136,29 @@
 		<GeolocateControl {map} />
 	{/if}
 
-	{#if selectedLocation}
-		<div class="color-white absolute top-8 right-2 bottom-8 z-10 w-auto rounded-lg bg-sidebar/90 px-4 py-10">
-			<button onclick={() => (selectedLocation = null)} class="absolute top-2 right-2">X</button>
-			<p class="text-sm">
-				Selected Location: Longitude: {selectedLocation.lng.toFixed(4)}, Latitude: {selectedLocation.lat.toFixed(4)}
-			</p>
+	{#if selectedLocation && getLayoutContext().isDesktop}
+		<!-- prolly should be in a seperate component -->
+		<div class="absolute top-10 right-2 bottom-10 rounded-2xl bg-background p-10">
+			<Button
+				class="absolute top-10 right-10 mb-4 h-9 w-9"
+				onclick={() => (selectedLocation = null)}>X</Button
+			>
+			<h3 class="text-2xl font-bold">Add event</h3>
+			<form action="#" class="">
+				<Label for="event-title" class="mt-4 mb-2 block">Title</Label>
+				<Input id="event-title" type="text" />
+
+				<Label for="event-description" class="mt-4 mb-2 block">Description</Label>
+				<Textarea id="event-description" />
+
+				<Label for="start-time" class="mt-4 mb-2 block">Start Time</Label>
+				<Input id="start-time" type="datetime-local" />
+
+				<Label for="end-time" class="mt-4 mb-2 block">End Time</Label>
+				<Input id="end-time" type="datetime-local" />
+
+				<Button type="submit" class="mt-4 w-full">Create Event</Button>
+			</form>
 		</div>
 	{/if}
 </div>
