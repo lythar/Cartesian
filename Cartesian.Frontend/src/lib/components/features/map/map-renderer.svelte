@@ -19,6 +19,8 @@
 	import Input from "$lib/components/ui/input/input.svelte";
 	import { getLayoutContext } from "$lib/context/layout.svelte";
 	import Textarea from "$lib/components/ui/textarea/textarea.svelte";
+	import { mode } from "mode-watcher";
+	import { getLightingPreset } from "./map-utils";
 
 	interface Props {
 		ipGeo: IpGeo | null;
@@ -29,9 +31,8 @@
 	mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
 	let map: mapboxgl.Map | undefined = $state();
-	const mapStyle = "mapbox://styles/mufarodev/cmhty7aqj001h01s9cqw2ao4g";
+	const mapStyle = "mapbox://styles/mapbox/standard";
 	const runtime = Runtime.defaultRuntime;
-	const sidebar = useSidebar();
 
 	const approximateLocation = createIpGeoQuery({
 		query: {
@@ -95,9 +96,24 @@
 			style: mapStyle,
 			center,
 			zoom,
+      config: {
+        basemap: {
+          lightPreset: getLightingPreset(mode.current || "light"),
+        }
+      }
 		});
 
 		map.on("click", handleMapClick);
+	});
+
+	$effect(() => {
+		if (!map) return;
+
+		const currentMode = mode.current;
+		if (!currentMode) return;
+
+		const preset = getLightingPreset(currentMode);
+    map.setConfigProperty('basemap', 'lightPreset', preset);
 	});
 
 	$effect(() => {

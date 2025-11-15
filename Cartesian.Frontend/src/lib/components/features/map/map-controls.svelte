@@ -3,6 +3,8 @@
 	import { Plus, Minus, Locate, Map } from "@lucide/svelte";
 	import { animate } from "motion";
 	import type mapboxgl from "mapbox-gl";
+	import { getLightingPreset } from "./map-utils";
+	import { mode } from "mode-watcher";
 
 	interface Props {
 		map: mapboxgl.Map;
@@ -12,19 +14,26 @@
 	let locateButtonRef: HTMLButtonElement | undefined = $state();
 	let mapStyleButtonRef: HTMLButtonElement | undefined = $state();
 
-	let mapStyle = $state<"streets" | "dark" | "satellite">("streets");
+	let mapStyle = $state<"streets" | "satellite">("streets");
 
 	const styleMap = {
-		streets: "mapbox://styles/mufarodev/cmhty7aqj001h01s9cqw2ao4g",
-		dark: "mapbox://styles/mapbox/dark-v11",
-		satellite: "mapbox://styles/mapbox/satellite-streets-v12",
+		streets: "mapbox://styles/mapbox/standard",
+		satellite: "mapbox://styles/mapbox/standard-satellite",
 	};
 
 	function cycleMapStyle() {
-		const styles: Array<"streets" | "dark" | "satellite"> = ["streets", "dark", "satellite"];
+		const styles: Array<"streets" | "satellite"> = ["streets",  "satellite"];
 		const currentIndex = styles.indexOf(mapStyle);
 		mapStyle = styles[(currentIndex + 1) % styles.length];
-		map.setStyle(styleMap[mapStyle]);
+		map.setStyle(styleMap[mapStyle], {
+			config: {
+				basemap: {
+					lightPreset: getLightingPreset(mode.current || "light"),
+				}
+			},
+			localFontFamily: undefined,
+			localIdeographFontFamily: undefined
+		});
 	}
 
 	function recenterMap() {

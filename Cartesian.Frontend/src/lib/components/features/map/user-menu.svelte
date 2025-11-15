@@ -3,32 +3,34 @@
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 	import * as Avatar from "$lib/components/ui/avatar";
 	import { User, Settings, Bookmark, LogOut } from "@lucide/svelte";
+	import { HugeiconsIcon } from "@hugeicons/svelte";
+	import { Bookmark02Icon, Settings01Icon, UserIcon } from "@hugeicons/core-free-icons";
 </script>
 
-<div class="absolute top-6 right-6 z-20">
+<div class="absolute top-4 right-4 z-20">
 	<DropdownMenu.Root>
 		<DropdownMenu.Trigger>
 			<Button
 				variant="ghost"
 				size="icon"
-				class="size-16 rounded-full bg-sidebar/95 backdrop-blur-sm shadow-xl border border-border/50 hover:bg-accent/50 transition-all duration-300"
+				class="size-12 rounded-full bg-sidebar/95 backdrop-blur-sm shadow-xl hover:bg-accent/50 transition-all duration-300"
 			>
 				<Avatar.Root class="size-12">
-					<Avatar.Image src="" alt="User" />
+					<Avatar.Image src="https://cdn.discordapp.com/avatars/769702535124090904/4e4e332f4b64e5f31ab655d0184fe56a.webp?size=1024" alt="User" />
 					<Avatar.Fallback class="bg-primary text-primary-foreground text-lg font-semibold">
-						<User class="size-6" />
+            <HugeiconsIcon icon={UserIcon} className="duotone-fill" />
 					</Avatar.Fallback>
 				</Avatar.Root>
 			</Button>
 		</DropdownMenu.Trigger>
 		<DropdownMenu.Content
-			class="w-72 rounded-2xl bg-sidebar/95 backdrop-blur-sm shadow-2xl border border-border/50 p-2"
+			class="w-72 backdrop-blur-sm shadow-2xl border border-border/50 pb-3"
 			align="end"
 			sideOffset={12}
 		>
-			<div class="px-3 py-4 border-b border-border/50 mb-2">
+			<div class="px-3 py-4 mb-2">
 				<div class="flex items-center gap-3">
-					<Avatar.Root class="size-14">
+					<Avatar.Root class="size-12">
 						<Avatar.Image src="" alt="User" />
 						<Avatar.Fallback class="bg-primary text-primary-foreground text-lg font-semibold">
 							JD
@@ -41,27 +43,29 @@
 				</div>
 			</div>
 
-			<DropdownMenu.Group>
-				<DropdownMenu.Item class="gap-3 py-3 px-3 rounded-xl cursor-pointer">
-					<User class="size-5" />
+			<DropdownMenu.Group class="[&>div]:py-2 px-2">
+				<DropdownMenu.Item class="gap-3 cursor-pointer">
+           <HugeiconsIcon icon={UserIcon} className="size-5 duotone-fill" />
 					<span class="font-medium">Profile</span>
 				</DropdownMenu.Item>
-				<DropdownMenu.Item class="gap-3 py-3 px-3 rounded-xl cursor-pointer">
-					<Bookmark class="size-5" />
+				<DropdownMenu.Item class="gap-3 cursor-pointer">
+          <HugeiconsIcon icon={Bookmark02Icon} className="size-5 duotone-fill" />
 					<span class="font-medium">Saved Events</span>
 				</DropdownMenu.Item>
-				<DropdownMenu.Item class="gap-3 py-3 px-3 rounded-xl cursor-pointer">
-					<Settings class="size-5" />
+				<DropdownMenu.Item class="gap-3 cursor-pointer">
+           <HugeiconsIcon icon={Settings01Icon} className="size-5 duotone-fill" />
 					<span class="font-medium">Settings</span>
 				</DropdownMenu.Item>
 			</DropdownMenu.Group>
 
 			<DropdownMenu.Separator class="my-2" />
 
-			<DropdownMenu.Item class="gap-3 py-3 px-3 rounded-xl cursor-pointer text-destructive focus:text-destructive">
-				<LogOut class="size-5" />
-				<span class="font-medium">Logout</span>
-			</DropdownMenu.Item>
-		</DropdownMenu.Content>
+      <div class="px-2">
+        <DropdownMenu.Item class="gap-3 cursor-pointer ">
+          <LogOut class="size-5" />
+          <span class="font-medium">Logout</span>
+        </DropdownMenu.Item>
+      </div>
+    </DropdownMenu.Content>
 	</DropdownMenu.Root>
 </div>
