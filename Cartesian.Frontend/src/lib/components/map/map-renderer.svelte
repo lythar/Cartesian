@@ -162,6 +162,22 @@
           )
         }
       })
+
+      mapState.instance!.addInteraction("clusters-mouseenter", {
+        type: "mouseenter",
+        target: { layerId: "clusters" },
+        handler: () => {
+          mapState.instance!.getCanvas().style.cursor = "pointer";
+        }
+      });
+
+      mapState.instance!.addInteraction("clusters-mouseleave", {
+        type: "mouseleave",
+        target: { layerId: 'clusters' },
+        handler: () => {
+          mapState.instance!.getCanvas().style.cursor = "";
+        }
+      });
 		});
 	});
 
