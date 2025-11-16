@@ -46,6 +46,15 @@
 	let markers = $state<mapboxgl.Marker[]>([]);
 
 	const handleMapClick = (e: mapboxgl.MapMouseEvent) => {
+		const features = mapState.instance!.queryRenderedFeatures(e.point, {
+			layers: ["clusters"]
+		});
+	
+		// Don't add a marker if a cluster was clicked
+		if (features.length > 0) {
+			return;
+		}
+
 		// Remove previous marker
 		markers.forEach((m) => m.remove());
 		markers = [];
