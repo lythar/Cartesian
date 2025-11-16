@@ -27,7 +27,6 @@ public static class CartesianOpenApi
                     });
             }
 
-            // Dynamically register all CartesianError subclasses
             var errorTypes = Assembly.GetExecutingAssembly()
                 .GetTypes()
                 .Where(t => t.IsSubclassOf(typeof(CartesianError)) && !t.IsAbstract);
@@ -52,7 +51,6 @@ public static class CartesianOpenApi
 
                 var required = new HashSet<string> { "code", "message" };
 
-                // Add any additional properties specific to the error type
                 var typeProperties = errorType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
                     .Where(p => p.DeclaringType == errorType && p.Name != "Code" && p.Name != "Message");
 
@@ -68,26 +66,12 @@ public static class CartesianOpenApi
                     required.Add(propName);
                 }
 
-                // Replace existing schema if it exists
-                if (document.Components.Schemas.ContainsKey(errorName))
+                document.Components.Schemas[errorName] = new OpenApiSchema
                 {
-                    document.Components.Schemas[errorName] = new OpenApiSchema
-                    {
-                        Type = JsonSchemaType.Object,
-                        Properties = properties,
-                        Required = required
-                    };
-                }
-                else
-                {
-                    document.Components.Schemas.Add(errorName,
-                        new OpenApiSchema
-                        {
-                            Type = JsonSchemaType.Object,
-                            Properties = properties,
-                            Required = required
-                        });
-                }
+                    Type = JsonSchemaType.Object,
+                    Properties = properties,
+                    Required = required
+                };
             }
 
             return Task.CompletedTask;
@@ -95,43 +79,56 @@ public static class CartesianOpenApi
 
         options.AddOperationTransformer((operation, context, ct) =>
         {
+            var endpointType = context.Description.ActionDescriptor.EndpointMetadata
+                .OfType<MethodInfo>()
+                .FirstOrDefault()
+                ?.DeclaringType;
+
+            if (endpointType != null)
+            {
+                var namespaceParts = endpointType.Namespace?.Split('.') ?? [];
+
+                var tag = namespaceParts.Length > 0 ? namespaceParts[^1] : "Default";
+
+                operation.Tags = new HashSet<OpenApiTagReference> { new(tag) };
+            }
+
             var metadata = context.Description.ActionDescriptor.EndpointMetadata;
             var requiresAuth = metadata.Any(m => m is Microsoft.AspNetCore.Authorization.AuthorizeAttribute);
             var allowsAnonymous = metadata.Any(m => m is Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute);
 
-            if (requiresAuth && !allowsAnonymous)
+            if (!requiresAuth || allowsAnonymous) return Task.CompletedTask;
+
+            operation.Security ??= new List<OpenApiSecurityRequirement>();
+            var securityRequirement = new OpenApiSecurityRequirement();
+            securityRequirement.Add(
+                new OpenApiSecuritySchemeReference("Cookie"),
+                new List<string>()
+            );
+            operation.Security.Add(securityRequirement);
+
+            operation.Responses ??= new OpenApiResponses();
+            if (!operation.Responses.ContainsKey("401"))
             {
-                operation.Security ??= new List<OpenApiSecurityRequirement>();
-                var securityRequirement = new OpenApiSecurityRequirement();
-                securityRequirement.Add(
-                    new OpenApiSecuritySchemeReference("Cookie"),
-                    new List<string>()
-                );
-                operation.Security.Add(securityRequirement);
-
-                operation.Responses ??= new OpenApiResponses();
-                if (!operation.Responses.ContainsKey("401"))
+                operation.Responses.Add("401", new OpenApiResponse
                 {
-                    operation.Responses.Add("401", new OpenApiResponse
+                    Description = "Unauthorized - Authentication required",
+                    Content = new Dictionary<string, OpenApiMediaType>
                     {
-                        Description = "Unauthorized - Authentication required",
-                        Content = new Dictionary<string, OpenApiMediaType>
+                        ["application/json"] = new()
                         {
-                            ["application/json"] = new()
-                            {
-                                Schema = new OpenApiSchemaReference(nameof(AuthorizationFailedError))
-                            }
+                            Schema = new OpenApiSchemaReference(nameof(AuthorizationFailedError))
                         }
-                    });
-                }
+                    }
+                });
+            }
 
-                if (!operation.Responses.ContainsKey("403"))
+            if (!operation.Responses.ContainsKey("403"))
+            {
+                operation.Responses.Add("403", new OpenApiResponse
                 {
-                    operation.Responses.Add("403", new OpenApiResponse
-                    {
-                        Description = "Forbidden - Insufficient permissions"
-                    });
-                }
+                    Description = "Forbidden - Insufficient permissions"
+                });
             }
 
             return Task.CompletedTask;
