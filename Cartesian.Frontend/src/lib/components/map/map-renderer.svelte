@@ -147,15 +147,20 @@
         type: "click",
         target: { layerId: "clusters" },
         handler: e => {
-          const features = mapState.instance.queryRenderedFeatures(e.point, { layers: ["clusters"] });
-          const clusterId = features[0].properties.cluster_id;
-          mapState.instance!.getSource("events").getClusterExpansionZoom(
+          const features = mapState.instance!.queryRenderedFeatures(e.point, { layers: ["clusters"] });
+
+					if (!features.length) return;
+
+          const clusterId = features[0].properties!.cluster_id;
+
+					const source = mapState.instance!.getSource("events") as mapboxgl.GeoJSONSource;
+					source.getClusterExpansionZoom(
             clusterId,
-            (err, zoom) => {
+            (err: any, zoom: any ) => {
               if (err) return;
 
               mapState.instance!.easeTo({
-                center: features[0].geometry.coordinates,
+                center: (features[0].geometry as GeoJSON.Point).coordinates as [number, number],
                 zoom: zoom,
               })
             }
