@@ -38,8 +38,8 @@ public class UserQueryEndpoints : IEndpoint
     }
 
     async Task<IResult> GetPublicAccountById(CartesianDbContext dbContext, string accountId) =>
-        await dbContext.Users.Where(u => u.Id == accountId).Select(u => u.ToDto()).FirstOrDefaultAsync() is { } account
-            ? Results.Ok(account)
+        await dbContext.Users.Where(u => u.Id == accountId).FirstOrDefaultAsync() is { } account
+            ? Results.Ok(account.ToDto())
             : Results.NotFound(new AccountNotFoundError(accountId));
 
     async Task<IResult> GetPublicAccountsById(CartesianDbContext dbContext, [FromQuery] string[] accountIds) =>
