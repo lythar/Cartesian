@@ -3,6 +3,7 @@ using Cartesian.Services.Account;
 using Cartesian.Services.Database;
 using Cartesian.Services.Endpoints;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cartesian.Services.Communities;
@@ -18,9 +19,9 @@ public class CommunityQueryEndpoints : IEndpoint
     }
 
     async Task<IResult> GetCommunityById(CartesianDbContext dbContext, Guid communityId) =>
-        await dbContext.Communities.Include(c => c.Avatar)
-            .Where(c => c.Id == communityId)
-            .FirstOrDefaultAsync() is { } community
+        await dbContext.Communities.Include(c => c.Avatar).Where(c => c.Id == communityId).FirstOrDefaultAsync() is
+        {
+        } community
             ? Results.Ok(community.ToDto())
             : Results.NotFound(new CommunityNotFoundError(communityId.ToString()));
 
@@ -41,5 +42,9 @@ public class CommunityQueryEndpoints : IEndpoint
         return Results.Ok(communities.Select(c => c.ToDto()));
     }
 
-    record GetCommunityListRequest(bool OnlyJoined = false, bool ShowInviteOnly = true, int Limit = 50, int Skip = 0);
+    record GetCommunityListRequest(
+        [FromQuery(Name = "onlyJoined")] bool OnlyJoined = false,
+        [FromQuery(Name = "showInviteOnly")] bool ShowInviteOnly = true,
+        [FromQuery(Name = "limit")] int Limit = 50,
+        [FromQuery(Name = "skip")] int Skip = 0);
 }
