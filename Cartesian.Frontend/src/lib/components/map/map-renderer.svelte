@@ -3,7 +3,6 @@
 	import Button from "$lib/components/ui/button/button.svelte";
 	import Input from "$lib/components/ui/input/input.svelte";
 	import Label from "$lib/components/ui/label/label.svelte";
-	import { useSidebar } from "$lib/components/ui/sidebar";
 	import Textarea from "$lib/components/ui/textarea/textarea.svelte";
 	import { getLayoutContext } from "$lib/context/layout.svelte";
 	import type { IpGeo } from "$lib/effects/schemas/ip-geo.schema";
