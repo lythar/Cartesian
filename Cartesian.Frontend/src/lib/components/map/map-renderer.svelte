@@ -142,6 +142,26 @@
 					"text-color": mode.current == "light" ? "#101010" : "#FFFFFF",
 				},
 			});
+
+      mapState.instance!.addInteraction("click-clusters", {
+        type: "click",
+        target: { layerId: "clusters" },
+        handler: e => {
+          const features = mapState.instance.queryRenderedFeatures(e.point, { layers: ["clusters"] });
+          const clusterId = features[0].properties.cluster_id;
+          mapState.instance!.getSource("events").getClusterExpansionZoom(
+            clusterId,
+            (err, zoom) => {
+              if (err) return;
+
+              mapState.instance!.easeTo({
+                center: features[0].geometry.coordinates,
+                zoom: zoom,
+              })
+            }
+          )
+        }
+      })
 		});
 	});
 
