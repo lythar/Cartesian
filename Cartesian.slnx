@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Cartesian.AppHost/Cartesian.AppHost.csproj" />
+  <Project Path="Cartesian.ServiceDefaults/Cartesian.ServiceDefaults.csproj" />
+  <Project Path="Cartesian.Services/Cartesian.Services.csproj" />
+</Solution>

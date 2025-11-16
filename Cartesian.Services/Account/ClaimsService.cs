@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using Cartesian.Services.Account.Entities;
 using Cartesian.Services.Database;
 using Microsoft.AspNetCore.Identity;
 

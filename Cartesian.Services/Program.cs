@@ -1,19 +1,20 @@
 using Cartesian.Services.Account;
-using Cartesian.Services.Account.Entities;
-using Cartesian.Services.Account.Errors;
+using Cartesian.Services.Content;
 using Cartesian.Services.Database;
 using Cartesian.Services.Endpoints;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddMinioClient("cartesian-storage");
-builder.AddNpgsqlDbContext<CartesianDbContext>("cartesian");
+builder.AddNpgsqlDbContext<CartesianDbContext>("cartesian",
+    configureDbContextOptions: options => options.UseNpgsql(o => o.UseNetTopologySuite()));
 builder.AddServiceDefaults();
 
 builder.Services.AddCors();
 builder.Services.AddEndpoints();
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options => options.AddCartesian());
 builder.Services.AddIdentity<CartesianUser, IdentityRole>(options =>
     {
         options.Password.RequireDigit = true;
@@ -47,6 +48,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 builder.Services.AddScoped<ClaimsService>();
+builder.Services.AddScoped<MediaService>();
 
 var app = builder.Build();
 
@@ -54,12 +56,7 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 
-    app.UseCors(x => x
-        .WithOrigins("http://localhost:5173")
-        .AllowAnyMethod()
-        .AllowAnyHeader()
-        .AllowCredentials()
-    );
+    app.UseCors(x => x.WithOrigins("http://localhost:5173").AllowAnyMethod().AllowAnyHeader().AllowCredentials());
 }
 
 app.UseAuthentication();
