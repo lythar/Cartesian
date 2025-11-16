@@ -4,6 +4,8 @@ import mapboxgl from "mapbox-gl";
 export let geolocateState = $state({ state: "disabled" });
 export let navigationMode = $state({ enabled: false });
 export let mapState = $state<{ instance: mapboxgl.Map | null }>({ instance: null });
+export let mapMarkers = $state<mapboxgl.Marker[]>([]);
+export let newEventMarkerLocation = $state<{data: { lng: number; lat: number }} | null>(null);
 
 export let deviceHeading = $state<{ heading: number | null }>({ heading: null });
 

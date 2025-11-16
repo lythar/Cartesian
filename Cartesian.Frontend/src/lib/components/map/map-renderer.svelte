@@ -21,6 +21,7 @@
 	import SearchBar from "./search-bar.svelte";
 	import UserMenu from "./user-menu.svelte";
 	import { mapState } from "./map-state.svelte";
+	import MapPointCta from "./map-point-cta.svelte";
 
 	interface Props {
 		ipGeo: IpGeo | null;
@@ -34,44 +35,13 @@
 	const mapStyle = "mapbox://styles/mapbox/standard";
 	const runtime = Runtime.defaultRuntime;
 
+  let selectedLocation = $state<{ lng: number; lat: number } | null>(null);
+
 	const approximateLocation = createIpGeoQuery({
 		query: {
 			initialData: ipGeo ?? undefined,
 		},
 	});
-
-	let selectedLocation: { lng: number; lat: number } | null = $state(null);
-
-	let markers = $state<mapboxgl.Marker[]>([]);
-
-	const handleMapClick = (e: mapboxgl.MapMouseEvent) => {
-		const features = mapState.instance!.queryRenderedFeatures(e.point, {
-			layers: ["clusters"]
-		});
-	
-		// Don't add a marker if a cluster was clicked
-		if (features.length > 0) {
-			return;
-		}
-
-		// Remove previous marker
-		markers.forEach((m) => m.remove());
-		markers = [];
-
-		const markerElement = document.createElement("img");
-		markerElement.src = "/lythar.svg";
-		markerElement.className = "size-12 transform -translate-y-1/2";
-		const marker = new mapboxgl.Marker({
-			color: "#BB0000",
-			element: markerElement,
-		})
-			.setLngLat(e.lngLat)
-			.addTo(mapState.instance!);
-
-		selectedLocation = { lng: e.lngLat.lng, lat: e.lngLat.lat };
-
-		markers = [marker];
-	};
 
 	onMount(async () => {
 		let center: [number, number];
@@ -111,8 +81,6 @@
 				},
 			},
 		});
-
-		mapState.instance.on("click", handleMapClick);
 
 		mapState.instance.on("load", () => {
 			mapState.instance!.addSource("events", {
@@ -240,10 +208,10 @@
 		<FabMenu />
 		<MapControls map={mapState.instance} />
 		<GeolocateControl map={mapState.instance} />
+    <MapPointCta map={mapState.instance} bind:selectedLocation />
 	{/if}
 
-	{#if selectedLocation && getLayoutContext().isDesktop}
-		<!-- prolly should be in a seperate component -->
+	<!-- {#if selectedLocation && getLayoutContext().isDesktop}
 		<div class="absolute top-10 right-2 bottom-10 rounded-2xl bg-background p-10">
 			<Button
 				class="absolute top-10 right-10 mb-4 h-9 w-9"
@@ -266,5 +234,5 @@
 				<Button type="submit" class="mt-4 w-full">Create Event</Button>
 			</form>
 		</div>
-	{/if}
+	{/if} -->
 </div>
