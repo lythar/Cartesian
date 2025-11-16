@@ -1,12 +1,12 @@
 using Cartesian.Services.Account;
 using Cartesian.Services.Communities;
-using Cartesian.Services.Content;
 
 namespace Cartesian.Services.Events;
 
 public class Event
 {
     public Guid Id { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public required string Name { get; set; }
     public required string Description { get; set; }
     public string AuthorId { get; set; } = null!;

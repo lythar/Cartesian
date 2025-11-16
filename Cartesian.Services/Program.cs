@@ -4,6 +4,7 @@ using Cartesian.Services.Database;
 using Cartesian.Services.Endpoints;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +31,7 @@ builder.Services.AddIdentity<CartesianUser, IdentityRole>(options =>
     .AddEntityFrameworkStores<CartesianDbContext>()
     .AddDefaultTokenProviders();
 builder.Services.AddAuthorization();
+builder.Services.AddValidation();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -55,7 +57,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-
+    app.MapScalarApiReference("/docs");
     app.UseCors(x => x.WithOrigins("http://localhost:5173").AllowAnyMethod().AllowAnyHeader().AllowCredentials());
 }
 

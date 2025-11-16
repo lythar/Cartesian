@@ -6,6 +6,7 @@ namespace Cartesian.Services.Events;
 public class EventWindow
 {
     public Guid Id { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public Guid EventId { get; set; }
     public Event Event { get; set; } = null!;
     public required string Title { get; set; }

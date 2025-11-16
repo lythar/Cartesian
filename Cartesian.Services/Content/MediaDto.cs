@@ -8,5 +8,4 @@ public record MediaDto(
     string ObjectKey,
     string FileName,
     string ContentType,
-    CartesianUserDto? Author,
     DateTime UploadedAt);

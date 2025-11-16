@@ -14,5 +14,5 @@ public class Media
     public bool IsDeleted { get; set; } = false;
     public DateTime? DeletedAt { get; set; }
 
-    public MediaDto ToDto() => new(Id, BucketName, ObjectKey, FileName, ContentType, Author?.ToDto(), UploadedAt);
+    public MediaDto ToDto() => new(Id, BucketName, ObjectKey, FileName, ContentType, UploadedAt);
 }
