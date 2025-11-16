@@ -5,9 +5,10 @@
 	import { mode } from "mode-watcher";
 	import * as ButtonGroup from "$lib/components/ui/button-group/index";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
-	import { Add01Icon, Gps02Icon, LayerIcon, Remove01Icon } from "@hugeicons/core-free-icons";
+	import { Add01Icon, Gps02Icon, LayerIcon, Navigation04Icon, Remove01Icon } from "@hugeicons/core-free-icons";
 	import { getLayoutContext } from "$lib/context/layout.svelte";
-	import { geolocateControl } from "./map-state";
+	import { deviceHeading, geolocateControl, geolocateState, navigationMode } from "./map-state.svelte";
+	import { cn } from "$lib/utils";
 
 	interface Props {
 		map: mapboxgl.Map;
@@ -41,6 +42,31 @@
 		});
 	}
 
+  function locationButtonPress() {
+    if (geolocateState.state === "passive") {
+      recenterMap();
+    } else if (geolocateState.state === "active") {
+      let isEnabled = navigationMode.enabled;
+
+      map.easeTo({
+        pitch: isEnabled ? 0 : 50,
+        zoom: isEnabled ? 15 : 18,
+        bearing: isEnabled ? 0 : deviceHeading.heading ?? map.getBearing(),
+        duration: 1000,
+      }, {
+				geolocateSource: true,
+			});
+
+      navigationMode.enabled = !navigationMode.enabled;
+    }
+  }
+
+  // $effect(() => {
+  //   if (geolocateState.state !== "active") {
+  //     navigationMode.enabled = false;
+  //   }
+  // })
+
 	function recenterMap() {
     geolocateControl.trigger();
 	}
@@ -50,7 +76,9 @@
 	}
 </script>
 
-<ButtonGroup.Root orientation="vertical" class="absolute left-4 bottom-4 z-20 [&_button]:dark:bg-card [&_button]:dark:hover:bg-secondary">
+<ButtonGroup.Root orientation="vertical" class={cn("absolute left-4 bottom-24 lg:bottom-4 z-20 [&_button]:dark:bg-card [&_button]:dark:hover:bg-secondary",
+  layout.isMobile && "[&_button]:size-16! [&_svg]:size-7!"
+)}>
   {#if layout.isDesktop}
     <ButtonGroup.Root orientation="vertical">
       <Button
@@ -65,7 +93,7 @@
         size="icon-lg"
         onclick={() => map.zoomOut()}
       >
-        <HugeiconsIcon icon={Remove01Icon} strokeWidth={2} />
+        <HugeiconsIcon icon={Remove01Icon} strokeWidth={2} className="duotone-fill" />
       </Button>
     </ButtonGroup.Root>
   {/if}
@@ -73,18 +101,24 @@
     <Button
       variant="outline"
       size="icon-lg"
-      onclick={recenterMap}
+      class={cn("active:scale-95 transition-all duration-100", navigationMode.enabled ? "text-chart-2" : "")}
+      onclick={locationButtonPress}
     >
-      <HugeiconsIcon icon={Gps02Icon} strokeWidth={2} />
+      {#if geolocateState.state == "passive"}
+        <HugeiconsIcon icon={Gps02Icon} strokeWidth={2} className="duotone-fill" />
+      {:else}
+        <HugeiconsIcon icon={Navigation04Icon} strokeWidth={2} className="duotone-fill" />
+      {/if}
     </Button>
   </ButtonGroup.Root>
     <ButtonGroup.Root>
     <Button
       variant="outline"
       size="icon-lg"
+      class="active:scale-95 transition-all duration-100"
       onclick={handleStyleChange}
     >
-      <HugeiconsIcon icon={LayerIcon} strokeWidth={2} />
+      <HugeiconsIcon icon={LayerIcon} strokeWidth={2} className="duotone-fill" />
     </Button>
   </ButtonGroup.Root>
 </ButtonGroup.Root>

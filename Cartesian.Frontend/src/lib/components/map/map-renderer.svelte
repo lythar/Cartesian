@@ -21,16 +21,17 @@
 	import { getLightingPreset } from "./map-utils";
 	import SearchBar from "./search-bar.svelte";
 	import UserMenu from "./user-menu.svelte";
+	import { mapState } from "./map-state.svelte";
 
 	interface Props {
 		ipGeo: IpGeo | null;
 	}
 
 	let { ipGeo }: Props = $props();
+  const layout = getLayoutContext();
 
 	mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
-	let map: mapboxgl.Map | undefined = $state();
 	const mapStyle = "mapbox://styles/mapbox/standard";
 	const runtime = Runtime.defaultRuntime;
 
@@ -57,7 +58,7 @@
 			element: markerElement,
 		})
 			.setLngLat(e.lngLat)
-			.addTo(map!);
+			.addTo(mapState.instance!);
 
 		selectedLocation = { lng: e.lngLat.lng, lat: e.lngLat.lat };
 
@@ -91,7 +92,7 @@
 			zoom = 9;
 		}
 
-		map = new mapboxgl.Map({
+		mapState.instance = new mapboxgl.Map({
 			container: "lythar-map",
 			style: mapStyle,
 			center,
@@ -103,10 +104,10 @@
 			},
 		});
 
-		map.on("click", handleMapClick);
+		mapState.instance.on("click", handleMapClick);
 
-		map.on("load", () => {
-			map!.addSource("events", {
+		mapState.instance.on("load", () => {
+			mapState.instance!.addSource("events", {
 				type: "geojson",
 				generateId: true,
 				data: "https://docs.mapbox.com/mapbox-gl-js/assets/earthquakes.geojson", // CHANGE THIS LATER TO ACTUAL EVENTS DATA
@@ -115,7 +116,7 @@
 				clusterRadius: 50,
 			});
 
-			map!.addLayer({
+			mapState.instance!.addLayer({
 				id: "clusters",
 				type: "circle",
 				source: "events",
@@ -127,7 +128,7 @@
 				},
 			});
 
-			map!.addLayer({
+			mapState.instance!.addLayer({
 				id: "cluster-count",
 				type: "symbol",
 				source: "events",
@@ -145,17 +146,17 @@
 	});
 
 	$effect(() => {
-		if (!map) return;
+		if (!mapState.instance) return;
 
 		const currentMode = mode.current;
 		if (!currentMode) return;
 
 		const preset = getLightingPreset(currentMode);
-		map.setConfigProperty("basemap", "lightPreset", preset);
+		mapState.instance.setConfigProperty("basemap", "lightPreset", preset);
 	});
 
 	$effect(() => {
-		if (!map) return;
+		if (!mapState.instance) return;
 
 		const container = document.getElementById("lythar-map");
 		if (!container) return;
@@ -166,7 +167,7 @@
 			clearTimeout(resizeTimeout);
 			// This timeout causes the resize to not flush the canvas data for a split second?
 			resizeTimeout = setTimeout(() => {
-				map?.resize();
+				mapState.instance?.resize();
 			}, 1);
 		});
 
@@ -182,12 +183,14 @@
 <div class="relative flex h-full w-full flex-col overflow-hidden">
 	<div id="lythar-map" class="flex-1 rounded-2xl"></div>
 
-	{#if map}
+	{#if mapState.instance}
 		<SearchBar />
-		<UserMenu />
+    {#if layout.isDesktop}
+		  <UserMenu class="absolute top-5 right-4" />
+    {/if}
 		<FabMenu />
-		<MapControls {map} />
-		<GeolocateControl {map} />
+		<MapControls map={mapState.instance} />
+		<GeolocateControl map={mapState.instance} />
 	{/if}
 
 	{#if selectedLocation && getLayoutContext().isDesktop}

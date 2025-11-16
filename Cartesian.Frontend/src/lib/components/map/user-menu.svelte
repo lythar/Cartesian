@@ -5,24 +5,28 @@
 	import { User, Settings, Bookmark, LogOut } from "@lucide/svelte";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import { Bookmark02Icon, Settings01Icon, UserIcon } from "@hugeicons/core-free-icons";
+	import { cn } from "$lib/utils";
+
+  const { class: className } = $props();
 </script>
 
-<div class="absolute top-4 right-4 z-20">
 	<DropdownMenu.Root>
-		<DropdownMenu.Trigger>
-			<Button
-				variant="ghost"
-				size="icon"
-				class="size-12 rounded-full bg-sidebar/95 backdrop-blur-sm shadow-xl hover:bg-accent/50 transition-all duration-300"
-			>
-				<Avatar.Root class="size-12">
-					<Avatar.Image src="https://cdn.discordapp.com/avatars/769702535124090904/4e4e332f4b64e5f31ab655d0184fe56a.webp?size=1024" alt="User" />
-					<Avatar.Fallback class="bg-primary text-primary-foreground text-lg font-semibold">
-            <HugeiconsIcon icon={UserIcon} className="duotone-fill" />
-					</Avatar.Fallback>
-				</Avatar.Root>
-			</Button>
-		</DropdownMenu.Trigger>
+    <div class={cn("z-20", className)}>
+      <DropdownMenu.Trigger class="size-12">
+        <Button
+          variant="ghost"
+          size="icon"
+          class="size-12 rounded-full backdrop-blur-sm shadow-xl transition-all duration-300"
+        >
+          <Avatar.Root class="size-12">
+            <Avatar.Image src="https://cdn.discordapp.com/avatars/769702535124090904/4e4e332f4b64e5f31ab655d0184fe56a.webp?size=1024" alt="User" />
+            <Avatar.Fallback class="bg-primary text-primary-foreground text-lg font-semibold">
+              <HugeiconsIcon icon={UserIcon} className="duotone-fill" />
+            </Avatar.Fallback>
+          </Avatar.Root>
+        </Button>
+      </DropdownMenu.Trigger>
+    </div>
 		<DropdownMenu.Content
 			class="w-72 backdrop-blur-sm shadow-2xl border border-border/50 pb-3"
 			align="end"
@@ -68,4 +72,3 @@
       </div>
     </DropdownMenu.Content>
 	</DropdownMenu.Root>
-</div>
