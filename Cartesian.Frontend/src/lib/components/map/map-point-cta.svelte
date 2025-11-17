@@ -4,6 +4,9 @@
 	import { mapMarkers, mapState, newEventMarkerLocation } from "./map-state.svelte";
 	import { animate } from "motion";
 	import { createReverseGeocodeQuery, type ReverseGeocode } from "$lib/api/queries/reverse-geocode.query";
+	import Button from "../ui/button/button.svelte";
+	import { HugeiconsIcon } from "@hugeicons/svelte";
+	import { Add01Icon } from "@hugeicons/core-free-icons";
 
   interface Props {
     map: mapboxgl.Map;
@@ -93,22 +96,44 @@
 
 <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
   {#if selectedLocation}
-    <div bind:this={locationElement} class="bg-background p-4 rounded-lg shadow-lg inline-flex flex-col gap-2 min-w-50">
-      {#if geocodeQuery?.isPending}
-        <p class="text-sm font-semibold bg-linear-to-r from-primary/40 via-primary to-primary/40 bg-clip-text text-transparent animate-gradient bg-size-[200%_100%]">
-          Loading address...
-        </p>
-      {:else if geocodeQuery?.isError}
-        <p class="text-sm text-destructive">Failed to load address</p>
-      {:else if geocodeQuery?.data?.features?.[0]?.properties}
-        {@const properties = geocodeQuery.data.features[0].properties}
-        <p class="text-sm font-semibold text-foreground">
-          {properties.name ?? properties.place_formatted ?? "Unknown location"}
-        </p>
-      {/if}
+    <div bind:this={locationElement} class="bg-background p-4 rounded-lg shadow-lg inline-flex flex-row gap-6 justify-between min-w-50">
+      <div class="flex flex-col">
+        {#if geocodeQuery?.isPending}
+          <p class="text-sm font-semibold bg-linear-to-r from-primary/40 via-primary to-primary/40 bg-clip-text text-transparent animate-gradient bg-size-[200%_100%]">
+            Loading address...
+          </p>
+        {:else if geocodeQuery?.isError}
+          <p class="text-sm text-destructive">Failed to load address</p>
+        {:else if geocodeQuery?.data?.features?.[0]?.properties}
+          {@const properties = geocodeQuery.data.features[0].properties}
+          <p class="text-sm font-semibold text-foreground">
+            {properties.name ?? properties.place_formatted ?? "Unknown location"}
+          </p>
+        {/if}
 
-      <p class="text-sm text-muted-foreground">{selectedLocation.lng.toFixed(2)}, {selectedLocation.lat.toFixed(2)}</p>
-
+        <p class="text-sm text-muted-foreground">{selectedLocation.lng.toFixed(2)}, {selectedLocation.lat.toFixed(2)}</p>
+      </div>
+      <!-- CTA -->
+      <div class="w-fit flex items-center gap-2">
+        <Button
+          variant="default"
+          size="lg"
+        >
+          <HugeiconsIcon icon={Add01Icon} strokeWidth={2} className="size-5" />
+          <span>Add event here</span>
+        </Button>
+        <Button
+          variant="destructive"
+          size="lg"
+          onclick={() => {
+            selectedLocation = null;
+            queryLocation = null;
+            marker!.setLngLat([0, 0]);
+          }}
+        >
+          Cancel
+        </Button>
+      </div>
     </div>
   {/if}
 </div>
