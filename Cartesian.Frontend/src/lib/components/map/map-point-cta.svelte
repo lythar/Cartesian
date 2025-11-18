@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, tick } from "svelte";
   import mapboxgl from "mapbox-gl";
-	import { mapMarkers, mapState, newEventMarkerLocation } from "./map-state.svelte";
+	import { mapMarkers, mapState, newEventMarkerLocation, newEventOverlayState } from "./map-state.svelte";
 	import { animate } from "motion";
 	import { createReverseGeocodeQuery, type ReverseGeocode } from "$lib/api/queries/reverse-geocode.query";
 	import Button from "../ui/button/button.svelte";
@@ -118,6 +118,15 @@
         <Button
           variant="default"
           size="lg"
+          onclick={() => {
+            newEventOverlayState.location = selectedLocation;
+            newEventOverlayState.source = "toolbar";
+            newEventOverlayState.open = true;
+            console.log(newEventOverlayState);
+            selectedLocation = null;
+            queryLocation = null;
+            marker!.setLngLat([0, 0]);
+          }}
         >
           <HugeiconsIcon icon={Add01Icon} strokeWidth={2} className="size-5" />
           <span>Add event here</span>

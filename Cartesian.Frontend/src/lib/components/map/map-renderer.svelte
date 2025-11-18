@@ -18,6 +18,7 @@
 	import UserMenu from "./user-menu.svelte";
 	import { mapState } from "./map-state.svelte";
 	import MapPointCta from "./map-point-cta.svelte";
+	import NewEventOverlay from "./new-event-overlay.svelte";
 
 	interface Props {
 		ipGeo: IpGeo | null;
@@ -205,6 +206,7 @@
 		<MapControls map={mapState.instance} />
 		<GeolocateControl map={mapState.instance} />
     <MapPointCta map={mapState.instance} bind:selectedLocation />
+    <NewEventOverlay map={mapState.instance} />
 	{/if}
 
 	<!-- {#if selectedLocation && getLayoutContext().isDesktop}
