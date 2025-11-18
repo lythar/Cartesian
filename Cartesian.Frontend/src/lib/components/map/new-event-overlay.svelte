@@ -12,7 +12,7 @@
 	import { superForm, defaults } from "sveltekit-superforms";
 	import { zod4 } from "sveltekit-superforms/adapters";
 	import { z } from "zod";
-	import { X, MapPin, LocateFixed, Map, Search, Loader2 } from "@lucide/svelte";
+	import { X, MapPin, LocateFixed, Map, Search, Loader2, Sparkles } from "@lucide/svelte";
 	import { createReverseGeocodeQuery } from "$lib/api/queries/reverse-geocode.query";
 	import { createForwardGeocodeQuery } from "$lib/api/queries/forward-geocode.query";
 	import {
@@ -22,6 +22,8 @@
 	} from "$lib/api/cartesian-client";
   import mapboxgl from "mapbox-gl";
 	import { Debounced } from "runed";
+	import { HugeiconsIcon } from "@hugeicons/svelte";
+	import { AiEditingIcon } from "@hugeicons/core-free-icons";
 
 	interface Props {
 		map: mapboxgl.Map;
@@ -36,6 +38,7 @@
 	let searchQuery = $state("");
 	let isSearching = $state<boolean>(false);
 	let cancelDialogOpen = $state(false);
+	let isGlowing = $state(false);
 	const debouncedSearch = new Debounced<string>(() => searchQuery, 300);
 
 	const locationQuery = $derived(
@@ -50,6 +53,18 @@
 
 	$effect(() => {
 		open = newEventOverlayState.open;
+	});
+
+	$effect(() => {
+		if (open) {
+			isGlowing = true;
+			const timer = setTimeout(() => {
+				isGlowing = false;
+			}, 2000);
+			return () => clearTimeout(timer);
+		} else {
+			isGlowing = false;
+		}
 	});
 
 	$effect(() => {
@@ -252,6 +267,50 @@
 						</Form.Control>
 						<Form.FieldErrors />
 					</Form.Field>
+				</div>
+
+				<div class="animate-item flex justify-end -mt-2">
+					<Button
+            variant="outline"
+						class={cn(
+							"relative group overflow-hidden text-xs font-medium text-foreground transition-all h-9",
+						)}
+						onmouseenter={() => (isGlowing = true)}
+						onmouseleave={() => (isGlowing = false)}
+					>
+						<!-- Glowing background/border effect -->
+						<div
+							class={cn(
+								"absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] aspect-square animate-[spin_3s_linear_infinite] opacity-0 transition-opacity duration-500 blur-md",
+								isGlowing && "opacity-100"
+							)}
+							style="background: conic-gradient(#3186ff00 0deg, #34a853 43deg, #ffd314 65deg, #ff4641 105deg, #3186ff 144deg, #3186ff 180deg, #3186ff00 324deg, #3186ff00 360deg);"
+						></div>
+
+						<!-- Sharp border effect -->
+						<div
+							class={cn(
+								"absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] aspect-square animate-[spin_3s_linear_infinite] opacity-0 transition-opacity duration-500",
+								isGlowing && "opacity-100"
+							)}
+							style="background: conic-gradient(#3186ff00 0deg, #34a853 43deg, #ffd314 65deg, #ff4641 105deg, #3186ff 144deg, #3186ff 180deg, #3186ff00 324deg, #3186ff00 360deg);"
+						></div>
+
+						<!-- Inner background to mask the center and create the border look -->
+						<div class="absolute inset-[1.5px] rounded-full bg-card z-10"></div>
+
+						<div class="relative z-20 inline-flex items-center justify-center gap-2">
+              <HugeiconsIcon icon={AiEditingIcon} size={16} strokeWidth={2} className="duotone-fill" />
+							<span
+								class={cn(
+									"transition-colors text-secondary-foreground font-medium",
+								)}
+							>
+								Enhance with AI
+							</span>
+						</div>
+					</Button>
+
 				</div>
 
 				<div class="animate-item relative z-10">
