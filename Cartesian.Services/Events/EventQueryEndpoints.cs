@@ -20,12 +20,14 @@ public class EventQueryEndpoints : IEndpoint
             .Include(e => e.Community)
             .ThenInclude(c => c.Avatar)
             .OrderByDescending(c => c.CreatedAt)
+            .Where(e => req.Visibility != null ? e.Visibility == req.Visibility : e.Visibility != EventVisibility.Draft)
             .Select(e => e.ToDto())
             .Take(req.Limit)
             .Skip(req.Skip)
             .ToArrayAsync());
 
     record GetEventListRequest(
+        [FromQuery(Name = "visibility")] EventVisibility? Visibility,
         [FromQuery(Name = "limit")] int Limit = 50,
         [FromQuery(Name = "skip")] int Skip = 0);
 }

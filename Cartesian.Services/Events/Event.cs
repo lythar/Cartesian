@@ -11,7 +11,7 @@ public class Event
     public required string Description { get; set; }
     public string AuthorId { get; set; } = null!;
     public required CartesianUser Author { get; set; }
-    public Guid CommunityId { get; set; }
+    public Guid? CommunityId { get; set; }
     public Community? Community { get; set; }
     public EventVisibility Visibility { get; set; }
     public EventTiming Timing { get; set; }

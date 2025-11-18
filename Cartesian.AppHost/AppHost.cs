@@ -2,7 +2,7 @@ using Projects;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-// builder.AddDockerComposeEnvironment("cartesian-compose");
+builder.AddDockerComposeEnvironment("cartesian-compose");
 
 var postgres = builder.AddPostgres("postgres")
     .WithImage("postgis/postgis:18-3.6-alpine")

@@ -18,6 +18,9 @@ public class CreateEventEndpoint : IEndpoint
             .Produces(400, typeof(AccountNotFoundError))
             .Produces(400, typeof(CommunityNotFoundError));
 
+        app.MapPut("/event/api/{eventId}/edit", PutEditEvent)
+            .RequireAuthorization();
+
         app.MapPost("/event/api/{eventId}/window/create", PostCreateEventWindow)
             .RequireAuthorization()
             .Produces(200, typeof(EventWindowDto))
@@ -56,12 +59,19 @@ public class CreateEventEndpoint : IEndpoint
         return Results.Ok(newEvent.ToDto());
     }
 
+    async Task<IResult> PutEditEvent(CartesianDbContext dbContext, UserManager<CartesianUser> userManager,
+        ClaimsPrincipal principal, Guid eventId, PutEditEventBody body)
+    {
+        return Results.Ok();
+    }
+
     async Task<IResult> PostCreateEventWindow(CartesianDbContext dbContext, UserManager<CartesianUser> userManager,
-        ClaimsPrincipal principal, Guid eventId, CreateEventBody body)
+        ClaimsPrincipal principal, Guid eventId, CreateEventWindowBody body)
     {
         return Results.Ok();
     }
 
     record CreateEventBody(string Name, string Description, Guid? CommunityId, List<EventTag> Tags);
+    record PutEditEventBody(string? Name, string? Description, Guid? CommunityId, List<EventTag>? Tags);
     record CreateEventWindowBody(string Name, string Description);
 }
