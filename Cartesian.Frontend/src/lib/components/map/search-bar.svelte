@@ -16,7 +16,7 @@
 	let inputWrapperRef: HTMLDivElement | undefined = $state();
 </script>
 
-<div class="absolute top-4 left-0 right-0 z-20 flex items-center gap-2 px-4 lg:left-4 lg:w-fit lg:right-auto">
+<div class="absolute top-4 left-0 right-0 z-20 flex items-center gap-2 px-4 lg:px-0 lg:left-4 lg:w-fit lg:right-auto">
 	<div
 		bind:this={containerRef}
 		class="relative flex gap-2 items-center rounded-full bg-card backdrop-blur-sm shadow-neu-highlight overflow-hidden px-2 py-2 h-16 lg:h-14 w-full lg:w-auto"

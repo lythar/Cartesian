@@ -79,6 +79,13 @@
 			},
 		});
 
+    const attrControl = new mapboxgl.AttributionControl({
+      compact: true,
+      customAttribution: '© <a href="https://lythar.com" target="_blank" rel="noopener noreferrer">Lythar</a>'
+    });
+
+    mapState.instance.addControl(attrControl, 'bottom-right');
+
 		mapState.instance.on("load", () => {
 			mapState.instance!.addSource("events", {
 				type: "geojson",
@@ -208,29 +215,10 @@
     <MapPointCta map={mapState.instance} bind:selectedLocation />
     <NewEventOverlay map={mapState.instance} />
 	{/if}
-
-	<!-- {#if selectedLocation && getLayoutContext().isDesktop}
-		<div class="absolute top-10 right-2 bottom-10 rounded-2xl bg-background p-10">
-			<Button
-				class="absolute top-10 right-10 mb-4 h-9 w-9"
-				onclick={() => (selectedLocation = null)}>X</Button
-			>
-			<h3 class="text-2xl font-bold">Add event</h3>
-			<form action="#" class="">
-				<Label for="event-title" class="mt-4 mb-2 block">Title</Label>
-				<Input id="event-title" type="text" />
-
-				<Label for="event-description" class="mt-4 mb-2 block">Description</Label>
-				<Textarea id="event-description" />
-
-				<Label for="start-time" class="mt-4 mb-2 block">Start Time</Label>
-				<Input id="start-time" type="datetime-local" />
-
-				<Label for="end-time" class="mt-4 mb-2 block">End Time</Label>
-				<Input id="end-time" type="datetime-local" />
-
-				<Button type="submit" class="mt-4 w-full">Create Event</Button>
-			</form>
-		</div>
-	{/if} -->
 </div>
+
+<style global>
+  :global(#lythar-map > div.mapboxgl-control-container > div.mapboxgl-ctrl-bottom-right > div:nth-child(2)) {
+    display: none;
+  }
+</style>

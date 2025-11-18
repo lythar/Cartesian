@@ -42,14 +42,17 @@
   {/each}
 {/snippet}
 
-<Sidebar.SidebarProvider>
+<Sidebar.SidebarProvider
+    open={false}
+>
   <Sidebar.Root
     variant="inset"
-    collapsible="icon"
+    collapsible="offcanvas"
     class="border-none"
+
   >
-    <NavigationHeader />
-    <Sidebar.Content>
+    <!-- <NavigationHeader /> -->
+    <!-- <Sidebar.Content>
       {#if layout.isMobile}
 
       {:else}
@@ -62,14 +65,14 @@
           </Sidebar.GroupContent>
         </Sidebar.Group>
       {/if}
-    </Sidebar.Content>
+    </Sidebar.Content> -->
   </Sidebar.Root>
   <Sidebar.Inset>
     <main class="flex flex-1 relative flex-col overflow-hidden {layout.isMobile ? 'pb-[72px]' : ''}">
       {#if !layout.isMobile}
-        <div class="absolute left-2 top-2 z-10">
+        <!-- <div class="absolute left-2 top-2 z-10">
           <Sidebar.Trigger />
-        </div>
+        </div> -->
       {/if}
       {@render children?.()}
     </main>
