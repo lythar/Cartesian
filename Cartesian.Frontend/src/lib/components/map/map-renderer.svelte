@@ -1,9 +1,5 @@
 <script lang="ts">
 	import { createIpGeoQuery } from "$lib/api";
-	import Button from "$lib/components/ui/button/button.svelte";
-	import Input from "$lib/components/ui/input/input.svelte";
-	import Label from "$lib/components/ui/label/label.svelte";
-	import Textarea from "$lib/components/ui/textarea/textarea.svelte";
 	import { getLayoutContext } from "$lib/context/layout.svelte";
 	import type { IpGeo } from "$lib/effects/schemas/ip-geo.schema";
 	import {
@@ -28,14 +24,14 @@
 	}
 
 	let { ipGeo }: Props = $props();
-  const layout = getLayoutContext();
+  	const layout = getLayoutContext();
 
 	mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
 	const mapStyle = "mapbox://styles/mapbox/standard";
 	const runtime = Runtime.defaultRuntime;
 
-  let selectedLocation = $state<{ lng: number; lat: number } | null>(null);
+  	let selectedLocation = $state<{ lng: number; lat: number } | null>(null);
 
 	const approximateLocation = createIpGeoQuery({
 		query: {

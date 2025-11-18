@@ -1,11 +1,26 @@
 import { browser } from "$app/environment";
+import type { LatLng } from "$lib/utils";
 import mapboxgl from "mapbox-gl";
 
 export let geolocateState = $state({ state: "disabled" });
 export let navigationMode = $state({ enabled: false });
 export let mapState = $state<{ instance: mapboxgl.Map | null }>({ instance: null });
 export let mapMarkers = $state<mapboxgl.Marker[]>([]);
-export let newEventMarkerLocation = $state<{data: { lng: number; lat: number }} | null>(null);
+export let newEventMarkerLocation = $state<{data: LatLng} | null>(null);
+export let newEventOverlayState = $state<{
+	open: boolean;
+	/**
+	 * create - user clicked on add event button
+	 * picker - user clicked on map > "add event here"
+	 * progammatic - restore draft / deep-link?
+	 */
+	source: "create" | 'toolbar' | "programmatic";
+	location: LatLng | null;
+}>({
+	open: false,
+	source: "create",
+	location: null,
+})
 
 export let deviceHeading = $state<{ heading: number | null }>({ heading: null });
 
