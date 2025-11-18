@@ -1,5 +1,9 @@
+using System.Text.Json.Serialization;
+
 namespace Cartesian.Services.Events;
 
+
+[JsonConverter(typeof(JsonStringEnumConverter<EventTag>))]
 public enum EventTag
 {
     Outdoor,

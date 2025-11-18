@@ -4,11 +4,14 @@
  * Cartesian.Services | v1
  * OpenAPI spec version: 1.0.0
  */
-import { createQuery } from "@tanstack/svelte-query";
+import { createMutation, createQuery } from "@tanstack/svelte-query";
 import type {
+	CreateMutationOptions,
+	CreateMutationResult,
 	CreateQueryOptions,
 	CreateQueryResult,
 	DataTag,
+	MutationFunction,
 	QueryClient,
 	QueryFunction,
 	QueryKey,
@@ -16,47 +19,1102 @@ import type {
 
 import { customInstance } from "./client";
 import type { ErrorType } from "./client";
-export const getExample = (signal?: AbortSignal) => {
-	return customInstance<string>({ url: `/example`, method: "GET", signal });
+export interface AccountNotFoundError {
+	code: "AccountNotFoundError";
+	/** Error message describing the failure */
+	message: string;
+	/** AccountId property */
+	accountId: string;
+}
+
+export interface AuthorizationFailedError {
+	code: "AuthorizationFailedError";
+	/** Error message describing the failure */
+	message: string;
+	/** Path property */
+	path: string;
+}
+
+/**
+ * IdentityErrors property
+ */
+export type CartesianIdentityErrorIdentityErrors = { [key: string]: unknown };
+
+export interface CartesianIdentityError {
+	code: "CartesianIdentityError";
+	/** Error message describing the failure */
+	message: string;
+	/** IdentityErrors property */
+	identityErrors: CartesianIdentityErrorIdentityErrors;
+}
+
+export type CartesianUserDtoAvatar = null | MediaDto;
+
+export interface CartesianUserDto {
+	id: string;
+	name: string;
+	avatar: CartesianUserDtoAvatar;
+}
+
+export interface ClaimSummary {
+	type: string;
+	value: string;
+}
+
+export type CommunityDtoAvatar = null | MediaDto;
+
+export interface CommunityDto {
+	id: string;
+	name: string;
+	inviteOnly: boolean;
+	memberPermissions: Permissions;
+	avatar: CommunityDtoAvatar;
+}
+
+export interface CommunityNotFoundError {
+	code: "CommunityNotFoundError";
+	/** Error message describing the failure */
+	message: string;
+	/** CommunityId property */
+	communityId: string;
+}
+
+export type CreateEventBodyCommunityId = null | string;
+
+export interface CreateEventBody {
+	name: string;
+	description: string;
+	communityId: CreateEventBodyCommunityId;
+	tags: EventTag[];
+}
+
+export type EventDtoCommunity = null | CommunityDto;
+
+export interface EventDto {
+	id: string;
+	name: string;
+	description: string;
+	author: CartesianUserDto;
+	community: EventDtoCommunity;
+	visibility: EventVisibility;
+	timing: EventTiming;
+	tags: EventTag[];
+	windows: EventWindowDto[];
+}
+
+export interface EventNotFoundError {
+	code: "EventNotFoundError";
+	/** Error message describing the failure */
+	message: string;
+	/** EventId property */
+	eventId: string;
+}
+
+export type EventTag = (typeof EventTag)[keyof typeof EventTag];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const EventTag = {
+	Outdoor: "Outdoor",
+	Sport: "Sport",
+	Fitness: "Fitness",
+	Literature: "Literature",
+	Business: "Business",
+	Tech: "Tech",
+	Educational: "Educational",
+	Kids: "Kids",
+	Family: "Family",
+	Parenting: "Parenting",
+	Conference: "Conference",
+	Film: "Film",
+	Fashion: "Fashion",
+	Running: "Running",
+	Cycling: "Cycling",
+	BoardGames: "BoardGames",
+	VideoGames: "VideoGames",
+	Entertainment: "Entertainment",
+	Comedy: "Comedy",
+	Arts: "Arts",
+	Hobby: "Hobby",
+	Party: "Party",
+	Gathering: "Gathering",
+	Charity: "Charity",
+	Volunteering: "Volunteering",
+	Environmental: "Environmental",
+	Festival: "Festival",
+	Concert: "Concert",
+	Food: "Food",
+	Travel: "Travel",
+	Religious: "Religious",
+	Study: "Study",
+	Market: "Market",
+	Political: "Political",
+} as const;
+
+export type EventTiming = (typeof EventTiming)[keyof typeof EventTiming];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const EventTiming = {
+	Recurring: "Recurring",
+	Seasonal: "Seasonal",
+	OneTime: "OneTime",
+	Unknown: "Unknown",
+} as const;
+
+export type EventVisibility = (typeof EventVisibility)[keyof typeof EventVisibility];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const EventVisibility = {
+	Draft: "Draft",
+	Internal: "Internal",
+	Community: "Community",
+	Public: "Public",
+} as const;
+
+export type EventWindowDtoStartTime = null | string;
+
+export type EventWindowDtoEndTime = null | string;
+
+export interface EventWindowDto {
+	id: string;
+	eventId: string;
+	title: string;
+	description: string;
+	location: Point;
+	participants: CartesianUserDto[];
+	startTime: EventWindowDtoStartTime;
+	endTime: EventWindowDtoEndTime;
+}
+
+export interface IdentityError {
+	code?: string;
+	description?: string;
+}
+
+export interface InvalidCredentialsError {
+	code: "InvalidCredentialsError";
+	/** Error message describing the failure */
+	message: string;
+}
+
+export interface LoginBody {
+	email: string;
+	password: string;
+}
+
+export interface LoginSuccess {
+	me: MyUserDto;
+}
+
+export interface MediaDto {
+	id: string;
+	bucketName: string;
+	objectKey: string;
+	fileName: string;
+	contentType: string;
+	uploadedAt: string;
+}
+
+export type MyUserDtoAvatar = null | MediaDto;
+
+export interface MyUserDto {
+	id: string;
+	name: string;
+	email: string;
+	emailConfirmed: boolean;
+	avatar: MyUserDtoAvatar;
+}
+
+export type Permissions = number;
+
+export interface Point {}
+
+export interface PostCreateCommunityBody {
+	name: string;
+	description: string;
+	inviteOnly: boolean;
+}
+
+export interface RegisterBody {
+	username: string;
+	email: string;
+	password: string;
+}
+
+export interface RegisterSuccess {
+	me: MyUserDto;
+}
+
+export interface VerifySuccess {
+	me: MyUserDto;
+	claims: ClaimSummary[];
+}
+
+export type GetEventApiListParams = {
+	/**
+	 * @pattern ^-?(?:0|[1-9]\d*)$
+	 */
+	limit?: number | string;
+	/**
+	 * @pattern ^-?(?:0|[1-9]\d*)$
+	 */
+	skip?: number | string;
 };
 
-export const getGetExampleQueryKey = () => {
-	return [`/example`] as const;
+export type GetCommunityApiPublicListParams = {
+	onlyJoined?: boolean;
+	showInviteOnly?: boolean;
+	/**
+	 * @pattern ^-?(?:0|[1-9]\d*)$
+	 */
+	limit?: number | string;
+	/**
+	 * @pattern ^-?(?:0|[1-9]\d*)$
+	 */
+	skip?: number | string;
 };
 
-export const getGetExampleQueryOptions = <
-	TData = Awaited<ReturnType<typeof getExample>>,
-	TError = ErrorType<unknown>,
+export type GetAccountApiPublicParams = {
+	accountIds: string[];
+};
+
+export const postEventApiCreate = (createEventBody: CreateEventBody, signal?: AbortSignal) => {
+	return customInstance<EventDto>({
+		url: `/event/api/create`,
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		data: createEventBody,
+		signal,
+	});
+};
+
+export const getPostEventApiCreateMutationOptions = <
+	TError = ErrorType<CommunityNotFoundError | AuthorizationFailedError | void>,
+	TContext = unknown,
 >(options?: {
-	query?: Partial<CreateQueryOptions<Awaited<ReturnType<typeof getExample>>, TError, TData>>;
-}) => {
+	mutation?: CreateMutationOptions<
+		Awaited<ReturnType<typeof postEventApiCreate>>,
+		TError,
+		{ data: CreateEventBody },
+		TContext
+	>;
+}): CreateMutationOptions<
+	Awaited<ReturnType<typeof postEventApiCreate>>,
+	TError,
+	{ data: CreateEventBody },
+	TContext
+> => {
+	const mutationKey = ["postEventApiCreate"];
+	const { mutation: mutationOptions } = options
+		? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey } };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof postEventApiCreate>>,
+		{ data: CreateEventBody }
+	> = (props) => {
+		const { data } = props ?? {};
+
+		return postEventApiCreate(data);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PostEventApiCreateMutationResult = NonNullable<
+	Awaited<ReturnType<typeof postEventApiCreate>>
+>;
+export type PostEventApiCreateMutationBody = CreateEventBody;
+export type PostEventApiCreateMutationError = ErrorType<
+	CommunityNotFoundError | AuthorizationFailedError | void
+>;
+
+export const createPostEventApiCreate = <
+	TError = ErrorType<CommunityNotFoundError | AuthorizationFailedError | void>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: CreateMutationOptions<
+			Awaited<ReturnType<typeof postEventApiCreate>>,
+			TError,
+			{ data: CreateEventBody },
+			TContext
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateMutationResult<
+	Awaited<ReturnType<typeof postEventApiCreate>>,
+	TError,
+	{ data: CreateEventBody },
+	TContext
+> => {
+	const mutationOptions = getPostEventApiCreateMutationOptions(options);
+
+	return createMutation(() => ({ ...mutationOptions, queryClient }));
+};
+
+export const postEventApiEventIdWindowCreate = (
+	eventId: string,
+	createEventBody: CreateEventBody,
+	signal?: AbortSignal,
+) => {
+	return customInstance<EventWindowDto>({
+		url: `/event/api/${eventId}/window/create`,
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		data: createEventBody,
+		signal,
+	});
+};
+
+export const getPostEventApiEventIdWindowCreateMutationOptions = <
+	TError = ErrorType<EventNotFoundError | AuthorizationFailedError | void>,
+	TContext = unknown,
+>(options?: {
+	mutation?: CreateMutationOptions<
+		Awaited<ReturnType<typeof postEventApiEventIdWindowCreate>>,
+		TError,
+		{ eventId: string; data: CreateEventBody },
+		TContext
+	>;
+}): CreateMutationOptions<
+	Awaited<ReturnType<typeof postEventApiEventIdWindowCreate>>,
+	TError,
+	{ eventId: string; data: CreateEventBody },
+	TContext
+> => {
+	const mutationKey = ["postEventApiEventIdWindowCreate"];
+	const { mutation: mutationOptions } = options
+		? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey } };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof postEventApiEventIdWindowCreate>>,
+		{ eventId: string; data: CreateEventBody }
+	> = (props) => {
+		const { eventId, data } = props ?? {};
+
+		return postEventApiEventIdWindowCreate(eventId, data);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PostEventApiEventIdWindowCreateMutationResult = NonNullable<
+	Awaited<ReturnType<typeof postEventApiEventIdWindowCreate>>
+>;
+export type PostEventApiEventIdWindowCreateMutationBody = CreateEventBody;
+export type PostEventApiEventIdWindowCreateMutationError = ErrorType<
+	EventNotFoundError | AuthorizationFailedError | void
+>;
+
+export const createPostEventApiEventIdWindowCreate = <
+	TError = ErrorType<EventNotFoundError | AuthorizationFailedError | void>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: CreateMutationOptions<
+			Awaited<ReturnType<typeof postEventApiEventIdWindowCreate>>,
+			TError,
+			{ eventId: string; data: CreateEventBody },
+			TContext
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateMutationResult<
+	Awaited<ReturnType<typeof postEventApiEventIdWindowCreate>>,
+	TError,
+	{ eventId: string; data: CreateEventBody },
+	TContext
+> => {
+	const mutationOptions = getPostEventApiEventIdWindowCreateMutationOptions(options);
+
+	return createMutation(() => ({ ...mutationOptions, queryClient }));
+};
+
+export const getEventApiList = (params?: GetEventApiListParams, signal?: AbortSignal) => {
+	return customInstance<EventDto>({ url: `/event/api/list`, method: "GET", params, signal });
+};
+
+export const getGetEventApiListQueryKey = (params?: GetEventApiListParams) => {
+	return [`/event/api/list`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetEventApiListQueryOptions = <
+	TData = Awaited<ReturnType<typeof getEventApiList>>,
+	TError = ErrorType<unknown>,
+>(
+	params?: GetEventApiListParams,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<Awaited<ReturnType<typeof getEventApiList>>, TError, TData>
+		>;
+	},
+) => {
 	const { query: queryOptions } = options ?? {};
 
-	const queryKey = queryOptions?.queryKey ?? getGetExampleQueryKey();
+	const queryKey = queryOptions?.queryKey ?? getGetEventApiListQueryKey(params);
 
-	const queryFn: QueryFunction<Awaited<ReturnType<typeof getExample>>> = ({ signal }) =>
-		getExample(signal);
+	const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventApiList>>> = ({ signal }) =>
+		getEventApiList(params, signal);
 
 	return { queryKey, queryFn, ...queryOptions } as CreateQueryOptions<
-		Awaited<ReturnType<typeof getExample>>,
+		Awaited<ReturnType<typeof getEventApiList>>,
 		TError,
 		TData
 	> & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type GetExampleQueryResult = NonNullable<Awaited<ReturnType<typeof getExample>>>;
-export type GetExampleQueryError = ErrorType<unknown>;
+export type GetEventApiListQueryResult = NonNullable<Awaited<ReturnType<typeof getEventApiList>>>;
+export type GetEventApiListQueryError = ErrorType<unknown>;
 
-export function createGetExample<
-	TData = Awaited<ReturnType<typeof getExample>>,
+export function createGetEventApiList<
+	TData = Awaited<ReturnType<typeof getEventApiList>>,
 	TError = ErrorType<unknown>,
 >(
+	params?: GetEventApiListParams,
 	options?: {
-		query?: Partial<CreateQueryOptions<Awaited<ReturnType<typeof getExample>>, TError, TData>>;
+		query?: Partial<
+			CreateQueryOptions<Awaited<ReturnType<typeof getEventApiList>>, TError, TData>
+		>;
 	},
 	queryClient?: QueryClient,
 ): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-	const queryOptions = getGetExampleQueryOptions(options);
+	const queryOptions = getGetEventApiListQueryOptions(params, options);
+
+	const query = createQuery(() => ({ ...queryOptions, queryClient })) as CreateQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+	query.queryKey = queryOptions.queryKey;
+
+	return query;
+}
+
+export const getCommunityApiPublicCommunityId = (communityId: string, signal?: AbortSignal) => {
+	return customInstance<CommunityDto>({
+		url: `/community/api/public/${communityId}`,
+		method: "GET",
+		signal,
+	});
+};
+
+export const getGetCommunityApiPublicCommunityIdQueryKey = (communityId?: string) => {
+	return [`/community/api/public/${communityId}`] as const;
+};
+
+export const getGetCommunityApiPublicCommunityIdQueryOptions = <
+	TData = Awaited<ReturnType<typeof getCommunityApiPublicCommunityId>>,
+	TError = ErrorType<CommunityNotFoundError>,
+>(
+	communityId: string,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<
+				Awaited<ReturnType<typeof getCommunityApiPublicCommunityId>>,
+				TError,
+				TData
+			>
+		>;
+	},
+) => {
+	const { query: queryOptions } = options ?? {};
+
+	const queryKey =
+		queryOptions?.queryKey ?? getGetCommunityApiPublicCommunityIdQueryKey(communityId);
+
+	const queryFn: QueryFunction<Awaited<ReturnType<typeof getCommunityApiPublicCommunityId>>> = ({
+		signal,
+	}) => getCommunityApiPublicCommunityId(communityId, signal);
+
+	return { queryKey, queryFn, enabled: !!communityId, ...queryOptions } as CreateQueryOptions<
+		Awaited<ReturnType<typeof getCommunityApiPublicCommunityId>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetCommunityApiPublicCommunityIdQueryResult = NonNullable<
+	Awaited<ReturnType<typeof getCommunityApiPublicCommunityId>>
+>;
+export type GetCommunityApiPublicCommunityIdQueryError = ErrorType<CommunityNotFoundError>;
+
+export function createGetCommunityApiPublicCommunityId<
+	TData = Awaited<ReturnType<typeof getCommunityApiPublicCommunityId>>,
+	TError = ErrorType<CommunityNotFoundError>,
+>(
+	communityId: string,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<
+				Awaited<ReturnType<typeof getCommunityApiPublicCommunityId>>,
+				TError,
+				TData
+			>
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+	const queryOptions = getGetCommunityApiPublicCommunityIdQueryOptions(communityId, options);
+
+	const query = createQuery(() => ({ ...queryOptions, queryClient })) as CreateQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+	query.queryKey = queryOptions.queryKey;
+
+	return query;
+}
+
+export const getCommunityApiPublicList = (
+	params?: GetCommunityApiPublicListParams,
+	signal?: AbortSignal,
+) => {
+	return customInstance<CommunityDto[]>({
+		url: `/community/api/public/list`,
+		method: "GET",
+		params,
+		signal,
+	});
+};
+
+export const getGetCommunityApiPublicListQueryKey = (params?: GetCommunityApiPublicListParams) => {
+	return [`/community/api/public/list`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetCommunityApiPublicListQueryOptions = <
+	TData = Awaited<ReturnType<typeof getCommunityApiPublicList>>,
+	TError = ErrorType<unknown>,
+>(
+	params?: GetCommunityApiPublicListParams,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<Awaited<ReturnType<typeof getCommunityApiPublicList>>, TError, TData>
+		>;
+	},
+) => {
+	const { query: queryOptions } = options ?? {};
+
+	const queryKey = queryOptions?.queryKey ?? getGetCommunityApiPublicListQueryKey(params);
+
+	const queryFn: QueryFunction<Awaited<ReturnType<typeof getCommunityApiPublicList>>> = ({
+		signal,
+	}) => getCommunityApiPublicList(params, signal);
+
+	return { queryKey, queryFn, ...queryOptions } as CreateQueryOptions<
+		Awaited<ReturnType<typeof getCommunityApiPublicList>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetCommunityApiPublicListQueryResult = NonNullable<
+	Awaited<ReturnType<typeof getCommunityApiPublicList>>
+>;
+export type GetCommunityApiPublicListQueryError = ErrorType<unknown>;
+
+export function createGetCommunityApiPublicList<
+	TData = Awaited<ReturnType<typeof getCommunityApiPublicList>>,
+	TError = ErrorType<unknown>,
+>(
+	params?: GetCommunityApiPublicListParams,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<Awaited<ReturnType<typeof getCommunityApiPublicList>>, TError, TData>
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+	const queryOptions = getGetCommunityApiPublicListQueryOptions(params, options);
+
+	const query = createQuery(() => ({ ...queryOptions, queryClient })) as CreateQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+	query.queryKey = queryOptions.queryKey;
+
+	return query;
+}
+
+export const postCommunityApiCreate = (
+	postCreateCommunityBody: PostCreateCommunityBody,
+	signal?: AbortSignal,
+) => {
+	return customInstance<CommunityDto>({
+		url: `/community/api/create`,
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		data: postCreateCommunityBody,
+		signal,
+	});
+};
+
+export const getPostCommunityApiCreateMutationOptions = <
+	TError = ErrorType<AuthorizationFailedError | void>,
+	TContext = unknown,
+>(options?: {
+	mutation?: CreateMutationOptions<
+		Awaited<ReturnType<typeof postCommunityApiCreate>>,
+		TError,
+		{ data: PostCreateCommunityBody },
+		TContext
+	>;
+}): CreateMutationOptions<
+	Awaited<ReturnType<typeof postCommunityApiCreate>>,
+	TError,
+	{ data: PostCreateCommunityBody },
+	TContext
+> => {
+	const mutationKey = ["postCommunityApiCreate"];
+	const { mutation: mutationOptions } = options
+		? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey } };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof postCommunityApiCreate>>,
+		{ data: PostCreateCommunityBody }
+	> = (props) => {
+		const { data } = props ?? {};
+
+		return postCommunityApiCreate(data);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PostCommunityApiCreateMutationResult = NonNullable<
+	Awaited<ReturnType<typeof postCommunityApiCreate>>
+>;
+export type PostCommunityApiCreateMutationBody = PostCreateCommunityBody;
+export type PostCommunityApiCreateMutationError = ErrorType<AuthorizationFailedError | void>;
+
+export const createPostCommunityApiCreate = <
+	TError = ErrorType<AuthorizationFailedError | void>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: CreateMutationOptions<
+			Awaited<ReturnType<typeof postCommunityApiCreate>>,
+			TError,
+			{ data: PostCreateCommunityBody },
+			TContext
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateMutationResult<
+	Awaited<ReturnType<typeof postCommunityApiCreate>>,
+	TError,
+	{ data: PostCreateCommunityBody },
+	TContext
+> => {
+	const mutationOptions = getPostCommunityApiCreateMutationOptions(options);
+
+	return createMutation(() => ({ ...mutationOptions, queryClient }));
+};
+
+export const postAccountApiLogin = (loginBody: LoginBody, signal?: AbortSignal) => {
+	return customInstance<LoginSuccess>({
+		url: `/account/api/login`,
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		data: loginBody,
+		signal,
+	});
+};
+
+export const getPostAccountApiLoginMutationOptions = <
+	TError = ErrorType<InvalidCredentialsError>,
+	TContext = unknown,
+>(options?: {
+	mutation?: CreateMutationOptions<
+		Awaited<ReturnType<typeof postAccountApiLogin>>,
+		TError,
+		{ data: LoginBody },
+		TContext
+	>;
+}): CreateMutationOptions<
+	Awaited<ReturnType<typeof postAccountApiLogin>>,
+	TError,
+	{ data: LoginBody },
+	TContext
+> => {
+	const mutationKey = ["postAccountApiLogin"];
+	const { mutation: mutationOptions } = options
+		? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey } };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof postAccountApiLogin>>,
+		{ data: LoginBody }
+	> = (props) => {
+		const { data } = props ?? {};
+
+		return postAccountApiLogin(data);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PostAccountApiLoginMutationResult = NonNullable<
+	Awaited<ReturnType<typeof postAccountApiLogin>>
+>;
+export type PostAccountApiLoginMutationBody = LoginBody;
+export type PostAccountApiLoginMutationError = ErrorType<InvalidCredentialsError>;
+
+export const createPostAccountApiLogin = <
+	TError = ErrorType<InvalidCredentialsError>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: CreateMutationOptions<
+			Awaited<ReturnType<typeof postAccountApiLogin>>,
+			TError,
+			{ data: LoginBody },
+			TContext
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateMutationResult<
+	Awaited<ReturnType<typeof postAccountApiLogin>>,
+	TError,
+	{ data: LoginBody },
+	TContext
+> => {
+	const mutationOptions = getPostAccountApiLoginMutationOptions(options);
+
+	return createMutation(() => ({ ...mutationOptions, queryClient }));
+};
+
+export const postAccountApiRegister = (registerBody: RegisterBody, signal?: AbortSignal) => {
+	return customInstance<RegisterSuccess>({
+		url: `/account/api/register`,
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		data: registerBody,
+		signal,
+	});
+};
+
+export const getPostAccountApiRegisterMutationOptions = <
+	TError = ErrorType<CartesianIdentityError>,
+	TContext = unknown,
+>(options?: {
+	mutation?: CreateMutationOptions<
+		Awaited<ReturnType<typeof postAccountApiRegister>>,
+		TError,
+		{ data: RegisterBody },
+		TContext
+	>;
+}): CreateMutationOptions<
+	Awaited<ReturnType<typeof postAccountApiRegister>>,
+	TError,
+	{ data: RegisterBody },
+	TContext
+> => {
+	const mutationKey = ["postAccountApiRegister"];
+	const { mutation: mutationOptions } = options
+		? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey } };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof postAccountApiRegister>>,
+		{ data: RegisterBody }
+	> = (props) => {
+		const { data } = props ?? {};
+
+		return postAccountApiRegister(data);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PostAccountApiRegisterMutationResult = NonNullable<
+	Awaited<ReturnType<typeof postAccountApiRegister>>
+>;
+export type PostAccountApiRegisterMutationBody = RegisterBody;
+export type PostAccountApiRegisterMutationError = ErrorType<CartesianIdentityError>;
+
+export const createPostAccountApiRegister = <
+	TError = ErrorType<CartesianIdentityError>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: CreateMutationOptions<
+			Awaited<ReturnType<typeof postAccountApiRegister>>,
+			TError,
+			{ data: RegisterBody },
+			TContext
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateMutationResult<
+	Awaited<ReturnType<typeof postAccountApiRegister>>,
+	TError,
+	{ data: RegisterBody },
+	TContext
+> => {
+	const mutationOptions = getPostAccountApiRegisterMutationOptions(options);
+
+	return createMutation(() => ({ ...mutationOptions, queryClient }));
+};
+
+export const getAccountApiMe = (signal?: AbortSignal) => {
+	return customInstance<MyUserDto>({ url: `/account/api/me`, method: "GET", signal });
+};
+
+export const getGetAccountApiMeQueryKey = () => {
+	return [`/account/api/me`] as const;
+};
+
+export const getGetAccountApiMeQueryOptions = <
+	TData = Awaited<ReturnType<typeof getAccountApiMe>>,
+	TError = ErrorType<AuthorizationFailedError | void | AccountNotFoundError>,
+>(options?: {
+	query?: Partial<CreateQueryOptions<Awaited<ReturnType<typeof getAccountApiMe>>, TError, TData>>;
+}) => {
+	const { query: queryOptions } = options ?? {};
+
+	const queryKey = queryOptions?.queryKey ?? getGetAccountApiMeQueryKey();
+
+	const queryFn: QueryFunction<Awaited<ReturnType<typeof getAccountApiMe>>> = ({ signal }) =>
+		getAccountApiMe(signal);
+
+	return { queryKey, queryFn, ...queryOptions } as CreateQueryOptions<
+		Awaited<ReturnType<typeof getAccountApiMe>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetAccountApiMeQueryResult = NonNullable<Awaited<ReturnType<typeof getAccountApiMe>>>;
+export type GetAccountApiMeQueryError = ErrorType<
+	AuthorizationFailedError | void | AccountNotFoundError
+>;
+
+export function createGetAccountApiMe<
+	TData = Awaited<ReturnType<typeof getAccountApiMe>>,
+	TError = ErrorType<AuthorizationFailedError | void | AccountNotFoundError>,
+>(
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<Awaited<ReturnType<typeof getAccountApiMe>>, TError, TData>
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+	const queryOptions = getGetAccountApiMeQueryOptions(options);
+
+	const query = createQuery(() => ({ ...queryOptions, queryClient })) as CreateQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+	query.queryKey = queryOptions.queryKey;
+
+	return query;
+}
+
+export const getAccountApiPublic = (params: GetAccountApiPublicParams, signal?: AbortSignal) => {
+	return customInstance<CartesianUserDto[]>({
+		url: `/account/api/public`,
+		method: "GET",
+		params,
+		signal,
+	});
+};
+
+export const getGetAccountApiPublicQueryKey = (params?: GetAccountApiPublicParams) => {
+	return [`/account/api/public`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetAccountApiPublicQueryOptions = <
+	TData = Awaited<ReturnType<typeof getAccountApiPublic>>,
+	TError = ErrorType<unknown>,
+>(
+	params: GetAccountApiPublicParams,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<Awaited<ReturnType<typeof getAccountApiPublic>>, TError, TData>
+		>;
+	},
+) => {
+	const { query: queryOptions } = options ?? {};
+
+	const queryKey = queryOptions?.queryKey ?? getGetAccountApiPublicQueryKey(params);
+
+	const queryFn: QueryFunction<Awaited<ReturnType<typeof getAccountApiPublic>>> = ({ signal }) =>
+		getAccountApiPublic(params, signal);
+
+	return { queryKey, queryFn, ...queryOptions } as CreateQueryOptions<
+		Awaited<ReturnType<typeof getAccountApiPublic>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetAccountApiPublicQueryResult = NonNullable<
+	Awaited<ReturnType<typeof getAccountApiPublic>>
+>;
+export type GetAccountApiPublicQueryError = ErrorType<unknown>;
+
+export function createGetAccountApiPublic<
+	TData = Awaited<ReturnType<typeof getAccountApiPublic>>,
+	TError = ErrorType<unknown>,
+>(
+	params: GetAccountApiPublicParams,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<Awaited<ReturnType<typeof getAccountApiPublic>>, TError, TData>
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+	const queryOptions = getGetAccountApiPublicQueryOptions(params, options);
+
+	const query = createQuery(() => ({ ...queryOptions, queryClient })) as CreateQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+	query.queryKey = queryOptions.queryKey;
+
+	return query;
+}
+
+export const getAccountApiPublicAccountId = (accountId: string, signal?: AbortSignal) => {
+	return customInstance<CartesianUserDto>({
+		url: `/account/api/public/${accountId}`,
+		method: "GET",
+		signal,
+	});
+};
+
+export const getGetAccountApiPublicAccountIdQueryKey = (accountId?: string) => {
+	return [`/account/api/public/${accountId}`] as const;
+};
+
+export const getGetAccountApiPublicAccountIdQueryOptions = <
+	TData = Awaited<ReturnType<typeof getAccountApiPublicAccountId>>,
+	TError = ErrorType<AccountNotFoundError>,
+>(
+	accountId: string,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<
+				Awaited<ReturnType<typeof getAccountApiPublicAccountId>>,
+				TError,
+				TData
+			>
+		>;
+	},
+) => {
+	const { query: queryOptions } = options ?? {};
+
+	const queryKey = queryOptions?.queryKey ?? getGetAccountApiPublicAccountIdQueryKey(accountId);
+
+	const queryFn: QueryFunction<Awaited<ReturnType<typeof getAccountApiPublicAccountId>>> = ({
+		signal,
+	}) => getAccountApiPublicAccountId(accountId, signal);
+
+	return { queryKey, queryFn, enabled: !!accountId, ...queryOptions } as CreateQueryOptions<
+		Awaited<ReturnType<typeof getAccountApiPublicAccountId>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetAccountApiPublicAccountIdQueryResult = NonNullable<
+	Awaited<ReturnType<typeof getAccountApiPublicAccountId>>
+>;
+export type GetAccountApiPublicAccountIdQueryError = ErrorType<AccountNotFoundError>;
+
+export function createGetAccountApiPublicAccountId<
+	TData = Awaited<ReturnType<typeof getAccountApiPublicAccountId>>,
+	TError = ErrorType<AccountNotFoundError>,
+>(
+	accountId: string,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<
+				Awaited<ReturnType<typeof getAccountApiPublicAccountId>>,
+				TError,
+				TData
+			>
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+	const queryOptions = getGetAccountApiPublicAccountIdQueryOptions(accountId, options);
+
+	const query = createQuery(() => ({ ...queryOptions, queryClient })) as CreateQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+	query.queryKey = queryOptions.queryKey;
+
+	return query;
+}
+
+export const getAccountApiVerify = (signal?: AbortSignal) => {
+	return customInstance<VerifySuccess>({ url: `/account/api/verify`, method: "GET", signal });
+};
+
+export const getGetAccountApiVerifyQueryKey = () => {
+	return [`/account/api/verify`] as const;
+};
+
+export const getGetAccountApiVerifyQueryOptions = <
+	TData = Awaited<ReturnType<typeof getAccountApiVerify>>,
+	TError = ErrorType<AuthorizationFailedError | void>,
+>(options?: {
+	query?: Partial<
+		CreateQueryOptions<Awaited<ReturnType<typeof getAccountApiVerify>>, TError, TData>
+	>;
+}) => {
+	const { query: queryOptions } = options ?? {};
+
+	const queryKey = queryOptions?.queryKey ?? getGetAccountApiVerifyQueryKey();
+
+	const queryFn: QueryFunction<Awaited<ReturnType<typeof getAccountApiVerify>>> = ({ signal }) =>
+		getAccountApiVerify(signal);
+
+	return { queryKey, queryFn, ...queryOptions } as CreateQueryOptions<
+		Awaited<ReturnType<typeof getAccountApiVerify>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetAccountApiVerifyQueryResult = NonNullable<
+	Awaited<ReturnType<typeof getAccountApiVerify>>
+>;
+export type GetAccountApiVerifyQueryError = ErrorType<AuthorizationFailedError | void>;
+
+export function createGetAccountApiVerify<
+	TData = Awaited<ReturnType<typeof getAccountApiVerify>>,
+	TError = ErrorType<AuthorizationFailedError | void>,
+>(
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<Awaited<ReturnType<typeof getAccountApiVerify>>, TError, TData>
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+	const queryOptions = getGetAccountApiVerifyQueryOptions(options);
 
 	const query = createQuery(() => ({ ...queryOptions, queryClient })) as CreateQueryResult<
 		TData,

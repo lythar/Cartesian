@@ -4,15 +4,20 @@ using Cartesian.Services.Database;
 using Cartesian.Services.Endpoints;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using NetTopologySuite.IO.Converters;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddMinioClient("cartesian-storage");
-builder.AddNpgsqlDbContext<CartesianDbContext>("cartesian",
+builder.AddNpgsqlDbContext<CartesianDbContext>("database",
     configureDbContextOptions: options => options.UseNpgsql(o => o.UseNetTopologySuite()));
 builder.AddServiceDefaults();
 
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(new GeoJsonConverterFactory());
+});
 builder.Services.AddCors();
 builder.Services.AddEndpoints();
 builder.Services.AddOpenApi(options => options.AddCartesian());
@@ -53,6 +58,16 @@ builder.Services.AddScoped<ClaimsService>();
 builder.Services.AddScoped<MediaService>();
 
 var app = builder.Build();
+
+var autoRunMigrations = builder.Environment.IsDevelopment() || bool.Parse(builder.Configuration["AutoRunMigrations"] ?? "false");
+
+if (autoRunMigrations)
+{
+    using var scope = app.Services.CreateScope();
+
+    var db = scope.ServiceProvider.GetRequiredService<CartesianDbContext>();
+    db.Database.Migrate();
+}
 
 if (app.Environment.IsDevelopment())
 {
