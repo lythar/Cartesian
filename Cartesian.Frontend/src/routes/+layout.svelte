@@ -3,6 +3,7 @@
 	import { queryClient } from "$lib/api"
 	import "../app.css";
 	import { ModeWatcher } from "mode-watcher";
+	import { createLayoutContext } from "$lib/context/layout.svelte";
 
 	let { children } = $props();
 </script>
