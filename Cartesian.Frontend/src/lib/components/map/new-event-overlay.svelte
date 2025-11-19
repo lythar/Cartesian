@@ -41,13 +41,7 @@
 	let isGlowing = $state(false);
 	const debouncedSearch = new Debounced<string>(() => searchQuery, 300);
 
-	const locationQuery = $derived(
-		$formData.latitude && $formData.longitude
-			? createReverseGeocodeQuery($formData.longitude, $formData.latitude, {
-					query: { enabled: true }
-				})
-			: null
-	);
+
 
 	const searchResults = createForwardGeocodeQuery(() => debouncedSearch.current);
 
@@ -70,11 +64,11 @@
 	$effect(() => {
 		if (open) {
 			if (newEventOverlayState.location) {
-				$formData.latitude = newEventOverlayState.location.lat;
-				$formData.longitude = newEventOverlayState.location.lng;
+				data.latitude = newEventOverlayState.location.lat;
+				data.longitude = newEventOverlayState.location.lng;
 			} else {
-				$formData.latitude = null;
-				$formData.longitude = null;
+				data.latitude = null;
+				data.longitude = null;
 			}
 		}
 	});
@@ -127,7 +121,7 @@
 	let markerElement: HTMLDivElement | null = null;
 
 	$effect(() => {
-		if ($formData.latitude && $formData.longitude && open) {
+		if (data.latitude && data.longitude && open) {
 			if (!marker) {
 				const el = document.createElement("div");
 				el.className = "flex flex-col items-center gap-1";
@@ -139,10 +133,10 @@
 				`;
 				markerElement = el;
 				marker = new mapboxgl.Marker({ element: el, anchor: "bottom" })
-					.setLngLat([$formData.longitude, $formData.latitude])
+					.setLngLat([data.longitude, data.latitude])
 					.addTo(map);
 			} else {
-				marker.setLngLat([$formData.longitude, $formData.latitude]);
+				marker.setLngLat([data.longitude, data.latitude]);
 			}
 		} else {
 			if (marker) {
@@ -186,7 +180,7 @@
 		longitude: null
 	};
 
-	const form = superForm(defaults(initialData as any, zod4(formSchema as any)), {
+	const superFormReturn = superForm(defaults(initialData as any, zod4(formSchema as any)), {
 		SPA: true,
 		validators: zod4(formSchema as any),
 		onUpdate: async ({ form: f }) => {
@@ -201,9 +195,17 @@
 				}
 			}
 		}
-	});
+	}) as any;
 
-	const { form: formData, enhance } = form;
+	const { form, data, enhance } = superFormReturn;
+
+	const locationQuery = $derived(
+		superFormReturn.data.latitude && superFormReturn.data.longitude
+			? createReverseGeocodeQuery(superFormReturn.data.longitude, superFormReturn.data.latitude, {
+					query: { enabled: true }
+				})
+			: null
+	);
 </script>
 
 <div
@@ -245,7 +247,7 @@
 						<Form.Control>
 							{#snippet children({ props })}
 								<Form.Label>Name</Form.Label>
-								<Input {...props} bind:value={$formData.name} placeholder="Event name" />
+								<Input {...props} bind:value={data.name} placeholder="Event name" />
 							{/snippet}
 						</Form.Control>
 						<Form.FieldErrors />
@@ -259,7 +261,7 @@
 								<Form.Label>Description</Form.Label>
 								<Textarea
 									{...props}
-									bind:value={$formData.description}
+									bind:value={data.description}
 									placeholder="Describe your event..."
 									rows={4}
 								/>
@@ -316,7 +318,7 @@
 				<div class="animate-item relative z-10">
 					<div class="space-y-2">
 						<Label>Location</Label>
-						{#if $formData.latitude && $formData.longitude}
+						{#if data.latitude && data.longitude}
 							<div class="flex items-start gap-3 rounded-md border bg-muted/50 p-3">
 								<MapPin class="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
 								<div class="flex-1 space-y-1">
@@ -331,7 +333,7 @@
 										{/if}
 									</p>
 									<p class="text-xs text-muted-foreground">
-										{$formData.latitude.toFixed(6)}, {$formData.longitude.toFixed(6)}
+										{data.latitude.toFixed(6)}, {data.longitude.toFixed(6)}
 									</p>
 								</div>
 								<Button
@@ -339,8 +341,8 @@
 									size="icon"
 									class="h-6 w-6"
 									onclick={() => {
-										$formData.latitude = null;
-										$formData.longitude = null;
+										data.latitude = null;
+										data.longitude = null;
 										newEventOverlayState.location = null;
 									}}
 								>
@@ -372,8 +374,8 @@
 													class="flex w-full flex-col items-start rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground"
 													onclick={() => {
 														const [lng, lat] = feature.geometry.coordinates;
-														$formData.latitude = lat;
-														$formData.longitude = lng;
+														data.latitude = lat;
+														data.longitude = lng;
 														newEventOverlayState.location = { lat, lng };
 														map.flyTo({ center: [lng, lat], zoom: 14 });
 														searchQuery = "";
@@ -402,8 +404,8 @@
 												navigator.geolocation.getCurrentPosition(
 													(position) => {
 														const { latitude, longitude } = position.coords;
-														$formData.latitude = latitude;
-														$formData.longitude = longitude;
+														data.latitude = latitude;
+														data.longitude = longitude;
 														newEventOverlayState.location = { lat: latitude, lng: longitude };
 														map.flyTo({ center: [longitude, latitude], zoom: 14 });
 													},
@@ -430,8 +432,8 @@
 								</div>
 							</div>
 						{/if}
-						<input type="hidden" name="latitude" bind:value={$formData.latitude} />
-						<input type="hidden" name="longitude" bind:value={$formData.longitude} />
+						<input type="hidden" name="latitude" bind:value={data.latitude} />
+						<input type="hidden" name="longitude" bind:value={data.longitude} />
 					</div>
 				</div>
 
@@ -442,7 +444,7 @@
 								<Form.Label>Tags</Form.Label>
 								<div class="flex flex-wrap gap-2 pt-2">
 									{#each tagValues as tag}
-										{@const isSelected = $formData.tags.includes(tag)}
+										{@const isSelected = data.tags.includes(tag)}
 										<Badge
 											variant={isSelected ? "default" : "outline"}
 											class={cn(
@@ -451,9 +453,9 @@
 											)}
 											onclick={() => {
 												if (isSelected) {
-													$formData.tags = $formData.tags.filter((t: string) => t !== tag);
+													data.tags = data.tags.filter((t: string) => t !== tag);
 												} else {
-													$formData.tags = [...$formData.tags, tag];
+													data.tags = [...data.tags, tag];
 												}
 											}}
 										>

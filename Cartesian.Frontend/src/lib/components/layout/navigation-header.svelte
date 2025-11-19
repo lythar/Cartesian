@@ -8,7 +8,7 @@
     <Sidebar.MenuItem>
       <Sidebar.MenuButton size="lg">
         {#snippet child({props})}
-          <a href="#" {...props}>
+          <a href="/" {...props}>
             <img src="/lythar.svg" alt="Lythar Logo" class="size-8 shrink-0" />
             <span class="grid flex-1 text-left text-base uppercase tracking-wide">
               Lythar
