@@ -40,6 +40,7 @@ export const customInstance = async <T>(config: FetchConfig): Promise<T> => {
 			try: () =>
 				fetch(finalUrl, {
 					...fetchConfig,
+					credentials: "include",
 					headers: {
 						"Content-Type": "application/json",
 						...headers,

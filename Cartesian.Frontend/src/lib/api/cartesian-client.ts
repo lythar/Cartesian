@@ -88,6 +88,11 @@ export interface CreateEventBody {
 	tags: EventTag[];
 }
 
+export interface CreateEventWindowBody {
+	name: string;
+	description: string;
+}
+
 export type EventDtoCommunity = null | CommunityDto;
 
 export interface EventDto {
@@ -214,6 +219,26 @@ export interface MediaDto {
 	uploadedAt: string;
 }
 
+/**
+ * RequiredPermissions property
+ */
+export type MissingPermissionErrorRequiredPermissions = { [key: string]: unknown };
+
+/**
+ * DisplayPermissions property
+ */
+export type MissingPermissionErrorDisplayPermissions = { [key: string]: unknown };
+
+export interface MissingPermissionError {
+	code: "MissingPermissionError";
+	/** Error message describing the failure */
+	message: string;
+	/** RequiredPermissions property */
+	requiredPermissions: MissingPermissionErrorRequiredPermissions;
+	/** DisplayPermissions property */
+	displayPermissions: MissingPermissionErrorDisplayPermissions;
+}
+
 export type MyUserDtoAvatar = null | MediaDto;
 
 export interface MyUserDto {
@@ -234,6 +259,27 @@ export interface PostCreateCommunityBody {
 	inviteOnly: boolean;
 }
 
+export type PutEditEventBodyName = null | string;
+
+export type PutEditEventBodyDescription = null | string;
+
+export type PutEditEventBodyCommunityId = null | string;
+
+export type PutEditEventBodyTags = null | EventTag[];
+
+export type PutEditEventBodyTiming = null | EventTiming;
+
+export type PutEditEventBodyVisibility = null | EventVisibility;
+
+export interface PutEditEventBody {
+	name: PutEditEventBodyName;
+	description: PutEditEventBodyDescription;
+	communityId: PutEditEventBodyCommunityId;
+	tags: PutEditEventBodyTags;
+	timing: PutEditEventBodyTiming;
+	visibility: PutEditEventBodyVisibility;
+}
+
 export interface RegisterBody {
 	username: string;
 	email: string;
@@ -250,6 +296,7 @@ export interface VerifySuccess {
 }
 
 export type GetEventApiListParams = {
+	visibility?: EventVisibility;
 	/**
 	 * @pattern ^-?(?:0|[1-9]\d*)$
 	 */
@@ -288,7 +335,7 @@ export const postEventApiCreate = (createEventBody: CreateEventBody, signal?: Ab
 };
 
 export const getPostEventApiCreateMutationOptions = <
-	TError = ErrorType<CommunityNotFoundError | AuthorizationFailedError | void>,
+	TError = ErrorType<CommunityNotFoundError | AuthorizationFailedError | MissingPermissionError>,
 	TContext = unknown,
 >(options?: {
 	mutation?: CreateMutationOptions<
@@ -327,11 +374,11 @@ export type PostEventApiCreateMutationResult = NonNullable<
 >;
 export type PostEventApiCreateMutationBody = CreateEventBody;
 export type PostEventApiCreateMutationError = ErrorType<
-	CommunityNotFoundError | AuthorizationFailedError | void
+	CommunityNotFoundError | AuthorizationFailedError | MissingPermissionError
 >;
 
 export const createPostEventApiCreate = <
-	TError = ErrorType<CommunityNotFoundError | AuthorizationFailedError | void>,
+	TError = ErrorType<CommunityNotFoundError | AuthorizationFailedError | MissingPermissionError>,
 	TContext = unknown,
 >(
 	options?: {
@@ -354,34 +401,110 @@ export const createPostEventApiCreate = <
 	return createMutation(() => ({ ...mutationOptions, queryClient }));
 };
 
+export const putEventApiEventIdEdit = (eventId: string, putEditEventBody: PutEditEventBody) => {
+	return customInstance<unknown>({
+		url: `/event/api/${eventId}/edit`,
+		method: "PUT",
+		headers: { "Content-Type": "application/json" },
+		data: putEditEventBody,
+	});
+};
+
+export const getPutEventApiEventIdEditMutationOptions = <
+	TError = ErrorType<AuthorizationFailedError | MissingPermissionError>,
+	TContext = unknown,
+>(options?: {
+	mutation?: CreateMutationOptions<
+		Awaited<ReturnType<typeof putEventApiEventIdEdit>>,
+		TError,
+		{ eventId: string; data: PutEditEventBody },
+		TContext
+	>;
+}): CreateMutationOptions<
+	Awaited<ReturnType<typeof putEventApiEventIdEdit>>,
+	TError,
+	{ eventId: string; data: PutEditEventBody },
+	TContext
+> => {
+	const mutationKey = ["putEventApiEventIdEdit"];
+	const { mutation: mutationOptions } = options
+		? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey } };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof putEventApiEventIdEdit>>,
+		{ eventId: string; data: PutEditEventBody }
+	> = (props) => {
+		const { eventId, data } = props ?? {};
+
+		return putEventApiEventIdEdit(eventId, data);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PutEventApiEventIdEditMutationResult = NonNullable<
+	Awaited<ReturnType<typeof putEventApiEventIdEdit>>
+>;
+export type PutEventApiEventIdEditMutationBody = PutEditEventBody;
+export type PutEventApiEventIdEditMutationError = ErrorType<
+	AuthorizationFailedError | MissingPermissionError
+>;
+
+export const createPutEventApiEventIdEdit = <
+	TError = ErrorType<AuthorizationFailedError | MissingPermissionError>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: CreateMutationOptions<
+			Awaited<ReturnType<typeof putEventApiEventIdEdit>>,
+			TError,
+			{ eventId: string; data: PutEditEventBody },
+			TContext
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateMutationResult<
+	Awaited<ReturnType<typeof putEventApiEventIdEdit>>,
+	TError,
+	{ eventId: string; data: PutEditEventBody },
+	TContext
+> => {
+	const mutationOptions = getPutEventApiEventIdEditMutationOptions(options);
+
+	return createMutation(() => ({ ...mutationOptions, queryClient }));
+};
+
 export const postEventApiEventIdWindowCreate = (
 	eventId: string,
-	createEventBody: CreateEventBody,
+	createEventWindowBody: CreateEventWindowBody,
 	signal?: AbortSignal,
 ) => {
 	return customInstance<EventWindowDto>({
 		url: `/event/api/${eventId}/window/create`,
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
-		data: createEventBody,
+		data: createEventWindowBody,
 		signal,
 	});
 };
 
 export const getPostEventApiEventIdWindowCreateMutationOptions = <
-	TError = ErrorType<EventNotFoundError | AuthorizationFailedError | void>,
+	TError = ErrorType<EventNotFoundError | AuthorizationFailedError | MissingPermissionError>,
 	TContext = unknown,
 >(options?: {
 	mutation?: CreateMutationOptions<
 		Awaited<ReturnType<typeof postEventApiEventIdWindowCreate>>,
 		TError,
-		{ eventId: string; data: CreateEventBody },
+		{ eventId: string; data: CreateEventWindowBody },
 		TContext
 	>;
 }): CreateMutationOptions<
 	Awaited<ReturnType<typeof postEventApiEventIdWindowCreate>>,
 	TError,
-	{ eventId: string; data: CreateEventBody },
+	{ eventId: string; data: CreateEventWindowBody },
 	TContext
 > => {
 	const mutationKey = ["postEventApiEventIdWindowCreate"];
@@ -393,7 +516,7 @@ export const getPostEventApiEventIdWindowCreateMutationOptions = <
 
 	const mutationFn: MutationFunction<
 		Awaited<ReturnType<typeof postEventApiEventIdWindowCreate>>,
-		{ eventId: string; data: CreateEventBody }
+		{ eventId: string; data: CreateEventWindowBody }
 	> = (props) => {
 		const { eventId, data } = props ?? {};
 
@@ -406,20 +529,20 @@ export const getPostEventApiEventIdWindowCreateMutationOptions = <
 export type PostEventApiEventIdWindowCreateMutationResult = NonNullable<
 	Awaited<ReturnType<typeof postEventApiEventIdWindowCreate>>
 >;
-export type PostEventApiEventIdWindowCreateMutationBody = CreateEventBody;
+export type PostEventApiEventIdWindowCreateMutationBody = CreateEventWindowBody;
 export type PostEventApiEventIdWindowCreateMutationError = ErrorType<
-	EventNotFoundError | AuthorizationFailedError | void
+	EventNotFoundError | AuthorizationFailedError | MissingPermissionError
 >;
 
 export const createPostEventApiEventIdWindowCreate = <
-	TError = ErrorType<EventNotFoundError | AuthorizationFailedError | void>,
+	TError = ErrorType<EventNotFoundError | AuthorizationFailedError | MissingPermissionError>,
 	TContext = unknown,
 >(
 	options?: {
 		mutation?: CreateMutationOptions<
 			Awaited<ReturnType<typeof postEventApiEventIdWindowCreate>>,
 			TError,
-			{ eventId: string; data: CreateEventBody },
+			{ eventId: string; data: CreateEventWindowBody },
 			TContext
 		>;
 	},
@@ -427,7 +550,7 @@ export const createPostEventApiEventIdWindowCreate = <
 ): CreateMutationResult<
 	Awaited<ReturnType<typeof postEventApiEventIdWindowCreate>>,
 	TError,
-	{ eventId: string; data: CreateEventBody },
+	{ eventId: string; data: CreateEventWindowBody },
 	TContext
 > => {
 	const mutationOptions = getPostEventApiEventIdWindowCreateMutationOptions(options);
