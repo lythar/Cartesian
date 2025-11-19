@@ -2,10 +2,8 @@ using Cartesian.Services.Endpoints;
 
 namespace Cartesian.Services.Communities;
 
-public class MissingPermissionError(string permission, string communityId) : CartesianError($"Missing [{permission}] for community with id {communityId}.")
+public class MissingPermissionError(Permissions required, Guid communityId) : CartesianError($"Missing '{required}' for community with id '{communityId}'.")
 {
-    public MissingPermissionError(Permissions permission, Guid communityId) : this(permission.ToString(), communityId.ToString())
-    {
-        
-    }
+    public uint RequiredPermissions { get; } = (uint)required;
+    public IEnumerable<string> DisplayPermissions { get; } = required.ToString().Split(", ");
 }
