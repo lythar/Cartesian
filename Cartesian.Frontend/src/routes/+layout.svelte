@@ -1,11 +1,29 @@
 <script lang="ts">
 	import { QueryClientProvider } from "@tanstack/svelte-query";
-	import { queryClient } from "$lib/api"
+	import { queryClient } from "$lib/api";
 	import "../app.css";
 	import { ModeWatcher } from "mode-watcher";
 	import { createLayoutContext } from "$lib/context/layout.svelte";
+	import { onMount } from "svelte";
+	import { authStore } from "$lib/stores/auth.svelte";
+	import { getAccountApiVerify } from "$lib/api";
+	import { browser } from "$app/environment";
 
 	let { children } = $props();
+
+	onMount(async () => {
+		try {
+			const result = await getAccountApiVerify();
+			if (result.me) {
+				authStore.setUser(result.me);
+			} else {
+				authStore.setLoading(false);
+			}
+		} catch (error) {
+			console.log("Not authenticated");
+			authStore.setLoading(false);
+		}
+	});
 </script>
 
 <QueryClientProvider client={queryClient}>
