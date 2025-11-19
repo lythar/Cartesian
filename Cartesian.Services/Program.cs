@@ -30,7 +30,7 @@ builder.Services.AddIdentity<CartesianUser, IdentityRole>(options =>
         options.Password.RequiredLength = 6;
         options.Password.RequiredUniqueChars = 1;
 
-        options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
         options.User.RequireUniqueEmail = true;
     })
     .AddEntityFrameworkStores<CartesianDbContext>()

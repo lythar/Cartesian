@@ -15,6 +15,11 @@ public class CommunityQueryEndpoints : IEndpoint
         app.MapGet("/community/api/public/{communityId}", GetCommunityById)
             .Produces(200, typeof(CommunityDto))
             .Produces(404, typeof(CommunityNotFoundError));
+
+        // app.MapGet("/community/api/public/{communityId}/members", GetCommunityMembers)
+        //     .Produces(200, typeof(IEnumerable<CartesianUserDto>))
+        //     .Produces(404, typeof(CommunityNotFoundError));
+
         app.MapGet("/community/api/public/list", GetCommunityList).Produces(200, typeof(IEnumerable<CommunityDto>));
     }
 
@@ -33,8 +38,10 @@ public class CommunityQueryEndpoints : IEndpoint
         var communities = await dbContext.Communities.Include(c => c.Avatar)
             .OrderByDescending(c => c.CreatedAt)
             .Where(c => !c.InviteOnly || req.ShowInviteOnly)
-            .Where(c => userId == null || !req.OnlyJoined ||
-                        dbContext.Memberships.Any(m => m.UserId == userId && m.CommunityId == c.Id))
+            .Where(c => 
+                !req.OnlyJoined || 
+                (userId != null && dbContext.Memberships.Any(m => m.UserId == userId && m.CommunityId == c.Id))
+            )
             .Take(req.Limit)
             .Skip(req.Skip)
             .ToArrayAsync();

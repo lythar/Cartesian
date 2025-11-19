@@ -16,15 +16,18 @@ public class CreateEventEndpoint : IEndpoint
             .RequireAuthorization()
             .Produces(200, typeof(EventDto))
             .Produces(400, typeof(AccountNotFoundError))
-            .Produces(400, typeof(CommunityNotFoundError));
+            .Produces(400, typeof(CommunityNotFoundError))
+            .Produces(403, typeof(MissingPermissionError));
 
         app.MapPut("/event/api/{eventId}/edit", PutEditEvent)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .Produces(403, typeof(MissingPermissionError));
 
         app.MapPost("/event/api/{eventId}/window/create", PostCreateEventWindow)
             .RequireAuthorization()
             .Produces(200, typeof(EventWindowDto))
-            .Produces(400, typeof(EventNotFoundError));
+            .Produces(400, typeof(EventNotFoundError))
+            .Produces(403, typeof(MissingPermissionError));
     }
 
     async Task<IResult> PostCreateEvent(CartesianDbContext dbContext, UserManager<CartesianUser> userManager, ClaimsPrincipal principal, CreateEventBody body)
@@ -35,12 +38,14 @@ public class CreateEventEndpoint : IEndpoint
         var user = await userManager.FindByIdAsync(userId);
         if (user == null) return Results.BadRequest(new AccountNotFoundError(userId));
 
-        Community? community = null;
+        Membership? membership = null;
 
         if (body.CommunityId != null)
         {
-            community = await dbContext.Communities.Where(c => c.Id == body.CommunityId).FirstOrDefaultAsync();
-            if (community == null) return Results.BadRequest(new CommunityNotFoundError(body.CommunityId.ToString()!));
+            membership = await dbContext.Memberships.Where(c => c.CommunityId == body.CommunityId && c.UserId == user.Id).FirstOrDefaultAsync();
+            if (membership == null) return Results.BadRequest(new CommunityNotFoundError(body.CommunityId.ToString()!));
+            if (membership.TryAssertPermission(Permissions.ManageEvents, out var error))
+                return Results.Json(error, statusCode: 403);
         }
 
         var newEvent = new Event()
@@ -49,7 +54,7 @@ public class CreateEventEndpoint : IEndpoint
             Name = body.Name,
             Description = body.Description,
             Author = user,
-            Community = community,
+            CommunityId = membership?.CommunityId,
             Tags = body.Tags
         };
 
