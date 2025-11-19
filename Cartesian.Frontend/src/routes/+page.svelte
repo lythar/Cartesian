@@ -45,7 +45,7 @@
 		animate(
 			heroTexts,
 			{ opacity: [0, 1], y: [30, 0] },
-			{ duration: 1.2, delay: stagger(0.15), easing: [0.22, 1, 0.36, 1] },
+			{ duration: 1.2, delay: stagger(0.15), ease: [0.22, 1, 0.36, 1] },
 		);
 
 		// Entrance animation for Globe
@@ -53,7 +53,7 @@
 			animate(
 				globeContainer,
 				{ opacity: [0, 1], y: [100, 0] },
-				{ duration: 1.6, delay: 0.4, easing: "ease-out" },
+				{ duration: 1.6, delay: 0.4, ease: "easeOut" },
 			);
 		}
 	});
@@ -232,7 +232,7 @@
 								<div
 									class="absolute h-[2px] w-[2px] rounded-full bg-white/40"
 									style="
-									top: {20 + Math.random() * 30}%; 
+									top: {20 + Math.random() * 30}%;
 									left: {Math.random() * 100}%;
 									box-shadow: 0 0 {Math.random() * 5 + 2}px rgba(255,255,255,0.5);
 								"
