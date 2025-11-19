@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Cartesian.Services.Account;
 using Cartesian.Services.Communities;
 using Cartesian.Services.Database;
@@ -40,10 +40,10 @@ public class CreateEventEndpoint : IEndpoint
 
         Membership? membership = null;
 
-        if (body.CommunityId != null)
+        if (body.CommunityId is { } communityId)
         {
-            membership = await dbContext.Memberships.Where(c => c.CommunityId == body.CommunityId && c.UserId == user.Id).FirstOrDefaultAsync();
-            if (membership == null) return Results.BadRequest(new CommunityNotFoundError(body.CommunityId.ToString()!));
+            membership = await dbContext.Memberships.WhereMember(userId, communityId).FirstOrDefaultAsync();
+            if (membership == null) return Results.BadRequest(new CommunityNotFoundError(communityId.ToString()));
             if (membership.TryAssertPermission(Permissions.ManageEvents, out var error))
                 return Results.Json(error, statusCode: 403);
         }
@@ -77,6 +77,6 @@ public class CreateEventEndpoint : IEndpoint
     }
 
     record CreateEventBody(string Name, string Description, Guid? CommunityId, List<EventTag> Tags);
-    record PutEditEventBody(string? Name, string? Description, Guid? CommunityId, List<EventTag>? Tags);
+    record PutEditEventBody(string? Name, string? Description, Guid? CommunityId, List<EventTag>? Tags, EventTiming? Timing, EventVisibility? Visibility);
     record CreateEventWindowBody(string Name, string Description);
 }

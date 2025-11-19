@@ -38,8 +38,8 @@ public class CommunityQueryEndpoints : IEndpoint
         var communities = await dbContext.Communities.Include(c => c.Avatar)
             .OrderByDescending(c => c.CreatedAt)
             .Where(c => !c.InviteOnly || req.ShowInviteOnly)
-            .Where(c => 
-                !req.OnlyJoined || 
+            .Where(c =>
+                !req.OnlyJoined ||
                 (userId != null && dbContext.Memberships.Any(m => m.UserId == userId && m.CommunityId == c.Id))
             )
             .Take(req.Limit)
