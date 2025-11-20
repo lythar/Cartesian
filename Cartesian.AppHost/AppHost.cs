@@ -2,22 +2,22 @@ using Projects;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-builder.AddDockerComposeEnvironment("cartesian-compose");
+builder.AddDockerComposeEnvironment("compose");
 
 var postgres = builder.AddPostgres("postgres")
-    .WithImage("postgis/postgis:18-3.6-alpine")
+    .WithImage("postgis/postgis:18-alpine")
     .WithHostPort(41021)
     .WithDataVolume();
 
-var cartesianDb = postgres.AddDatabase("database", "cartesian");
+var database = postgres.AddDatabase("database", "cartesian");
 
-var cartesianStorage = builder.AddMinioContainer("cartesian-storage")
+var storage = builder.AddMinioContainer("storage")
     .WithHostPort(41022)
     .WithDataVolume();
 
 var services = builder.AddProject<Cartesian_Services>("services")
-    .WithReference(cartesianDb)
-    .WithReference(cartesianStorage);
+    .WithReference(database)
+    .WithReference(storage);
 
 builder.AddNodeApp("frontend", "../Cartesian.Frontend", "dev")
     .WithPnpm()
