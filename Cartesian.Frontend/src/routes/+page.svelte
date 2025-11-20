@@ -1,17 +1,19 @@
 <script lang="ts">
 	import { Button } from "$lib/components/ui/button";
+	import Globe from "$lib/components/landing/globe.svelte";
 	import { onMount } from "svelte";
 	import { animate, stagger } from "motion";
 
-	let globeContainer: HTMLElement;
-	let planetBase: HTMLElement;
+	let globeContainer: HTMLElement | undefined = undefined;
 
 	const events = [
 		{ title: "Midnight Jazz", category: "Music", x: 20, y: 15 },
-		{ title: "Night Market", category: "Food", x: 45, y: 25 },
-		{ title: "Tech Meetup", category: "Tech", x: 70, y: 10 },
+		{ title: "Night Market", category: "Food", x: 42, y: 25 },
+		{ title: "Tech Meetup", category: "Tech", x: 80, y: 10 },
 		{ title: "Run Club", category: "Sports", x: 85, y: 30 },
 		{ title: "Art Gallery", category: "Arts", x: 35, y: 40 },
+		{ title: "Urban Hike", category: "Sports", x: 82, y: 25 },
+		{ title: "Rooftop Cinema", category: "Film", x: 78, y: 30 },
 		// "Hidden" hemisphere events that rotate into view
 		{ title: "Sunrise Yoga", category: "Wellness", x: 25, y: 65 },
 		{ title: "Street Food", category: "Food", x: 55, y: 75 },
@@ -49,23 +51,6 @@
 	class="relative flex min-h-screen flex-col overflow-hidden"
 	role="application"
 >
-	<svg class="hidden">
-		<filter id="spherize">
-			<feImage
-				result="pict"
-				href="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgNTAwIDUwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cmFkaWFsR3JhZGllbnQgaWQ9ImciPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM4MDgwODAiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9ImJsYWNrIi8+PC9yYWRpYWxHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNnKSIvPjwvc3ZnPg=="
-				preserveAspectRatio="none"
-			/>
-			<feDisplacementMap
-				in="SourceGraphic"
-				in2="pict"
-				scale="50"
-				xChannelSelector="R"
-				yChannelSelector="G"
-			/>
-		</filter>
-	</svg>
-
 	<!-- Navigation -->
 	<header class="fixed top-0 z-40 w-full px-6 py-6 md:px-12">
 		<div class="flex items-center justify-between">
@@ -134,112 +119,51 @@
 			bind:this={globeContainer}
 			class="pointer-events-none absolute right-0 bottom-0 left-0 z-0 flex items-end justify-center opacity-0"
 		>
-			<!-- The Sphere Wrapper (Sizing & Position) -->
 			<div class="relative h-[160vw] w-[160vw] translate-y-[65%] md:h-[90vw] md:w-[90vw]">
-				<!-- 1. Planet Base & Texture (Clipped) -->
-				<div
-					bind:this={planetBase}
-					class="absolute inset-0 overflow-hidden rounded-full border border-white/5 bg-[#050505] shadow-[0_-20px_100px_-20px_rgba(100,100,255,0.15)]"
-				>
-					<!-- Inner Glow (Atmosphere) -->
-					<div
-						class="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_50%_0%,rgba(40,40,70,0.4)_0%,transparent_60%)]"
-					></div>
-
-					<!-- Grid Lines -->
-					<div class="absolute inset-0 opacity-20">
-						<div
-							class="absolute inset-0 bg-[repeating-conic-gradient(from_0deg,transparent_0deg,transparent_29deg,rgba(255,255,255,0.1)_30deg)] opacity-30"
-						></div>
-						<div
-							class="absolute inset-0 bg-[repeating-radial-gradient(circle_at_50%_-20%,transparent_0,transparent_50px,rgba(255,255,255,0.05)_51px)]"
-						></div>
-					</div>
-
-					<!-- Map Layer (Sliding) -->
-					<div
-						class="pointer-events-none absolute inset-0 opacity-[0.08] mix-blend-overlay"
-						style="filter: url(#spherize)"
-					>
-						<div class="flex h-full w-[200%] animate-slide">
+				<Globe {events}>
+					{#snippet children({ event })}
+						<div class="flex -translate-y-full flex-col items-center gap-2 pb-2">
+							<!-- Bubble -->
 							<div
-								class="h-full w-1/2 bg-[url('/world.svg')] bg-contain bg-repeat-x"
-							></div>
-							<div
-								class="h-full w-1/2 bg-[url('/world.svg')] bg-contain bg-repeat-x"
-							></div>
-						</div>
-					</div>
-
-					<!-- Rotating Surface Textures (Stars) -->
-					<div class="absolute inset-0 animate-[spin_240s_linear_infinite]">
-						<!-- Constellations & Stars -->
-						<div class="absolute inset-0 opacity-50">
-							{#each Array(12) as _, i}
-								<div
-									class="absolute h-[2px] w-[2px] rounded-full bg-white/40"
-									style="
-									top: {20 + Math.random() * 30}%;
-									left: {Math.random() * 100}%;
-									box-shadow: 0 0 {Math.random() * 5 + 2}px rgba(255,255,255,0.5);
-								"
-								></div>
-							{/each}
-						</div>
-					</div>
-				</div>
-
-				<!-- 2. Floating Markers (Unclipped) -->
-				<div class="absolute inset-0 animate-[spin_240s_linear_infinite]">
-					{#each events as event}
-						<div class="absolute" style="top: {event.y}%; left: {event.x}%;">
-							<!-- Content Container (Counter-rotated) -->
-							<div
-								class="flex -translate-y-full animate-[spin_240s_linear_infinite_reverse] flex-col items-center gap-2 pb-2"
+								class="relative w-max max-w-[140px] rounded-xl border border-white/10 bg-black/60 p-2.5 shadow-2xl backdrop-blur-md transition-all hover:scale-105 hover:bg-black/80"
 							>
-								<!-- Bubble -->
-								<div
-									class="relative w-max max-w-[140px] rounded-xl border border-white/10 bg-black/60 p-2.5 shadow-2xl backdrop-blur-md transition-all hover:scale-105 hover:bg-black/80"
-								>
-									<div class="mb-1 flex items-center gap-1.5">
-										<div
-											class="h-1.5 w-1.5 rounded-full bg-indigo-400 shadow-[0_0_6px_rgba(129,140,248,0.8)]"
-										></div>
-										<span
-											class="text-[9px] tracking-wider text-white/50 uppercase"
-											>{event.category}</span
-										>
-									</div>
-									<div class="text-[11px] leading-none font-medium text-white/90">
-										{event.title}
-									</div>
-
-									<!-- Decorative corner accents -->
+								<div class="mb-1 flex items-center gap-1.5">
 									<div
-										class="absolute top-0 left-0 h-2 w-2 rounded-tl-md border-t border-l border-white/20"
+										class="h-1.5 w-1.5 rounded-full bg-indigo-400 shadow-[0_0_6px_rgba(129,140,248,0.8)]"
 									></div>
-									<div
-										class="absolute right-0 bottom-0 h-2 w-2 rounded-br-md border-r border-b border-white/20"
-									></div>
+									<span class="text-[9px] tracking-wider text-white/50 uppercase"
+										>{event.category}</span
+									>
+								</div>
+								<div class="text-[11px] leading-none font-medium text-white/90">
+									{event.title}
 								</div>
 
-								<!-- Marker + Tether -->
-								<div class="flex flex-col items-center">
+								<!-- Decorative corner accents -->
+								<div
+									class="absolute top-0 left-0 h-2 w-2 rounded-tl-md border-t border-l border-white/20"
+								></div>
+								<div
+									class="absolute right-0 bottom-0 h-2 w-2 rounded-br-md border-r border-b border-white/20"
+								></div>
+							</div>
+
+							<!-- Marker + Tether -->
+							<div class="flex flex-col items-center">
+								<div
+									class="h-8 w-px bg-linear-to-b from-white/20 to-transparent"
+								></div>
+								<div
+									class="relative h-1.5 w-1.5 rounded-full bg-white shadow-[0_0_10px_white]"
+								>
 									<div
-										class="h-8 w-[1px] bg-gradient-to-b from-white/20 to-transparent"
+										class="absolute inset-0 animate-ping rounded-full bg-white/50 opacity-75"
 									></div>
-									<div
-										class="relative h-1.5 w-1.5 rounded-full bg-white shadow-[0_0_10px_white]"
-									>
-										<div
-											class="absolute inset-0 animate-ping rounded-full bg-white/50 opacity-75"
-										></div>
-									</div>
 								</div>
 							</div>
 						</div>
-					{/each}
-				</div>
+					{/snippet}
+				</Globe>
 			</div>
 		</div>
 	</main>
