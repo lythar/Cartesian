@@ -3,13 +3,24 @@
 	import { queryClient } from "$lib/api";
 	import "../app.css";
 	import { ModeWatcher } from "mode-watcher";
-	import { createLayoutContext } from "$lib/context/layout.svelte";
 	import { onMount } from "svelte";
+	import { onNavigate } from "$app/navigation";
 	import { authStore } from "$lib/stores/auth.svelte";
 	import { getAccountApiVerify } from "$lib/api";
-	import { browser } from "$app/environment";
+	
 
 	let { children } = $props();
+
+	onNavigate((navigation) => {
+		if(!document.startViewTransition) return;
+
+		return new Promise((resolve) => {
+			document.startViewTransition(async () => {
+				resolve();
+				await navigation.complete;
+			});
+		});
+	})
 
 	onMount(async () => {
 		try {
