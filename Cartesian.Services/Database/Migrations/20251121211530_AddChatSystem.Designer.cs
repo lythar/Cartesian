@@ -3,6 +3,7 @@ using System;
 using Cartesian.Services.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Cartesian.Services.Database.Migrations
 {
     [DbContext(typeof(CartesianDbContext))]
-    partial class CartesianDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251121211530_AddChatSystem")]
+    partial class AddChatSystem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -92,6 +95,43 @@ namespace Cartesian.Services.Database.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("Cartesian.Services.Chat.ChatBan", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("BannedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("BannedById")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("ChannelId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BannedById");
+
+                    b.HasIndex("ChannelId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ChatBans");
                 });
 
             modelBuilder.Entity("Cartesian.Services.Chat.ChatChannel", b =>
@@ -632,6 +672,33 @@ namespace Cartesian.Services.Database.Migrations
                     b.Navigation("Avatar");
                 });
 
+            modelBuilder.Entity("Cartesian.Services.Chat.ChatBan", b =>
+                {
+                    b.HasOne("Cartesian.Services.Account.CartesianUser", "BannedBy")
+                        .WithMany()
+                        .HasForeignKey("BannedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cartesian.Services.Chat.ChatChannel", "Channel")
+                        .WithMany("Bans")
+                        .HasForeignKey("ChannelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Cartesian.Services.Account.CartesianUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("BannedBy");
+
+                    b.Navigation("Channel");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Cartesian.Services.Chat.ChatChannel", b =>
                 {
                     b.HasOne("Cartesian.Services.Communities.Community", "Community")
@@ -919,6 +986,8 @@ namespace Cartesian.Services.Database.Migrations
 
             modelBuilder.Entity("Cartesian.Services.Chat.ChatChannel", b =>
                 {
+                    b.Navigation("Bans");
+
                     b.Navigation("Messages");
 
                     b.Navigation("Mutes");

@@ -1,4 +1,5 @@
 using Cartesian.Services.Account;
+using Cartesian.Services.Chat;
 using Cartesian.Services.Communities;
 using Cartesian.Services.Content;
 using Cartesian.Services.Events;
@@ -14,6 +15,11 @@ public class CartesianDbContext : IdentityDbContext<CartesianUser>
     public DbSet<EventWindow> EventWindows { get; set; } = null!;
     public DbSet<Media> Media { get; set; } = null!;
     public DbSet<Membership> Memberships { get; set; } = null!;
+    public DbSet<ChatChannel> ChatChannels { get; set; } = null!;
+    public DbSet<ChatMessage> ChatMessages { get; set; } = null!;
+    public DbSet<ChatMention> ChatMentions { get; set; } = null!;
+    public DbSet<ChatMute> ChatMutes { get; set; } = null!;
+    public DbSet<ChatUserSettings> ChatUserSettings { get; set; } = null!;
 
     public CartesianDbContext()
     {
@@ -105,6 +111,72 @@ public class CartesianDbContext : IdentityDbContext<CartesianUser>
             entity.HasOne(e => e.Author)
                 .WithMany(e => e.Media)
                 .IsRequired(false);
+        });
+
+        builder.Entity<ChatChannel>(entity =>
+        {
+            entity.HasOne(e => e.Participant1)
+                .WithMany()
+                .HasForeignKey(e => e.Participant1Id)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Participant2)
+                .WithMany()
+                .HasForeignKey(e => e.Participant2Id)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Community)
+                .WithMany()
+                .HasForeignKey(e => e.CommunityId)
+                .IsRequired(false);
+            entity.HasOne(e => e.Event)
+                .WithMany()
+                .HasForeignKey(e => e.EventId)
+                .IsRequired(false);
+            entity.HasMany(e => e.Messages)
+                .WithOne(e => e.Channel);
+            entity.HasMany(e => e.Mutes)
+                .WithOne(e => e.Channel);
+        });
+
+        builder.Entity<ChatMessage>(entity =>
+        {
+            entity.HasOne(e => e.Channel)
+                .WithMany(e => e.Messages);
+            entity.HasOne(e => e.Author)
+                .WithMany();
+            entity.HasMany(e => e.Mentions)
+                .WithOne(e => e.Message);
+            entity.HasMany(e => e.Attachments)
+                .WithMany();
+        });
+
+        builder.Entity<ChatMention>(entity =>
+        {
+            entity.HasOne(e => e.Message)
+                .WithMany(e => e.Mentions);
+            entity.HasOne(e => e.User)
+                .WithMany();
+        });
+
+        builder.Entity<ChatMute>(entity =>
+        {
+            entity.HasOne(e => e.Channel)
+                .WithMany(e => e.Mutes);
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.MutedBy)
+                .WithMany()
+                .HasForeignKey(e => e.MutedById)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<ChatUserSettings>(entity =>
+        {
+            entity.HasOne(e => e.User)
+                .WithMany();
         });
     }
 }

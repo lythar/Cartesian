@@ -9,6 +9,7 @@ public enum Permissions : UInt32
     ManageWindows = 1 << 2,
     ManagePeople = 1 << 3,
     ManageCommunity = 1 << 4,
+    ManageChat = 1 << 5,
     All = 0x3FFFFFFF,
     Admin = All | 1u << 30,
     Owner = Admin | 1u << 31

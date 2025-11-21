@@ -1,4 +1,5 @@
 using Cartesian.Services.Account;
+using Cartesian.Services.Chat;
 using Cartesian.Services.Content;
 using Cartesian.Services.Database;
 using Cartesian.Services.Endpoints;
@@ -60,6 +61,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.AddScoped<ClaimsService>();
 builder.Services.AddScoped<MediaService>();
+builder.Services.AddSingleton<ChatSseService>();
 
 var app = builder.Build();
 
