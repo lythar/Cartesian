@@ -58,12 +58,35 @@ public static class CartesianOpenApi
                 {
                     var propName = char.ToLowerInvariant(prop.Name[0]) + prop.Name.Substring(1);
 
+                    var nullabilityInfo = new System.Reflection.NullabilityInfoContext().Create(prop);
+                    var isNullable = nullabilityInfo.WriteState == System.Reflection.NullabilityState.Nullable ||
+                                     nullabilityInfo.ReadState == System.Reflection.NullabilityState.Nullable;
+                    
+                    // If nullability is unknown and it's a reference type, check for NullableAttribute
+                    if (nullabilityInfo.WriteState == System.Reflection.NullabilityState.Unknown && !prop.PropertyType.IsValueType)
+                    {
+                        var nullableAttr = prop.CustomAttributes
+                            .FirstOrDefault(x => x.AttributeType.FullName == "System.Runtime.CompilerServices.NullableAttribute");
+                        if (nullableAttr != null)
+                        {
+                            var firstArg = nullableAttr.ConstructorArguments.FirstOrDefault();
+                            if (firstArg.Value is byte flagValue)
+                            {
+                                isNullable = flagValue == 2; // 2 means nullable
+                            }
+                        }
+                    }
+
                     properties[propName] = new OpenApiSchema
                     {
                         Type = GetJsonSchemaType(prop.PropertyType),
                         Description = $"{prop.Name} property"
                     };
-                    required.Add(propName);
+                    
+                    if (!isNullable)
+                    {
+                        required.Add(propName);
+                    }
                 }
 
                 document.Components.Schemas[errorName] = new OpenApiSchema
@@ -128,6 +151,21 @@ public static class CartesianOpenApi
                 operation.Responses.Add("403", new OpenApiResponse
                 {
                     Description = "Forbidden - Insufficient permissions"
+                });
+            }
+
+            if (!operation.Responses.ContainsKey("500"))
+            {
+                operation.Responses.Add("500", new OpenApiResponse
+                {
+                    Description = "Internal Server Error - An unexpected error occurred",
+                    Content = new Dictionary<string, OpenApiMediaType>
+                    {
+                        ["application/json"] = new()
+                        {
+                            Schema = new OpenApiSchemaReference(nameof(InternalServerError))
+                        }
+                    }
                 });
             }
 

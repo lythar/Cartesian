@@ -16,11 +16,16 @@ public class CommunityQueryEndpoints : IEndpoint
             .Produces(200, typeof(CommunityDto))
             .Produces(404, typeof(CommunityNotFoundError));
 
-        // app.MapGet("/community/api/public/{communityId}/members", GetCommunityMembers)
-        //     .Produces(200, typeof(IEnumerable<CartesianUserDto>))
-        //     .Produces(404, typeof(CommunityNotFoundError));
+        app.MapGet("/community/api/public/list", GetCommunityList)
+            .AddEndpointFilter<ValidationFilter>()
+            .Produces(200, typeof(IEnumerable<CommunityDto>))
+            .Produces(400, typeof(ValidationError));
 
-        app.MapGet("/community/api/public/list", GetCommunityList).Produces(200, typeof(IEnumerable<CommunityDto>));
+        app.MapGet("/community/api/me/memberships", GetMyMemberships)
+            .RequireAuthorization()
+            .AddEndpointFilter<ValidationFilter>()
+            .Produces(200, typeof(IEnumerable<MembershipDto>))
+            .Produces(400, typeof(ValidationError));
     }
 
     async Task<IResult> GetCommunityById(CartesianDbContext dbContext, Guid communityId) =>
@@ -49,7 +54,31 @@ public class CommunityQueryEndpoints : IEndpoint
         return Results.Ok(communities.Select(c => c.ToDto()));
     }
 
-    record GetCommunityListRequest(
+    async Task<IResult> GetMyMemberships(CartesianDbContext dbContext, UserManager<CartesianUser> userManager,
+        ClaimsPrincipal principal, [AsParameters] GetMyMembershipsRequest req)
+    {
+        var userId = userManager.GetUserId(principal);
+        if (userId == null) return Results.Unauthorized();
+
+        var memberships = await dbContext.Memberships
+            .Include(m => m.Community)
+            .ThenInclude(c => c.Avatar)
+            .Include(m => m.User)
+            .ThenInclude(u => u.Avatar)
+            .Where(m => m.UserId == userId)
+            .OrderByDescending(m => m.CreatedAt)
+            .Skip(req.Skip)
+            .Take(req.Limit)
+            .ToArrayAsync();
+
+        return Results.Ok(memberships.Select(m => m.ToDto()));
+    }
+
+    public record GetMyMembershipsRequest(
+        [FromQuery(Name = "limit")] int Limit = 50,
+        [FromQuery(Name = "skip")] int Skip = 0);
+
+    public record GetCommunityListRequest(
         [FromQuery(Name = "onlyJoined")] bool OnlyJoined = false,
         [FromQuery(Name = "showInviteOnly")] bool ShowInviteOnly = true,
         [FromQuery(Name = "limit")] int Limit = 50,

@@ -1,5 +1,10 @@
 # Cartesian Monorepo Guide
 
+## Detailed Guides
+
+- **Frontend**: See `Cartesian.Frontend/AGENTS.md` for SvelteKit/TypeScript conventions
+- **Backend**: See `Cartesian.Services/AGENTS.md` for .NET/C# conventions
+
 ## Commands
 
 - **Frontend** (`Cartesian.Frontend/`):
@@ -18,7 +23,13 @@
   - **Styling**: Tailwind CSS with `cn()` utility. Shadcn UI components.
   - **Logic**: Use `Effect.TS` for business logic. Avoid classes unless for State Machines.
   - **Formatting**: Prettier default. PascalCase for components, camelCase for props/functions.
-- **Backend (.NET)**: Follow idiomatic C# conventions.
+  - **Full Details**: See `Cartesian.Frontend/AGENTS.md`
+- **Backend (.NET)**: 
+  - Follow idiomatic C# conventions with modern features (records, required, primary constructors)
+  - IEndpoint pattern for all API endpoints
+  - Entity/DTO separation with ToDto() methods
+  - Typed errors inheriting from CartesianError
+  - **Full Details**: See `Cartesian.Services/AGENTS.md`
 - **General**:
   - **Strict Types**: No `any`. Define interfaces.
   - **Concise**: Minimal comments/prose. No emojis.

@@ -14,7 +14,8 @@ public class Community
     public Media? Avatar { get; set; }
     public List<Event> Events { get; set; } = [];
     public List<Membership> Memberships { get; set; } = [];
+    public List<Media> Images { get; set; } = [];
     public bool InviteOnly { get; set; } = false;
 
-    public CommunityDto ToDto() => new(Id, Name, InviteOnly, MemberPermissions, Avatar?.ToDto());
+    public CommunityDto ToDto() => new(Id, Name, Description, InviteOnly, MemberPermissions, Avatar?.ToDto());
 }

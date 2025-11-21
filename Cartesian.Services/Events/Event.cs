@@ -1,5 +1,6 @@
 using Cartesian.Services.Account;
 using Cartesian.Services.Communities;
+using Cartesian.Services.Content;
 
 namespace Cartesian.Services.Events;
 
@@ -18,6 +19,7 @@ public class Event
     public List<EventTag> Tags { get; set; } = [];
     public List<EventWindow> Windows { get; set; } = [];
     public List<CartesianUser> Subscribers { get; set; } = [];
+    public List<Media> Images { get; set; } = [];
 
     public EventDto ToDto() =>
         new(Id, Name, Description, Author.ToDto(), Community?.ToDto(), Visibility, Timing, Tags,

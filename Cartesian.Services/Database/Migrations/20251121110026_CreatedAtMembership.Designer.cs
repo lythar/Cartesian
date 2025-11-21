@@ -3,6 +3,7 @@ using System;
 using Cartesian.Services.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Cartesian.Services.Database.Migrations
 {
     [DbContext(typeof(CartesianDbContext))]
-    partial class CartesianDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251121110026_CreatedAtMembership")]
+    partial class CreatedAtMembership
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -81,8 +84,7 @@ namespace Cartesian.Services.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AvatarId")
-                        .IsUnique();
+                    b.HasIndex("AvatarId");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -122,8 +124,7 @@ namespace Cartesian.Services.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AvatarId")
-                        .IsUnique();
+                    b.HasIndex("AvatarId");
 
                     b.ToTable("Communities");
                 });
@@ -169,21 +170,12 @@ namespace Cartesian.Services.Database.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("CommunityId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("ContentType")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("EventId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("EventWindowId")
-                        .HasColumnType("uuid");
 
                     b.Property<string>("FileName")
                         .IsRequired()
@@ -202,12 +194,6 @@ namespace Cartesian.Services.Database.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AuthorId");
-
-                    b.HasIndex("CommunityId");
-
-                    b.HasIndex("EventId");
-
-                    b.HasIndex("EventWindowId");
 
                     b.ToTable("Media");
                 });
@@ -457,8 +443,8 @@ namespace Cartesian.Services.Database.Migrations
             modelBuilder.Entity("Cartesian.Services.Account.CartesianUser", b =>
                 {
                     b.HasOne("Cartesian.Services.Content.Media", "Avatar")
-                        .WithOne()
-                        .HasForeignKey("Cartesian.Services.Account.CartesianUser", "AvatarId");
+                        .WithMany()
+                        .HasForeignKey("AvatarId");
 
                     b.Navigation("Avatar");
                 });
@@ -466,8 +452,8 @@ namespace Cartesian.Services.Database.Migrations
             modelBuilder.Entity("Cartesian.Services.Communities.Community", b =>
                 {
                     b.HasOne("Cartesian.Services.Content.Media", "Avatar")
-                        .WithOne()
-                        .HasForeignKey("Cartesian.Services.Communities.Community", "AvatarId");
+                        .WithMany()
+                        .HasForeignKey("AvatarId");
 
                     b.Navigation("Avatar");
                 });
@@ -496,18 +482,6 @@ namespace Cartesian.Services.Database.Migrations
                     b.HasOne("Cartesian.Services.Account.CartesianUser", "Author")
                         .WithMany("Media")
                         .HasForeignKey("AuthorId");
-
-                    b.HasOne("Cartesian.Services.Communities.Community", null)
-                        .WithMany("Images")
-                        .HasForeignKey("CommunityId");
-
-                    b.HasOne("Cartesian.Services.Events.Event", null)
-                        .WithMany("Images")
-                        .HasForeignKey("EventId");
-
-                    b.HasOne("Cartesian.Services.Events.EventWindow", null)
-                        .WithMany("Images")
-                        .HasForeignKey("EventWindowId");
 
                     b.Navigation("Author");
                 });
@@ -632,21 +606,12 @@ namespace Cartesian.Services.Database.Migrations
                 {
                     b.Navigation("Events");
 
-                    b.Navigation("Images");
-
                     b.Navigation("Memberships");
                 });
 
             modelBuilder.Entity("Cartesian.Services.Events.Event", b =>
                 {
-                    b.Navigation("Images");
-
                     b.Navigation("Windows");
-                });
-
-            modelBuilder.Entity("Cartesian.Services.Events.EventWindow", b =>
-                {
-                    b.Navigation("Images");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,4 +1,5 @@
 using Cartesian.Services.Account;
+using Cartesian.Services.Content;
 using NetTopologySuite.Geometries;
 
 namespace Cartesian.Services.Events;
@@ -13,6 +14,7 @@ public class EventWindow
     public required string Description { get; set; }
     public required Point Location { get; set; }
     public List<CartesianUser> Participants { get; set; } = [];
+    public List<Media> Images { get; set; } = [];
     public DateTime? StartTime { get; set; }
     public DateTime? EndTime { get; set; }
 

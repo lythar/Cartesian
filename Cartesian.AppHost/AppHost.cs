@@ -5,7 +5,7 @@ var builder = DistributedApplication.CreateBuilder(args);
 builder.AddDockerComposeEnvironment("compose");
 
 var postgres = builder.AddPostgres("postgres")
-    .WithImage("postgis/postgis:18-alpine")
+    .WithImage("postgis/postgis:18-3.6-alpine")
     .WithHostPort(41021)
     .WithDataVolume();
 

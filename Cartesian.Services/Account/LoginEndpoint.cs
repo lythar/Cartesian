@@ -11,7 +11,9 @@ public class LoginEndpoint : IEndpoint
     {
         app.MapPost("/account/api/login", PostLogin)
             .AllowAnonymous()
+            .AddEndpointFilter<ValidationFilter>()
             .Produces(200, typeof(LoginSuccess))
+            .Produces(400, typeof(ValidationError))
             .Produces(400, typeof(InvalidCredentialsError));
     }
 
@@ -40,7 +42,7 @@ public class LoginEndpoint : IEndpoint
         return Results.Ok(new LoginSuccess(user.ToMyUserDto()));
     }
 
-    private record LoginBody(string Email, string Password);
+    public record LoginBody(string Email, string Password);
 
     private record LoginSuccess(MyUserDto Me);
 }

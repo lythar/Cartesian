@@ -10,7 +10,9 @@ public class RegisterEndpoint : IEndpoint
     {
         app.MapPost("/account/api/register", PostRegister)
             .AllowAnonymous()
+            .AddEndpointFilter<ValidationFilter>()
             .Produces(200, typeof(RegisterSuccess))
+            .Produces(400, typeof(ValidationError))
             .Produces(403, typeof(CartesianIdentityError));
     }
 
@@ -39,7 +41,7 @@ public class RegisterEndpoint : IEndpoint
         return Results.Ok(new RegisterSuccess(user.ToMyUserDto()));
     }
 
-    private record RegisterBody(string Username, string Email, string Password);
+    public record RegisterBody(string Username, string Email, string Password);
 
     private record RegisterSuccess(MyUserDto Me);
 }

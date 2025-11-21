@@ -12,7 +12,9 @@ public class CreateCommunityEndpoint : IEndpoint
     {
         app.MapPost("/community/api/create", PostCreateCommunity)
             .RequireAuthorization()
-            .Produces(200, typeof(CommunityDto));
+            .AddEndpointFilter<ValidationFilter>()
+            .Produces(200, typeof(CommunityDto))
+            .Produces(400, typeof(ValidationError));
     }
 
     async Task<IResult> PostCreateCommunity(CartesianDbContext dbContext, UserManager<CartesianUser> userManager, ClaimsPrincipal principal, PostCreateCommunityBody body)
@@ -42,5 +44,5 @@ public class CreateCommunityEndpoint : IEndpoint
         return Results.Ok(community.ToDto());
     }
 
-    record PostCreateCommunityBody(string Name, string Description, bool InviteOnly);
+    public record PostCreateCommunityBody(string Name, string Description, bool InviteOnly);
 }

@@ -9,7 +9,7 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.AddMinioClient("cartesian-storage");
+builder.AddMinioClient("storage");
 builder.AddNpgsqlDbContext<CartesianDbContext>("database",
     configureDbContextOptions: options => options.UseNpgsql(o => o.UseNetTopologySuite()));
 builder.AddServiceDefaults();
@@ -17,6 +17,8 @@ builder.AddServiceDefaults();
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.Converters.Add(new GeoJsonConverterFactory());
+    options.SerializerOptions.Converters.Add(new UtcDateTimeConverter());
+    options.SerializerOptions.Converters.Add(new NullableUtcDateTimeConverter());
 });
 builder.Services.AddCors();
 builder.Services.AddEndpoints();
@@ -37,6 +39,8 @@ builder.Services.AddIdentity<CartesianUser, IdentityRole>(options =>
     .AddDefaultTokenProviders();
 builder.Services.AddAuthorization();
 builder.Services.AddValidation();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -67,6 +71,9 @@ if (autoRunMigrations)
 
     var db = scope.ServiceProvider.GetRequiredService<CartesianDbContext>();
     db.Database.Migrate();
+
+    var mediaService = scope.ServiceProvider.GetRequiredService<MediaService>();
+    await mediaService.EnsureBucketExists();
 }
 
 if (app.Environment.IsDevelopment())
@@ -75,6 +82,8 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference("/docs");
     app.UseCors(x => x.WithOrigins("http://localhost:5173").AllowAnyMethod().AllowAnyHeader().AllowCredentials());
 }
+
+app.UseExceptionHandler();
 
 app.UseAuthentication();
 app.UseAuthorization();
