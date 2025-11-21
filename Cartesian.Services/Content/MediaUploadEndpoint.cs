@@ -19,6 +19,13 @@ public class MediaUploadEndpoint : IEndpoint
             .Produces(400, typeof(InvalidMediaTypeError))
             .Produces(401);
 
+        app.MapPost("/media/api/upload/avatar", PostUploadAvatar)
+            .RequireAuthorization()
+            .DisableAntiforgery()
+            .Produces(200, typeof(MediaDto))
+            .Produces(400, typeof(InvalidMediaTypeError))
+            .Produces(401);
+
         app.MapGet("/media/api/{mediaId}", GetMedia)
             .AllowAnonymous()
             .Produces(200)
@@ -38,7 +45,25 @@ public class MediaUploadEndpoint : IEndpoint
         if (userId == null) return Results.Unauthorized();
 
         await using var stream = file.OpenReadStream();
-        var media = await mediaService.UploadMedia(stream, file.FileName, file.ContentType, userId);
+        var media = await mediaService.UploadGeneralImage(stream, file.FileName, file.ContentType, userId);
+
+        return Results.Ok(media.ToDto());
+    }
+
+    async Task<IResult> PostUploadAvatar(IFormFile file, MediaService mediaService, 
+        UserManager<CartesianUser> userManager, ClaimsPrincipal principal)
+    {
+        if (file.Length == 0 || file.Length > MaxFileSize)
+            return Results.BadRequest(new InvalidMediaTypeError("File size must be between 1 byte and 5MB"));
+
+        if (!AllowedContentTypes.Contains(file.ContentType))
+            return Results.BadRequest(new InvalidMediaTypeError(file.ContentType));
+
+        var userId = userManager.GetUserId(principal);
+        if (userId == null) return Results.Unauthorized();
+
+        await using var stream = file.OpenReadStream();
+        var media = await mediaService.UploadAvatar(stream, file.FileName, userId);
 
         return Results.Ok(media.ToDto());
     }

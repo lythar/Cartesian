@@ -40,6 +40,9 @@ public class UserAvatarEndpoint : IEndpoint
         if (media == null || media.IsDeleted)
             return Results.NotFound(new MediaNotFoundError(body.MediaId));
 
+        if (media.FileName != "avatar.jpg")
+            return Results.BadRequest(new InvalidMediaTypeError("Media must be uploaded via avatar endpoint"));
+
         user.AvatarId = body.MediaId;
         await dbContext.SaveChangesAsync();
 

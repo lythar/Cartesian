@@ -85,7 +85,7 @@ public class MediaAttachmentEndpoint : IEndpoint
             return Results.Json(error, statusCode: 403);
 
         await using var stream = file.OpenReadStream();
-        var media = await mediaService.UploadMedia(stream, file.FileName, file.ContentType, userId);
+        var media = await mediaService.UploadCommunityImage(stream, file.FileName, file.ContentType, userId);
         
         media.CommunityId = communityId;
         await dbContext.SaveChangesAsync();
@@ -133,7 +133,7 @@ public class MediaAttachmentEndpoint : IEndpoint
             return Results.NotFound(new EventNotFoundError(eventId.ToString()));
 
         await using var stream = file.OpenReadStream();
-        var media = await mediaService.UploadMedia(stream, file.FileName, file.ContentType, userId);
+        var media = await mediaService.UploadEventImage(stream, file.FileName, file.ContentType, userId);
         
         media.EventId = eventId;
         await dbContext.SaveChangesAsync();
@@ -181,7 +181,7 @@ public class MediaAttachmentEndpoint : IEndpoint
             return Results.NotFound(new EventWindowNotFoundError(windowId.ToString()));
 
         await using var stream = file.OpenReadStream();
-        var media = await mediaService.UploadMedia(stream, file.FileName, file.ContentType, userId);
+        var media = await mediaService.UploadEventWindowImage(stream, file.FileName, file.ContentType, userId);
         
         media.EventWindowId = windowId;
         await dbContext.SaveChangesAsync();
