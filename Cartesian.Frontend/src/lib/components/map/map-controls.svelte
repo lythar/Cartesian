@@ -9,7 +9,8 @@
 	import { getLayoutContext } from "$lib/context/layout.svelte";
 	import { deviceHeading, geolocateControl, geolocateState, navigationMode } from "./map-state.svelte";
 	import { cn } from "$lib/utils";
-
+	import * as Sidebar from "$lib/components/ui/sidebar";
+  
 	interface Props {
 		map: mapboxgl.Map;
 	}
@@ -120,5 +121,8 @@
     >
       <HugeiconsIcon icon={LayerIcon} strokeWidth={2} className="duotone-fill" />
     </Button>
+  </ButtonGroup.Root>
+  <ButtonGroup.Root>
+    <Sidebar.Trigger class="size-12" variant="outline" />
   </ButtonGroup.Root>
 </ButtonGroup.Root>

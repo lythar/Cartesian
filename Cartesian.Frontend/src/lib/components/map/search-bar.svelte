@@ -14,27 +14,19 @@
 	import { mapState } from "$lib/components/map/map-state.svelte";
 	import { cn } from "$lib/utils";
 	import { animate, stagger } from "motion";
+	import { Debounced } from "runed";
+	import * as Sidebar from "$lib/components/ui/sidebar";
 
 	const layout = getLayoutContext();
 
 	let searchValue = $state("");
+	const debouncedSearch = new Debounced<string>(() => searchValue, 300);
 	let isAIMode = $state(false);
 	let isFocused = $state(false);
-	let debouncedValue = $state("");
 
 	let searchBarRef: HTMLDivElement | undefined = $state();
 	let resultsContainerRef: HTMLDivElement | undefined = $state();
-
-	let timer: NodeJS.Timeout;
-	$effect(() => {
-		clearTimeout(timer);
-		timer = setTimeout(() => {
-			debouncedValue = searchValue;
-		}, 300);
-		return () => clearTimeout(timer);
-	});
-
-	const geoQuery = createForwardGeocodeQuery(() => debouncedValue);
+	const geoQuery = createForwardGeocodeQuery(() => debouncedSearch.current);
 
 	const showExpanded = $derived(isFocused && searchValue.length > 0);
 
@@ -115,12 +107,10 @@
 <div
 	class="absolute top-4 right-0 left-0 z-20 flex flex-col items-center px-4 lg:right-auto lg:left-4 lg:w-[400px] lg:items-start lg:px-0"
 >
-	<!-- Search Bar (Fixed Size) -->
 	<div
 		bind:this={searchBarRef}
 		class="relative w-full rounded-full bg-card/90 shadow-neu-highlight backdrop-blur-md"
 	>
-		<!-- Input Area -->
 		<div class="flex h-16 w-full items-center gap-2 px-2 lg:h-14">
 			<div
 				class="flex h-12 flex-1 items-center gap-2 rounded-full bg-secondary/50 px-3 transition-colors focus-within:bg-secondary lg:h-10"
@@ -132,7 +122,7 @@
 						placeholder={isAIMode
 							? "Ask AI to find events..."
 							: "Search events, locations..."}
-						class="h-10 border-0 bg-transparent px-0 text-base shadow-none placeholder:text-muted-foreground/70 focus-visible:ring-0"
+						class="h-10 border-0 bg-transparent dark:bg-transparent px-0 text-base shadow-none placeholder:text-muted-foreground/70 focus-visible:ring-0"
 						onfocus={() => (isFocused = true)}
 						onblur={() => {
 							// Small timeout to allow clicks on results to register
@@ -177,7 +167,6 @@
 		</div>
 	</div>
 
-	<!-- Results Container (Separate Element Below) -->
 	<div
 		bind:this={resultsContainerRef}
 		class="mt-2 w-full overflow-hidden rounded-3xl bg-card/90 shadow-neu-highlight backdrop-blur-md"
@@ -185,7 +174,6 @@
 	>
 		<div class="flex flex-col px-4 py-4">
 			<div class="scrollbar-thin max-h-[60vh] overflow-y-auto">
-				<!-- Events Section -->
 				<div class="animate-item mb-4">
 					<h3
 						class="mb-2 px-2 text-xs font-medium tracking-wider text-muted-foreground uppercase"
@@ -228,7 +216,6 @@
 					</div>
 				</div>
 
-				<!-- Locations Section -->
 				<div class="animate-item">
 					<h3
 						class="mb-2 px-2 text-xs font-medium tracking-wider text-muted-foreground uppercase"

@@ -51,8 +51,8 @@
     class="border-none"
 
   >
-    <!-- <NavigationHeader /> -->
-    <!-- <Sidebar.Content>
+    <NavigationHeader />
+    <Sidebar.Content>
       {#if layout.isMobile}
 
       {:else}
@@ -65,7 +65,7 @@
           </Sidebar.GroupContent>
         </Sidebar.Group>
       {/if}
-    </Sidebar.Content> -->
+    </Sidebar.Content>
   </Sidebar.Root>
   <Sidebar.Inset>
     <main class="flex flex-1 relative flex-col overflow-hidden {layout.isMobile ? 'pb-[72px]' : ''}">
