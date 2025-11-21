@@ -68,27 +68,27 @@ public class MediaService(CartesianDbContext dbContext, IMinioClient minioClient
     }
 
     public Task<Media> UploadCommunityImage(Stream stream, string fileName, string contentType, string? authorId, CancellationToken ct = default)
-    {
-        var prefixedFileName = $"community-{fileName}";
-        return UploadMedia(stream, prefixedFileName, contentType, authorId, ct);
-    }
+        => ProcessAndUploadWebp(stream, $"community-{fileName}", authorId, ct);
 
     public Task<Media> UploadEventImage(Stream stream, string fileName, string contentType, string? authorId, CancellationToken ct = default)
-    {
-        var prefixedFileName = $"event-{fileName}";
-        return UploadMedia(stream, prefixedFileName, contentType, authorId, ct);
-    }
+        => ProcessAndUploadWebp(stream, $"event-{fileName}", authorId, ct);
 
     public Task<Media> UploadEventWindowImage(Stream stream, string fileName, string contentType, string? authorId, CancellationToken ct = default)
-    {
-        var prefixedFileName = $"event-window-{fileName}";
-        return UploadMedia(stream, prefixedFileName, contentType, authorId, ct);
-    }
+        => ProcessAndUploadWebp(stream, $"event-window-{fileName}", authorId, ct);
 
     public Task<Media> UploadGeneralImage(Stream stream, string fileName, string contentType, string? authorId, CancellationToken ct = default)
+        => ProcessAndUploadWebp(stream, $"general-{fileName}", authorId, ct);
+
+    private async Task<Media> ProcessAndUploadWebp(Stream stream, string fileName, string? authorId, CancellationToken ct = default)
     {
-        var prefixedFileName = $"general-{fileName}";
-        return UploadMedia(stream, prefixedFileName, contentType, authorId, ct);
+        using var image = await Image.LoadAsync(stream, ct);
+        
+        using var outputStream = new MemoryStream();
+        await image.SaveAsWebpAsync(outputStream, ct);
+        outputStream.Position = 0;
+
+        var webpFileName = Path.GetFileNameWithoutExtension(fileName) + ".webp";
+        return await UploadMedia(outputStream, webpFileName, "image/webp", authorId, ct);
     }
 
     public async Task<(Stream Stream, string ContentType)?> GetMedia(Guid id, CancellationToken ct = default)
