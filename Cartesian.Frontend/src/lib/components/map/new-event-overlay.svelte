@@ -1,20 +1,30 @@
 <script lang="ts">
-	import { cn, type LatLng } from "$lib/utils";
-	import { animate, stagger } from "motion";
+	import { cn } from "$lib/utils";
+	import { animate } from "motion";
 	import { newEventOverlayState } from "./map-state.svelte";
 	import { Effect } from "effect";
 	import Button from "../ui/button/button.svelte";
-	import { Badge } from "$lib/components/ui/badge";
 	import { Label } from "$lib/components/ui/label";
 	import * as Form from "$lib/components/ui/form";
-  import * as AlertDialog from "$lib/components/ui/alert-dialog";
-  import { Input } from "$lib/components/ui/input";
+	import * as AlertDialog from "$lib/components/ui/alert-dialog";
+	import { Input } from "$lib/components/ui/input";
 	import { Textarea } from "$lib/components/ui/textarea";
 	import { superForm, defaults } from "sveltekit-superforms";
 	import { zod4 } from "sveltekit-superforms/adapters";
 	import { z } from "zod";
-	import { X, MapPin, LocateFixed, Map, Search, Loader2, Sparkles } from "@lucide/svelte";
-	import { createReverseGeocodeQuery } from "$lib/api/queries/reverse-geocode.query";
+	import {
+		Cancel01Icon,
+		Location01Icon,
+		Gps01Icon,
+		MapsLocation01Icon,
+		Search01Icon,
+		Loading03Icon,
+		Calendar03Icon,
+		Clock01Icon,
+		Add01Icon,
+		Delete02Icon,
+		ArrowRight01Icon
+	} from "@hugeicons/core-free-icons";
 	import { createForwardGeocodeQuery } from "$lib/api/queries/forward-geocode.query";
 	import {
 		createPostEventApiCreate,
@@ -23,12 +33,16 @@
 		type CreateEventBody,
 		type CreateEventWindowBody
 	} from "$lib/api/cartesian-client";
-  import mapboxgl from "mapbox-gl";
+	import { fetchReverseGeocode } from "$lib/api/queries/reverse-geocode.query";
+	import { createQuery } from "@tanstack/svelte-query";
+	import mapboxgl from "mapbox-gl";
 	import { Debounced } from "runed";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import { AiEditingIcon } from "@hugeicons/core-free-icons";
-    import { EVENT_TAG_CONFIG } from "$lib/constants/event-tags";
-    import { m } from "$lib/paraglide/messages";
+	import { EVENT_TAG_CONFIG } from "$lib/constants/event-tags";
+	import { m } from "$lib/paraglide/messages";
+	import { fly, fade, slide } from "svelte/transition";
+	import DateTimePicker from "./date-time-picker.svelte";
 
 	interface Props {
 		map: mapboxgl.Map;
@@ -61,23 +75,21 @@
 
 	const searchResults = createForwardGeocodeQuery(() => debouncedSearch.current);
 
+	const locationQuery = createQuery(() => ({
+		queryKey: ["reverse-geocode", newEventOverlayState.location?.lng, newEventOverlayState.location?.lat],
+		queryFn: () => {
+			if (!newEventOverlayState.location) throw new Error("No location");
+			return Effect.runPromise(
+				fetchReverseGeocode(newEventOverlayState.location.lng, newEventOverlayState.location.lat)
+			);
+		},
+		enabled: !!newEventOverlayState.location,
+		staleTime: 1000 * 60 * 60
+	}));
+
 	$effect(() => {
 		open = newEventOverlayState.open;
 	});
-
-	$effect(() => {
-		if (open) {
-			isGlowing = true;
-			const timer = setTimeout(() => {
-				isGlowing = false;
-			}, 2000);
-			return () => clearTimeout(timer);
-		} else {
-			isGlowing = false;
-		}
-	});
-
-
 
 	$effect(() => {
 		if (open) {
@@ -86,24 +98,15 @@
 					overlayContainer,
 					{
 						opacity: [0, 1],
-						y: [-10, 0],
-						scale: [0.98, 1],
+						x: [20, 0],
+						scale: [0.95, 1],
 						filter: ["blur(8px)", "blur(0px)"]
 					},
 					{
-						duration: 0.4,
-						ease: [0.2, 0.8, 0.2, 1]
+						duration: 0.5,
+						ease: [0.16, 1, 0.3, 1] // Spring-like ease
 					}
 				);
-
-				const items = overlayContainer.querySelectorAll(".animate-item");
-				if (items.length) {
-					animate(
-						items,
-						{ opacity: [0, 1], y: [10, 0], filter: ["blur(5px)", "blur(0px)"] },
-						{ delay: stagger(0.05, { startDelay: 0.1 }), duration: 0.3 }
-					);
-				}
 			}
 		} else {
 			if (overlayContainer) {
@@ -111,11 +114,12 @@
 					overlayContainer,
 					{
 						opacity: [1, 0],
-						scale: [1, 0.98],
+						scale: [1, 0.95],
 						filter: ["blur(0px)", "blur(8px)"]
 					},
 					{
-						duration: 0.2
+						duration: 0.3,
+						ease: [0.16, 1, 0.3, 1]
 					}
 				);
 			}
@@ -124,20 +128,17 @@
 
 	// Update marker when location changes
 	let marker: mapboxgl.Marker | null = null;
-	let markerElement: HTMLDivElement | null = null;
 
 	$effect(() => {
 		if (newEventOverlayState.location && open) {
-      if (!marker) {
+			if (!marker) {
 				const el = document.createElement("div");
-				el.className = "flex flex-col items-center gap-1";
+				el.className = "flex flex-col items-center gap-2 transition-transform";
 				el.innerHTML = `
-					<div class="bg-background/90 backdrop-blur-md px-2 py-1 rounded-md shadow-sm border border-border/50 text-xs font-medium whitespace-nowrap">
-						Selected Location
+					<div class="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary shadow-lg shadow-primary/30 ring-4 ring-background">
+						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary-foreground"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
 					</div>
-					<img src="/lythar.svg" alt="Selected Location" class="w-8 h-8 drop-shadow-md" />
 				`;
-				markerElement = el;
 				marker = new mapboxgl.Marker({ element: el, anchor: "bottom" })
 					.setLngLat([newEventOverlayState.location.lng, newEventOverlayState.location.lat])
 					.addTo(map);
@@ -148,7 +149,6 @@
 			if (marker) {
 				marker.remove();
 				marker = null;
-				markerElement = null;
 			}
 		}
 	});
@@ -175,7 +175,7 @@
 		name: z.string().min(1, "Name is required"),
 		description: z.string().min(1, "Description is required"),
 		communityId: z.string().nullable().default(null),
-		tags: z.array(z.enum(tagValues)).min(1, "At least one tag is required"),
+		tags: z.array(z.enum(tagValues)).min(1, "At least one tag is required")
 	});
 
 	const createEventMutation = createPostEventApiCreate();
@@ -185,7 +185,7 @@
 		name: "",
 		description: "",
 		communityId: null,
-		tags: [],
+		tags: []
 	};
 
 	const form = superForm(defaults(initialData, zod4(formSchema)), {
@@ -198,7 +198,7 @@
 						name: f.data.name,
 						description: f.data.description,
 						communityId: f.data.communityId,
-						tags: f.data.tags as EventTag[],
+						tags: f.data.tags as EventTag[]
 					};
 
 					const event = await createEventMutation.mutateAsync({ data: eventBody });
@@ -206,7 +206,6 @@
 					let windowsToCreate: CreateEventWindowBody[] = [];
 
 					if (eventWindows.length > 0) {
-						// Advanced mode: use explicit windows
 						if (!newEventOverlayState.location) {
 							throw new Error("Location is required for event windows");
 						}
@@ -215,13 +214,15 @@
 							description: w.description,
 							location: {
 								type: "Point",
-								coordinates: [newEventOverlayState.location!.lng, newEventOverlayState.location!.lat]
+								coordinates: [
+									newEventOverlayState.location!.lng,
+									newEventOverlayState.location!.lat
+								]
 							} as any,
 							startTime: new Date(w.startTime).toISOString(),
-							endTime: new Date(w.endTime).toISOString(),
+							endTime: new Date(w.endTime).toISOString()
 						}));
 					} else if (simpleStartTime && simpleEndTime) {
-						// Simple mode: create invisible window from top-level dates
 						if (!newEventOverlayState.location) {
 							throw new Error("Location is required for event window");
 						}
@@ -231,10 +232,13 @@
 								description: f.data.description,
 								location: {
 									type: "Point",
-									coordinates: [newEventOverlayState.location.lng, newEventOverlayState.location.lat]
+									coordinates: [
+										newEventOverlayState.location.lng,
+										newEventOverlayState.location.lat
+									]
 								} as any,
 								startTime: new Date(simpleStartTime).toISOString(),
-								endTime: new Date(simpleEndTime).toISOString(),
+								endTime: new Date(simpleEndTime).toISOString()
 							}
 						];
 					}
@@ -250,10 +254,9 @@
 								catch: (error) => new Error(`Failed to create window: ${error}`)
 							});
 
-						const allWindowsEffect = Effect.all(
-							windowsToCreate.map(createWindowEffect),
-							{ concurrency: 3 }
-						);
+						const allWindowsEffect = Effect.all(windowsToCreate.map(createWindowEffect), {
+							concurrency: 3
+						});
 
 						await Effect.runPromise(allWindowsEffect);
 					}
@@ -291,7 +294,6 @@
 			simpleEndTime = "";
 			showSimpleMode = false;
 		} else {
-			// Add new window
 			eventWindows = [
 				...eventWindows,
 				{
@@ -312,389 +314,474 @@
 		}
 	}
 
-  const locationQuery = $derived(
-		newEventOverlayState.location
-			? createReverseGeocodeQuery(newEventOverlayState.location.lng, newEventOverlayState.location.lat, {
-					query: { enabled: true }
-				})
-			: null
-	);
+
 </script>
 
 <div
 	bind:this={overlayContainer}
 	class={cn(
-		"pointer-events-none absolute right-4 top-4 z-50 flex max-h-[calc(100%-2rem)] w-full max-w-md origin-top-right flex-col",
+		"pointer-events-none absolute right-4 top-4 bottom-4 z-50 flex w-full max-w-lg origin-top-right flex-col",
 		open ? "" : ""
 	)}
 >
 	<div
 		class={cn(
-			"flex flex-col overflow-hidden rounded-xl border border-border/50 bg-background/95 shadow-2xl backdrop-blur-xl transition-all",
+			"flex h-full flex-col overflow-hidden rounded-3xl border border-border/40 bg-background shadow-2xl transition-all",
 			open ? "pointer-events-auto" : "pointer-events-none"
 		)}
 	>
-		<div
-			class="flex items-center justify-between border-b border-border/50 bg-muted/30 p-4 backdrop-blur-sm"
-		>
-			<h2 class="text-lg font-semibold tracking-tight">New Event</h2>
+		<!-- Header -->
+		<div class="relative flex items-center justify-between px-6 py-5">
+			<div class="space-y-0.5">
+				<h2 class="text-xl font-semibold tracking-tight">New Event</h2>
+				<p class="text-xs font-medium text-muted-foreground">Create a public gathering</p>
+			</div>
 			<Button
 				variant="ghost"
 				size="icon"
-				class="h-8 w-8"
+				class="h-8 w-8 rounded-full transition-colors hover:bg-muted"
 				onclick={() => {
 					newEventOverlayState.open = false;
 				}}
 			>
-				<X class="h-4 w-4" />
+				<HugeiconsIcon icon={Cancel01Icon} size={16} strokeWidth={2} />
 				<span class="sr-only">Close</span>
 			</Button>
 		</div>
 
+		<!-- Content -->
 		<div
-			class="flex-1 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent"
+			class="flex-1 overflow-y-auto px-6 pb-6 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent"
 		>
-			<form method="POST" use:enhance class="space-y-4" id="create-event-form">
-				<div class="animate-item">
-					<Form.Field {form} name="name">
+			<form method="POST" use:enhance class="space-y-8" id="create-event-form">
+				<!-- Basic Info -->
+				<div class="space-y-3">
+					<Label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+						Details
+					</Label>
+
+					<Form.Field {form} name="name" class="space-y-1.5">
 						<Form.Control>
 							{#snippet children({ props })}
-								<Form.Label>Name</Form.Label>
-								<Input {...props} bind:value={$formData.name} placeholder="Event name" />
-							{/snippet}
-						</Form.Control>
-						<Form.FieldErrors />
-					</Form.Field>
-				</div>
-
-				<div class="animate-item">
-					<Form.Field {form} name="description">
-						<Form.Control>
-							{#snippet children({ props })}
-								<Form.Label>Description</Form.Label>
-								<Textarea
-									{...props}
-									bind:value={$formData.description}
-									placeholder="Describe your event..."
-									rows={4}
-								/>
-							{/snippet}
-						</Form.Control>
-						<Form.FieldErrors />
-					</Form.Field>
-				</div>
-
-				<div class="animate-item flex justify-end -mt-2">
-					<Button
-            variant="outline"
-						class={cn(
-							"relative group overflow-hidden text-xs font-medium text-foreground transition-all h-9",
-						)}
-						onmouseenter={() => (isGlowing = true)}
-						onmouseleave={() => (isGlowing = false)}
-					>
-						<!-- Glowing background/border effect -->
-						<div
-							class={cn(
-								"absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] aspect-square animate-[spin_3s_linear_infinite] opacity-0 transition-opacity duration-500 blur-md",
-								isGlowing && "opacity-100"
-							)}
-							style="background: conic-gradient(#3186ff00 0deg, #34a853 43deg, #ffd314 65deg, #ff4641 105deg, #3186ff 144deg, #3186ff 180deg, #3186ff00 324deg, #3186ff00 360deg);"
-						></div>
-
-						<!-- Sharp border effect -->
-						<div
-							class={cn(
-								"absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] aspect-square animate-[spin_3s_linear_infinite] opacity-0 transition-opacity duration-500",
-								isGlowing && "opacity-100"
-							)}
-							style="background: conic-gradient(#3186ff00 0deg, #34a853 43deg, #ffd314 65deg, #ff4641 105deg, #3186ff 144deg, #3186ff 180deg, #3186ff00 324deg, #3186ff00 360deg);"
-						></div>
-
-						<!-- Inner background to mask the center and create the border look -->
-						<div class="absolute inset-[1.5px] rounded-full bg-card z-10"></div>
-
-						<div class="relative z-20 inline-flex items-center justify-center gap-2">
-              <HugeiconsIcon icon={AiEditingIcon} size={16} strokeWidth={2} className="duotone-fill" />
-							<span
-								class={cn(
-									"transition-colors text-secondary-foreground font-medium",
-								)}
-							>
-								Enhance with AI
-							</span>
-						</div>
-					</Button>
-
-				</div>
-
-				<div class="animate-item relative z-10">
-					<div class="space-y-2">
-						<div class="flex items-center justify-between">
-							<Label>Location</Label>
-							<span class="text-xs text-muted-foreground">Required for event window</span>
-						</div>
-						{#if newEventOverlayState.location}
-							<div class="flex items-start gap-3 rounded-md border bg-muted/50 p-3">
-								<MapPin class="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-								<div class="flex-1 space-y-1">
-									<p class="text-sm font-medium leading-none">
-										{#if locationQuery?.isPending}
-											<span class="animate-pulse">Loading address...</span>
-										{:else if locationQuery?.data?.features?.[0]?.properties}
-											{locationQuery.data.features[0].properties.name ??
-												locationQuery.data.features[0].properties.place_formatted}
-										{:else}
-											Selected Location
-										{/if}
-									</p>
-									<p class="text-xs text-muted-foreground">
-										{newEventOverlayState.location.lat.toFixed(6)}, {newEventOverlayState.location.lng.toFixed(6)}
-									</p>
-								</div>
-								<Button
-									variant="ghost"
-									size="icon"
-									class="h-6 w-6"
-									onclick={() => {
-										newEventOverlayState.location = null;
-									}}
-								>
-									<X class="h-4 w-4" />
-								</Button>
-							</div>
-						{:else}
-							<div class="space-y-2">
-								<div class="relative z-20">
-									<Search class="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+								<Form.Label class="text-xs text-muted-foreground ml-1">Event Title</Form.Label>
+								<div class="relative">
 									<Input
-										placeholder="Search for a location..."
-										class="pl-8"
-										bind:value={searchQuery}
-										onfocus={() => (isSearching = true)}
-										onblur={() => setTimeout(() => (isSearching = false), 200)}
+										{...props}
+										bind:value={$formData.name}
+										placeholder="What are you planning?"
+										class="h-10 border-border/50 bg-muted/30 px-3 font-medium shadow-none transition-all focus-visible:bg-background focus-visible:ring-1"
 									/>
-									{#if searchResults.isPending && debouncedSearch.current.length >= 3}
-										<div class="absolute right-2 top-2.5">
-											<Loader2 class="h-4 w-4 animate-spin text-muted-foreground" />
-										</div>
-									{/if}
-									{#if isSearching && searchResults.data?.features?.length}
-										<div
-											class="absolute top-full left-0 right-0 z-60 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-background shadow-lg"
-										>
-											{#each searchResults.data.features as feature}
-												<button
-													class="flex w-full flex-col items-start rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground"
-													onclick={() => {
-														const [lng, lat] = feature.geometry.coordinates;
-														map.flyTo({ center: [lng, lat], zoom: 14 });
-														searchQuery = "";
-														isSearching = false;
-													}}
-												>
-													<span class="font-medium"
-														>{feature.properties.name ??
-															feature.properties.place_formatted?.split(",")[0]}</span
-													>
-													<span class="text-xs text-muted-foreground line-clamp-1"
-														>{feature.properties.full_address ??
-															feature.properties.place_formatted}</span
-													>
-												</button>
-											{/each}
-										</div>
-									{/if}
 								</div>
-								<div class="grid grid-cols-2 gap-2">
-									<Button
-										variant="outline"
-										class="w-full"
-										onclick={() => {
-											if (navigator.geolocation) {
-												navigator.geolocation.getCurrentPosition(
-													(position) => {
-														const { latitude, longitude } = position.coords;
-														newEventOverlayState.location = { lat: latitude, lng: longitude };
-														map.flyTo({ center: [longitude, latitude], zoom: 14 });
-													},
-													(error) => {
-														console.error("Error getting location", error);
-													}
-												);
-											}
-										}}
-									>
-										<LocateFixed class="mr-2 h-4 w-4" />
-										Current Location
-									</Button>
-									<Button
-										variant="outline"
-										class="w-full"
-										onclick={() => {
-											newEventOverlayState.open = false;
-										}}
-									>
-										<Map class="mr-2 h-4 w-4" />
-										Select on Map
-									</Button>
-								</div>
-							</div>
-						{/if}
+							{/snippet}
+						</Form.Control>
+						<Form.FieldErrors />
+					</Form.Field>
+
+					<div class="relative">
+						<Form.Field {form} name="description" class="space-y-1.5">
+							<Form.Control>
+								{#snippet children({ props })}
+									<Form.Label class="text-xs text-muted-foreground ml-1">Description</Form.Label>
+									<Textarea
+										{...props}
+										bind:value={$formData.description}
+										placeholder="Add details about your event..."
+										rows={4}
+										class="resize-none border-border/50 bg-muted/30 px-3 py-2 shadow-none transition-all focus-visible:bg-background focus-visible:ring-1"
+									/>
+								{/snippet}
+							</Form.Control>
+							<Form.FieldErrors />
+						</Form.Field>
+
+						<!-- AI Enhance Button overlaying bottom right of textarea context -->
+						<div class="mt-2 flex justify-end">
+							<Button
+								variant="outline"
+								size="sm"
+								class={cn(
+									"group relative overflow-hidden rounded-full border border-primary/20 bg-background/50 pl-3 pr-4 text-xs font-medium transition-all hover:border-primary/40 hover:bg-background hover:shadow-sm",
+									isGlowing && "border-primary/50 shadow-[0_0_15px_rgba(59,130,246,0.3)]"
+								)}
+								onmouseenter={() => (isGlowing = true)}
+								onmouseleave={() => (isGlowing = false)}
+							>
+								{#if isGlowing}
+									<div
+										class="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent"
+										transition:fade
+									></div>
+								{/if}
+								<HugeiconsIcon
+									icon={AiEditingIcon}
+									size={14}
+									strokeWidth={2}
+									className="mr-2 text-primary"
+								/>
+								<span
+									class="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent transition-all group-hover:to-primary"
+								>
+									Enhance with AI
+								</span>
+							</Button>
+						</div>
 					</div>
 				</div>
 
-				{#if newEventOverlayState.location}
-					<div class="animate-item border-t pt-4">
-						<div class="flex items-center justify-between mb-3">
-							<h3 class="text-sm font-semibold">Schedule</h3>
-							{#if eventWindows.length === 0}
+				<!-- Location Section -->
+				<div class="space-y-3">
+					<div class="flex items-center justify-between">
+						<Label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+							Location
+						</Label>
+						{#if !newEventOverlayState.location}
+							<span class="flex items-center gap-1 text-[10px] font-medium text-destructive">
+								<HugeiconsIcon icon={Location01Icon} size={12} strokeWidth={2} />
+								Required
+							</span>
+						{/if}
+					</div>
+
+					{#if newEventOverlayState.location}
+						<div in:slide={{ duration: 200 }}>
+							<div
+								class="group relative overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-b from-muted/50 to-muted/20 p-4 transition-all hover:border-border hover:from-muted/60 hover:to-muted/30"
+							>
+								<div class="flex items-start gap-4">
+									<div
+										class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-background shadow-sm ring-1 ring-black/5"
+									>
+										<HugeiconsIcon icon={Location01Icon} size={20} strokeWidth={2} className="text-primary" />
+									</div>
+									<div class="flex-1 space-y-1 overflow-hidden">
+										<p class="truncate font-semibold leading-none tracking-tight">
+											{#if locationQuery?.isPending}
+												<span class="animate-pulse">Locating...</span>
+											{:else if locationQuery?.data?.features?.[0]?.properties}
+												{locationQuery.data.features[0].properties.name ??
+													locationQuery.data.features[0].properties.place_formatted}
+											{:else}
+												Selected Coordinates
+											{/if}
+										</p>
+										<p class="truncate text-xs text-muted-foreground">
+											{newEventOverlayState.location.lat.toFixed(6)}, {newEventOverlayState.location.lng.toFixed(
+												6
+											)}
+										</p>
+									</div>
+									<Button
+										variant="ghost"
+										size="icon"
+										class="h-8 w-8 rounded-full text-muted-foreground hover:bg-background hover:text-destructive hover:shadow-sm"
+										onclick={() => {
+											newEventOverlayState.location = null;
+										}}
+									>
+										<HugeiconsIcon icon={Cancel01Icon} size={16} strokeWidth={2} />
+									</Button>
+								</div>
+							</div>
+						</div>
+					{:else}
+						<div class="space-y-3" in:slide={{ duration: 200 }}>
+							<div class="relative">
+								<HugeiconsIcon icon={Search01Icon} size={16} strokeWidth={2} className="absolute left-3 top-3 text-muted-foreground" />
+								<Input
+									placeholder="Search location..."
+									class="h-10 border-border/50 bg-muted/30 pl-9 shadow-none focus-visible:bg-background focus-visible:ring-1"
+									bind:value={searchQuery}
+									onfocus={() => (isSearching = true)}
+									onblur={() => setTimeout(() => (isSearching = false), 200)}
+								/>
+								{#if searchResults.isPending && debouncedSearch.current.length >= 3}
+									<div class="absolute right-3 top-3">
+										<HugeiconsIcon icon={Loading03Icon} size={16} strokeWidth={2} className="animate-spin text-muted-foreground" />
+									</div>
+								{/if}
+
+								{#if isSearching && searchResults.data?.features?.length}
+									<div
+										class="absolute left-0 right-0 top-full z-20 mt-2 max-h-[240px] origin-top overflow-auto rounded-xl border border-border/50 bg-background/95 p-1 shadow-xl backdrop-blur-md"
+										transition:fly={{ y: 10, duration: 200 }}
+									>
+										{#each searchResults.data.features as feature}
+											<button
+												class="flex w-full flex-col items-start rounded-lg px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted"
+												onclick={() => {
+													const [lng, lat] = feature.geometry.coordinates;
+													map.flyTo({ center: [lng, lat], zoom: 14 });
+													searchQuery = "";
+													isSearching = false;
+												}}
+											>
+												<span class="font-medium"
+													>{feature.properties.name ??
+														feature.properties.place_formatted?.split(",")[0]}</span
+												>
+												<span class="line-clamp-1 text-xs text-muted-foreground"
+													>{feature.properties.full_address ??
+														feature.properties.place_formatted}</span
+												>
+											</button>
+										{/each}
+									</div>
+								{/if}
+							</div>
+
+							<div class="grid grid-cols-2 gap-3">
 								<Button
 									variant="outline"
-									size="sm"
+									class="h-9 border-border/50 bg-transparent hover:bg-muted/50"
+									onclick={() => {
+										if (navigator.geolocation) {
+											navigator.geolocation.getCurrentPosition(
+												(position) => {
+													const { latitude, longitude } = position.coords;
+													newEventOverlayState.location = { lat: latitude, lng: longitude };
+													map.flyTo({ center: [longitude, latitude], zoom: 14 });
+												},
+												(error) => {
+													console.error("Error getting location", error);
+												}
+											);
+										}
+									}}
+								>
+									<HugeiconsIcon icon={Gps01Icon} size={14} strokeWidth={2} className="mr-2" />
+									<span class="text-xs">Use Current</span>
+								</Button>
+								<Button
+									variant="outline"
+									class="h-9 border-border/50 bg-transparent hover:bg-muted/50"
+									onclick={() => {
+										newEventOverlayState.open = false;
+									}}
+								>
+									<HugeiconsIcon icon={MapsLocation01Icon} size={14} strokeWidth={2} className="mr-2" />
+									<span class="text-xs">Pick on Map</span>
+								</Button>
+							</div>
+						</div>
+					{/if}
+				</div>
+
+				<!-- Schedule Section -->
+				<div class="space-y-3">
+					<div class="flex items-center justify-between">
+						<Label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+							Schedule
+						</Label>
+						{#if eventWindows.length > 0}
+							<Button
+								variant="ghost"
+								size="sm"
+								class="h-6 px-2 text-[10px] text-primary hover:bg-primary/10 hover:text-primary"
+								onclick={addEventWindow}
+							>
+								<HugeiconsIcon icon={Add01Icon} size={12} strokeWidth={2} className="mr-1" />
+								Add Window
+							</Button>
+						{/if}
+					</div>
+
+					{#if showSimpleMode && eventWindows.length === 0}
+						<div
+							class="rounded-2xl border border-border/50 bg-muted/20 p-1"
+							in:slide={{ duration: 200 }}
+						>
+							<div class="grid grid-cols-2 gap-px overflow-hidden rounded-xl">
+								<div class="group relative bg-background/50 p-3 transition-colors focus-within:bg-background hover:bg-background/80">
+									<Label class="mb-1.5 flex items-center gap-1.5 text-[10px] text-muted-foreground">
+										<HugeiconsIcon icon={Calendar03Icon} size={12} strokeWidth={2} /> Starts
+									</Label>
+									<DateTimePicker
+										bind:value={simpleStartTime}
+										placeholder="Pick start time"
+										class="w-full"
+									/>
+								</div>
+								<div class="group relative bg-background/50 p-3 transition-colors focus-within:bg-background hover:bg-background/80">
+									<Label class="mb-1.5 flex items-center gap-1.5 text-[10px] text-muted-foreground">
+										<HugeiconsIcon icon={Clock01Icon} size={12} strokeWidth={2} /> Ends
+									</Label>
+									<DateTimePicker
+										bind:value={simpleEndTime}
+										placeholder="Pick end time"
+										class="w-full"
+									/>
+								</div>
+							</div>
+							{#if simpleStartTime || simpleEndTime}
+								<button
+									class="mt-1 flex w-full items-center justify-center gap-1 rounded-lg py-1.5 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
 									onclick={addEventWindow}
 								>
-									Add Event Window
+									<HugeiconsIcon icon={Add01Icon} size={12} strokeWidth={2} />
+									Add multiple times
+								</button>
+							{/if}
+						</div>
+					{:else}
+						<div class="space-y-3">
+							{#each eventWindows as window, index (window.id)}
+								<div
+									class="relative overflow-hidden rounded-2xl border border-border/50 bg-card p-4 shadow-sm transition-all hover:border-border hover:shadow-md"
+									transition:slide
+								>
+									<div class="mb-3 flex items-center justify-between">
+										<span
+											class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+										>
+											<div class="h-1.5 w-1.5 rounded-full bg-primary"></div>
+											Window {index + 1}
+										</span>
+										<Button
+											variant="ghost"
+											size="icon"
+											class="h-6 w-6 text-muted-foreground hover:text-destructive"
+											onclick={() => removeEventWindow(window.id)}
+										>
+											<HugeiconsIcon icon={Delete02Icon} size={14} strokeWidth={2} />
+										</Button>
+									</div>
+
+									<div class="grid gap-4">
+										<div class="space-y-3">
+											<div class="relative">
+												<Input
+													bind:value={window.title}
+													placeholder="Session Title"
+													class="h-10 border-border/50 bg-muted/30 px-3 font-medium shadow-none focus-visible:bg-background focus-visible:ring-1"
+												/>
+											</div>
+											<div class="relative">
+												<Input
+													bind:value={window.description}
+													placeholder="Optional description"
+													class="h-10 border-border/50 bg-muted/30 px-3 text-sm text-muted-foreground shadow-none focus-visible:bg-background focus-visible:ring-1"
+												/>
+											</div>
+										</div>
+
+										<div class="grid grid-cols-2 gap-4 rounded-lg bg-muted/30 p-3">
+											<div class="space-y-1">
+												<Label class="text-[10px] text-muted-foreground">Start Time</Label>
+												<DateTimePicker
+													bind:value={window.startTime}
+													placeholder="Pick start time"
+												/>
+											</div>
+											<div class="space-y-1">
+												<Label class="text-[10px] text-muted-foreground">End Time</Label>
+												<DateTimePicker
+													bind:value={window.endTime}
+													placeholder="Pick end time"
+												/>
+											</div>
+										</div>
+									</div>
+								</div>
+							{/each}
+							{#if eventWindows.length === 0}
+								<Button variant="outline" class="w-full border-dashed" onclick={addEventWindow}>
+									<HugeiconsIcon icon={Add01Icon} size={16} strokeWidth={2} className="mr-2" /> Create Schedule
 								</Button>
 							{/if}
 						</div>
+					{/if}
+				</div>
 
-						{#if showSimpleMode && eventWindows.length === 0}
-							<div class="space-y-4">
-								<div class="grid grid-cols-2 gap-4">
-									<div class="space-y-2">
-										<Label>Start Time</Label>
-										<Input type="datetime-local" bind:value={simpleStartTime} />
-									</div>
-									<div class="space-y-2">
-										<Label>End Time</Label>
-										<Input type="datetime-local" bind:value={simpleEndTime} />
-									</div>
-								</div>
-								<p class="text-xs text-muted-foreground">
-									Add an event window to create multiple scheduled instances
-								</p>
-							</div>
-						{:else}
-							<div class="space-y-4">
-								{#each eventWindows as window, index (window.id)}
-									<div class="rounded-lg border p-4 space-y-3">
-										<div class="flex items-center justify-between">
-											<h4 class="text-sm font-medium">Window {index + 1}</h4>
-											<Button
-												variant="ghost"
-												size="icon"
-												class="h-6 w-6"
-												onclick={() => removeEventWindow(window.id)}
-											>
-												<X class="h-4 w-4" />
-											</Button>
-										</div>
-										<div class="space-y-2">
-											<Label>Title</Label>
-											<Input bind:value={window.title} placeholder="e.g., First session" />
-										</div>
-										<div class="space-y-2">
-											<Label>Description</Label>
-											<Textarea
-												bind:value={window.description}
-												placeholder="Specific details..."
-												rows={2}
-											/>
-										</div>
-										<div class="grid grid-cols-2 gap-4">
-											<div class="space-y-2">
-												<Label>Start Time</Label>
-												<Input type="datetime-local" bind:value={window.startTime} />
-											</div>
-											<div class="space-y-2">
-												<Label>End Time</Label>
-												<Input type="datetime-local" bind:value={window.endTime} />
-											</div>
-										</div>
-									</div>
-								{/each}
-								<Button
-									variant="outline"
-									class="w-full"
-									onclick={addEventWindow}
-								>
-									Add Another Window
-								</Button>
-							</div>
-						{/if}
+				<!-- Tags Section -->
+				<div class="space-y-3">
+					<div class="flex items-center justify-between">
+						<Label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+							Category
+						</Label>
 					</div>
-				{/if}
-
-				<div class="animate-item">
 					<Form.Field {form} name="tags">
 						<Form.Control>
-							{#snippet children({ props })}
-								<Form.Label>Tags</Form.Label>
-								<div class="pt-2 mb-2">
-									<Input
-										placeholder="Filter tags..."
-										bind:value={tagSearchQuery}
-										class="h-8"
-									/>
-								</div>
-								<div class="flex flex-wrap gap-2">
-									{#each filteredTags as tag}
-										{@const isSelected = $formData.tags.includes(tag)}
-                                        {@const config = EVENT_TAG_CONFIG[tag]}
-										<Badge
-											variant={isSelected ? "default" : "outline"}
-											class={cn(
-												"cursor-pointer transition-all hover:bg-primary/90 active:scale-95 flex items-center gap-1.5",
-												!isSelected && "hover:bg-accent hover:text-accent-foreground"
-											)}
-											onclick={() => {
-												if (isSelected) {
-													$formData.tags = $formData.tags.filter((t: string) => t !== tag);
-												} else {
-													$formData.tags = [...$formData.tags, tag];
-												}
-											}}
-										>
-                                            {#if config?.icon}
-                                                <HugeiconsIcon icon={config.icon} size={14} strokeWidth={2} />
-                                            {/if}
-											{config ? m[config.translationKey as keyof typeof m]() : tag}
-										</Badge>
-									{/each}
+							{#snippet children({})}
+								<div class="space-y-3">
+									<div class="relative">
+										<HugeiconsIcon icon={Search01Icon} size={14} strokeWidth={2} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+										<Input
+											placeholder="Filter categories..."
+											bind:value={tagSearchQuery}
+											class="h-10 border-border/50 bg-muted/30 pl-9 shadow-none focus-visible:bg-background focus-visible:ring-1"
+										/>
+									</div>
+									<div class="flex flex-wrap gap-2">
+										{#each filteredTags as tag}
+											{@const isSelected = $formData.tags.includes(tag)}
+											{@const config = EVENT_TAG_CONFIG[tag]}
+											<button
+												type="button"
+												class={cn(
+													"group flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:scale-105 active:scale-95",
+													isSelected
+														? "border-primary/20 bg-primary/10 text-primary hover:bg-primary/20"
+														: "border-transparent bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+												)}
+												onclick={() => {
+													if (isSelected) {
+														$formData.tags = $formData.tags.filter((t: string) => t !== tag);
+													} else {
+														$formData.tags = [...$formData.tags, tag];
+													}
+												}}
+											>
+												{#if config?.icon}
+													<HugeiconsIcon
+														icon={config.icon}
+														size={14}
+														strokeWidth={2}
+														className={cn(
+															"transition-colors",
+															isSelected ? "text-primary" : "text-muted-foreground/70"
+														)}
+													/>
+												{/if}
+												{config ? m[config.translationKey as keyof typeof m]() : tag}
+											</button>
+										{/each}
+									</div>
 								</div>
 							{/snippet}
 						</Form.Control>
-						<Form.Description>Select at least one category.</Form.Description>
 						<Form.FieldErrors />
 					</Form.Field>
 				</div>
 			</form>
 		</div>
-		<div
-			class="flex items-center justify-end gap-2 border-t border-border/50 bg-muted/30 p-4 backdrop-blur-sm"
-		>
-			<Button
-				variant="outline"
-				onclick={() => {
-					cancelDialogOpen = true;
-				}}
-			>Cancel</Button>
-			<Button
-				type="submit"
-				form="create-event-form"
-				disabled={createEventMutation.isPending || createEventWindowMutation.isPending}
-			>
-				{#if createEventMutation.isPending || createEventWindowMutation.isPending}
-					Creating...
-				{:else if eventWindows.length > 0}
-					Create Event & {eventWindows.length} Window{eventWindows.length > 1 ? 's' : ''}
-				{:else if newEventOverlayState.location && (simpleStartTime || simpleEndTime)}
-					Create Event & Window
-				{:else}
-					Create Event
-				{/if}
-			</Button>
+
+		<!-- Footer -->
+		<div class="border-t border-border/10 bg-background/40 p-6 backdrop-blur-sm">
+			<div class="flex items-center gap-3">
+				<Button
+					variant="ghost"
+					class="flex-1 text-muted-foreground hover:text-foreground"
+					onclick={() => {
+						cancelDialogOpen = true;
+					}}
+				>
+					Cancel
+				</Button>
+				<Button
+					type="submit"
+					form="create-event-form"
+					class="flex-[2] rounded-xl bg-primary font-semibold shadow-lg shadow-primary/25 transition-all hover:shadow-primary/40 active:scale-[0.98]"
+					disabled={createEventMutation.isPending || createEventWindowMutation.isPending}
+				>
+					{#if createEventMutation.isPending || createEventWindowMutation.isPending}
+						<HugeiconsIcon icon={Loading03Icon} size={16} strokeWidth={2} className="mr-2 animate-spin" />
+						Creating...
+					{:else}
+						<span class="mr-2">Publish Event</span>
+						<HugeiconsIcon icon={ArrowRight01Icon} size={16} strokeWidth={2} className="opacity-50" />
+					{/if}
+				</Button>
+			</div>
 		</div>
 	</div>
 </div>
@@ -708,8 +795,9 @@
 			</AlertDialog.Description>
 		</AlertDialog.Header>
 		<AlertDialog.Footer>
-			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Cancel>Keep Editing</AlertDialog.Cancel>
 			<AlertDialog.Action
+				class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 				onclick={() => {
 					form.reset();
 					newEventOverlayState.open = false;
@@ -724,6 +812,3 @@
 		</AlertDialog.Footer>
 	</AlertDialog.Content>
 </AlertDialog.Root>
-
-
-
