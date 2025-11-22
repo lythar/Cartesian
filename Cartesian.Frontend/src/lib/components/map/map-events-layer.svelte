@@ -77,7 +77,6 @@
 			}
 		});
 
-		// @ts-ignore - addInteraction seems to be present but types might vary or be custom
 		map.addInteraction("click-clusters", {
 			type: "click",
 			target: { layerId: "clusters" },
