@@ -17,8 +17,10 @@
 	import { createForwardGeocodeQuery } from "$lib/api/queries/forward-geocode.query";
 	import {
 		createPostEventApiCreate,
+		createPostEventApiEventIdWindowCreate,
 		EventTag,
-		type CreateEventBody
+		type CreateEventBody,
+		type CreateEventWindowBody
 	} from "$lib/api/cartesian-client";
   import mapboxgl from "mapbox-gl";
 	import { Debounced } from "runed";
@@ -34,7 +36,6 @@
 	let overlayContainer = $state<HTMLDivElement | null>(null);
 
 	let open = $state<boolean>(newEventOverlayState.open);
-	let draftLocation: LatLng | null = $state<LatLng | null>(null);
 	let searchQuery = $state("");
 	let isSearching = $state<boolean>(false);
 	let cancelDialogOpen = $state(false);
@@ -60,17 +61,7 @@
 		}
 	});
 
-	$effect(() => {
-		if (open) {
-			if (newEventOverlayState.location) {
-				$formData.latitude = newEventOverlayState.location.lat;
-				$formData.longitude = newEventOverlayState.location.lng;
-			} else {
-				$formData.latitude = null;
-				$formData.longitude = null;
-			}
-		}
-	});
+
 
 	$effect(() => {
 		if (open) {
@@ -120,7 +111,7 @@
 	let markerElement: HTMLDivElement | null = null;
 
 	$effect(() => {
-		if ($formData.latitude && $formData.longitude && open) {
+		if (newEventOverlayState.location && open) {
 			if (!marker) {
 				const el = document.createElement("div");
 				el.className = "flex flex-col items-center gap-1";
@@ -132,10 +123,10 @@
 				`;
 				markerElement = el;
 				marker = new mapboxgl.Marker({ element: el, anchor: "bottom" })
-					.setLngLat([$formData.longitude, $formData.latitude])
+					.setLngLat([newEventOverlayState.location.lng, newEventOverlayState.location.lat])
 					.addTo(map);
 			} else {
-				marker.setLngLat([$formData.longitude, $formData.latitude]);
+				marker.setLngLat([newEventOverlayState.location.lng, newEventOverlayState.location.lat]);
 			}
 		} else {
 			if (marker) {
@@ -160,31 +151,71 @@
 		description: z.string().min(1, "Description is required"),
 		communityId: z.string().nullable().default(null),
 		tags: z.array(z.enum(tagValues)).min(1, "At least one tag is required"),
-		latitude: z.number().nullable(),
-		longitude: z.number().nullable()
+		windowTitle: z.string().optional(),
+		windowDescription: z.string().optional(),
+		startTime: z.string().optional(),
+		endTime: z.string().optional(),
+	}).refine((data) => {
+		if (newEventOverlayState.location) {
+			return data.windowTitle && data.windowDescription && data.startTime && data.endTime;
+		}
+		return true;
+	}, {
+		message: "All event window fields are required when a location is selected",
+		path: ["windowTitle"],
 	});
 
 	const createEventMutation = createPostEventApiCreate();
+	const createEventWindowMutation = createPostEventApiEventIdWindowCreate();
 
 	const initialData: z.infer<typeof formSchema> = {
 		name: "",
 		description: "",
 		communityId: null,
 		tags: [],
-		latitude: null,
-		longitude: null
+		windowTitle: "",
+		windowDescription: "",
+		startTime: "",
+		endTime: "",
 	};
 
-	const form = superForm(defaults(initialData as any, zod4(formSchema as any)), {
+	const form = superForm(defaults(initialData, zod4(formSchema)), {
 		SPA: true,
-		validators: zod4(formSchema as any),
+		validators: zod4(formSchema),
 		onUpdate: async ({ form: f }) => {
 			if (f.valid) {
 				try {
-					await createEventMutation.mutateAsync({ data: f.data as CreateEventBody });
+					const eventBody: CreateEventBody = {
+						name: f.data.name,
+						description: f.data.description,
+						communityId: f.data.communityId,
+						tags: f.data.tags as EventTag[],
+					};
+
+					const event = await createEventMutation.mutateAsync({ data: eventBody });
+
+					if (newEventOverlayState.location && f.data.windowTitle && f.data.windowDescription && f.data.startTime && f.data.endTime) {
+						const windowBody: CreateEventWindowBody = {
+							title: f.data.windowTitle,
+							description: f.data.windowDescription,
+							location: {
+								type: "Point",
+								coordinates: [newEventOverlayState.location.lng, newEventOverlayState.location.lat]
+							} as any,
+							startTime: new Date(f.data.startTime).toISOString(),
+							endTime: new Date(f.data.endTime).toISOString(),
+						};
+
+						await createEventWindowMutation.mutateAsync({
+							eventId: event.id,
+							data: windowBody
+						});
+					}
+
 					newEventOverlayState.open = false;
-					f.data = initialData as any;
-                    form.reset();
+					newEventOverlayState.location = null;
+					f.data = initialData;
+					form.reset();
 				} catch (e) {
 					console.error("Failed to create event", e);
 				}
@@ -195,8 +226,8 @@
 	const { form: formData, enhance } = form;
 
   const locationQuery = $derived(
-		$formData.latitude && $formData.longitude
-			? createReverseGeocodeQuery($formData.longitude, $formData.latitude, {
+		newEventOverlayState.location
+			? createReverseGeocodeQuery(newEventOverlayState.location.lng, newEventOverlayState.location.lat, {
 					query: { enabled: true }
 				})
 			: null
@@ -312,8 +343,11 @@
 
 				<div class="animate-item relative z-10">
 					<div class="space-y-2">
-						<Label>Location</Label>
-						{#if $formData.latitude && $formData.longitude}
+						<div class="flex items-center justify-between">
+							<Label>Location</Label>
+							<span class="text-xs text-muted-foreground">Required for event window</span>
+						</div>
+						{#if newEventOverlayState.location}
 							<div class="flex items-start gap-3 rounded-md border bg-muted/50 p-3">
 								<MapPin class="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
 								<div class="flex-1 space-y-1">
@@ -328,7 +362,7 @@
 										{/if}
 									</p>
 									<p class="text-xs text-muted-foreground">
-										{$formData.latitude.toFixed(6)}, {$formData.longitude.toFixed(6)}
+										{newEventOverlayState.location.lat.toFixed(6)}, {newEventOverlayState.location.lng.toFixed(6)}
 									</p>
 								</div>
 								<Button
@@ -336,8 +370,6 @@
 									size="icon"
 									class="h-6 w-6"
 									onclick={() => {
-										$formData.latitude = null;
-										$formData.longitude = null;
 										newEventOverlayState.location = null;
 									}}
 								>
@@ -369,8 +401,6 @@
 													class="flex w-full flex-col items-start rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground"
 													onclick={() => {
 														const [lng, lat] = feature.geometry.coordinates;
-														$formData.latitude = lat;
-														$formData.longitude = lng;
 														newEventOverlayState.location = { lat, lng };
 														map.flyTo({ center: [lng, lat], zoom: 14 });
 														searchQuery = "";
@@ -399,8 +429,6 @@
 												navigator.geolocation.getCurrentPosition(
 													(position) => {
 														const { latitude, longitude } = position.coords;
-														$formData.latitude = latitude;
-														$formData.longitude = longitude;
 														newEventOverlayState.location = { lat: latitude, lng: longitude };
 														map.flyTo({ center: [longitude, latitude], zoom: 14 });
 													},
@@ -427,10 +455,63 @@
 								</div>
 							</div>
 						{/if}
-						<input type="hidden" name="latitude" bind:value={$formData.latitude} />
-						<input type="hidden" name="longitude" bind:value={$formData.longitude} />
 					</div>
 				</div>
+
+				{#if newEventOverlayState.location}
+					<div class="animate-item border-t pt-4">
+						<h3 class="text-sm font-semibold mb-3">Event Window Details</h3>
+
+						<div class="space-y-4">
+							<Form.Field {form} name="windowTitle">
+								<Form.Control>
+									{#snippet children({ props })}
+										<Form.Label>Window Title</Form.Label>
+										<Input {...props} bind:value={$formData.windowTitle} placeholder="e.g., First meeting" />
+									{/snippet}
+								</Form.Control>
+								<Form.FieldErrors />
+							</Form.Field>
+
+							<Form.Field {form} name="windowDescription">
+								<Form.Control>
+									{#snippet children({ props })}
+										<Form.Label>Window Description</Form.Label>
+										<Textarea
+											{...props}
+											bind:value={$formData.windowDescription}
+											placeholder="Specific details for this event instance..."
+											rows={3}
+										/>
+									{/snippet}
+								</Form.Control>
+								<Form.FieldErrors />
+							</Form.Field>
+
+							<div class="grid grid-cols-2 gap-4">
+								<Form.Field {form} name="startTime">
+									<Form.Control>
+										{#snippet children({ props })}
+											<Form.Label>Start Time</Form.Label>
+											<Input {...props} type="datetime-local" bind:value={$formData.startTime} />
+										{/snippet}
+									</Form.Control>
+									<Form.FieldErrors />
+								</Form.Field>
+
+								<Form.Field {form} name="endTime">
+									<Form.Control>
+										{#snippet children({ props })}
+											<Form.Label>End Time</Form.Label>
+											<Input {...props} type="datetime-local" bind:value={$formData.endTime} />
+										{/snippet}
+									</Form.Control>
+									<Form.FieldErrors />
+								</Form.Field>
+							</div>
+						</div>
+					</div>
+				{/if}
 
 				<div class="animate-item">
 					<Form.Field {form} name="tags">
@@ -478,10 +559,12 @@
 			<Button
 				type="submit"
 				form="create-event-form"
-				disabled={createEventMutation.isPending}
+				disabled={createEventMutation.isPending || createEventWindowMutation.isPending}
 			>
-				{#if createEventMutation.isPending}
+				{#if createEventMutation.isPending || createEventWindowMutation.isPending}
 					Creating...
+				{:else if newEventOverlayState.location}
+					Create Event & Window
 				{:else}
 					Create Event
 				{/if}
