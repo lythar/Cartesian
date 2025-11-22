@@ -2,6 +2,8 @@
 	import { onMount, tick } from "svelte";
   import mapboxgl from "mapbox-gl";
 	import { mapMarkers, mapState, newEventMarkerLocation, newEventOverlayState } from "./map-state.svelte";
+	import { authStore } from "$lib/stores/auth.svelte";
+	import LoginAlertDialog from "$lib/components/auth/login-alert-dialog.svelte";
 	import { animate } from "motion";
 	import { createReverseGeocodeQuery, type ReverseGeocode } from "$lib/api/queries/reverse-geocode.query";
 	import Button from "../ui/button/button.svelte";
@@ -14,6 +16,8 @@
   }
 
   let { map, selectedLocation = $bindable(null) }: Props = $props();
+
+  let loginAlertOpen = $state(false);
 
   let queryLocation = $state<{ lng: number; lat: number } | null>(null);
 
@@ -102,6 +106,8 @@
   <img bind:this={markerElement} src="/lythar.svg" alt="Map Marker" class="w-full h-full" style="pointer-events: none;" />
 </div>
 
+<LoginAlertDialog bind:open={loginAlertOpen} />
+
 <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
   {#if selectedLocation}
     <div bind:this={locationElement} class="bg-background p-4 rounded-lg shadow-lg inline-flex flex-row gap-6 justify-between min-w-50">
@@ -127,6 +133,10 @@
           variant="default"
           size="lg"
           onclick={() => {
+            if (!$authStore.isAuthenticated) {
+              loginAlertOpen = true;
+              return;
+            }
             newEventOverlayState.location = selectedLocation;
             newEventOverlayState.source = "toolbar";
             newEventOverlayState.open = true;

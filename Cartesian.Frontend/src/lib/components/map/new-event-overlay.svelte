@@ -27,6 +27,8 @@
 	import { Debounced } from "runed";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import { AiEditingIcon } from "@hugeicons/core-free-icons";
+    import { EVENT_TAG_CONFIG } from "$lib/constants/event-tags";
+    import { m } from "$lib/paraglide/messages";
 
 	interface Props {
 		map: mapboxgl.Map;
@@ -55,7 +57,7 @@
 	let showSimpleMode = $state(true);
 	let simpleStartTime = $state("");
 	let simpleEndTime = $state("");
-
+	let tagSearchQuery = $state("");
 
 	const searchResults = createForwardGeocodeQuery(() => debouncedSearch.current);
 
@@ -159,7 +161,16 @@
 		};
 	});
 
-	const tagValues = Object.values(EventTag) as [string, ...string[]];
+	const tagValues = Object.values(EventTag) as EventTag[];
+
+	const filteredTags = $derived(
+		tagValues.filter((tag) => {
+			const config = EVENT_TAG_CONFIG[tag];
+			const name = config ? m[config.translationKey as keyof typeof m]() : tag;
+			return name.toLowerCase().includes(tagSearchQuery.toLowerCase());
+		})
+	);
+
 	const formSchema = z.object({
 		name: z.string().min(1, "Name is required"),
 		description: z.string().min(1, "Description is required"),
@@ -620,13 +631,21 @@
 						<Form.Control>
 							{#snippet children({ props })}
 								<Form.Label>Tags</Form.Label>
-								<div class="flex flex-wrap gap-2 pt-2">
-									{#each tagValues as tag}
+								<div class="pt-2 mb-2">
+									<Input
+										placeholder="Filter tags..."
+										bind:value={tagSearchQuery}
+										class="h-8"
+									/>
+								</div>
+								<div class="flex flex-wrap gap-2">
+									{#each filteredTags as tag}
 										{@const isSelected = $formData.tags.includes(tag)}
+                                        {@const config = EVENT_TAG_CONFIG[tag]}
 										<Badge
 											variant={isSelected ? "default" : "outline"}
 											class={cn(
-												"cursor-pointer transition-all hover:bg-primary/90 active:scale-95",
+												"cursor-pointer transition-all hover:bg-primary/90 active:scale-95 flex items-center gap-1.5",
 												!isSelected && "hover:bg-accent hover:text-accent-foreground"
 											)}
 											onclick={() => {
@@ -637,7 +656,10 @@
 												}
 											}}
 										>
-											{tag}
+                                            {#if config?.icon}
+                                                <HugeiconsIcon icon={config.icon} size={14} strokeWidth={2} />
+                                            {/if}
+											{config ? m[config.translationKey as keyof typeof m]() : tag}
 										</Badge>
 									{/each}
 								</div>

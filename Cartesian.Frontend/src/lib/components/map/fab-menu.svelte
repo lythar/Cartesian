@@ -4,14 +4,23 @@
 	import { PlusSignIcon } from "@hugeicons/core-free-icons";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import { newEventOverlayState } from "./map-state.svelte";
+	import { authStore } from "$lib/stores/auth.svelte";
+	import LoginAlertDialog from "$lib/components/auth/login-alert-dialog.svelte";
 
+	let loginAlertOpen = $state(false);
 </script>
+
+<LoginAlertDialog bind:open={loginAlertOpen} />
 
 <div class="absolute bottom-8 right-8 z-20 flex flex-col items-end gap-3">
 	<Button
 		variant="default"
-    size="lg"
+		size="lg"
     onclick={() => {
+			if (!$authStore.isAuthenticated) {
+				loginAlertOpen = true;
+				return;
+			}
       newEventOverlayState.open = true;
       newEventOverlayState.source = "create";
     }}
