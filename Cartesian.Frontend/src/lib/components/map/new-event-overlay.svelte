@@ -2,6 +2,7 @@
 	import { cn, type LatLng } from "$lib/utils";
 	import { animate, stagger } from "motion";
 	import { newEventOverlayState } from "./map-state.svelte";
+	import { Effect } from "effect";
 	import Button from "../ui/button/button.svelte";
 	import { Badge } from "$lib/components/ui/badge";
 	import { Label } from "$lib/components/ui/label";
@@ -41,6 +42,19 @@
 	let cancelDialogOpen = $state(false);
 	let isGlowing = $state(false);
 	const debouncedSearch = new Debounced<string>(() => searchQuery, 300);
+
+	type EventWindowInput = {
+		id: string;
+		title: string;
+		description: string;
+		startTime: string;
+		endTime: string;
+	};
+
+	let eventWindows = $state<EventWindowInput[]>([]);
+	let showSimpleMode = $state(true);
+	let simpleStartTime = $state("");
+	let simpleEndTime = $state("");
 
 
 	const searchResults = createForwardGeocodeQuery(() => debouncedSearch.current);
@@ -112,7 +126,7 @@
 
 	$effect(() => {
 		if (newEventOverlayState.location && open) {
-			if (!marker) {
+      if (!marker) {
 				const el = document.createElement("div");
 				el.className = "flex flex-col items-center gap-1";
 				el.innerHTML = `
@@ -151,18 +165,6 @@
 		description: z.string().min(1, "Description is required"),
 		communityId: z.string().nullable().default(null),
 		tags: z.array(z.enum(tagValues)).min(1, "At least one tag is required"),
-		windowTitle: z.string().optional(),
-		windowDescription: z.string().optional(),
-		startTime: z.string().optional(),
-		endTime: z.string().optional(),
-	}).refine((data) => {
-		if (newEventOverlayState.location) {
-			return data.windowTitle && data.windowDescription && data.startTime && data.endTime;
-		}
-		return true;
-	}, {
-		message: "All event window fields are required when a location is selected",
-		path: ["windowTitle"],
 	});
 
 	const createEventMutation = createPostEventApiCreate();
@@ -173,10 +175,6 @@
 		description: "",
 		communityId: null,
 		tags: [],
-		windowTitle: "",
-		windowDescription: "",
-		startTime: "",
-		endTime: "",
 	};
 
 	const form = superForm(defaults(initialData, zod4(formSchema)), {
@@ -194,27 +192,68 @@
 
 					const event = await createEventMutation.mutateAsync({ data: eventBody });
 
-					if (newEventOverlayState.location && f.data.windowTitle && f.data.windowDescription && f.data.startTime && f.data.endTime) {
-						const windowBody: CreateEventWindowBody = {
-							title: f.data.windowTitle,
-							description: f.data.windowDescription,
+					let windowsToCreate: CreateEventWindowBody[] = [];
+
+					if (eventWindows.length > 0) {
+						// Advanced mode: use explicit windows
+						if (!newEventOverlayState.location) {
+							throw new Error("Location is required for event windows");
+						}
+						windowsToCreate = eventWindows.map((w) => ({
+							title: w.title,
+							description: w.description,
 							location: {
 								type: "Point",
-								coordinates: [newEventOverlayState.location.lng, newEventOverlayState.location.lat]
+								coordinates: [newEventOverlayState.location!.lng, newEventOverlayState.location!.lat]
 							} as any,
-							startTime: new Date(f.data.startTime).toISOString(),
-							endTime: new Date(f.data.endTime).toISOString(),
-						};
+							startTime: new Date(w.startTime).toISOString(),
+							endTime: new Date(w.endTime).toISOString(),
+						}));
+					} else if (simpleStartTime && simpleEndTime) {
+						// Simple mode: create invisible window from top-level dates
+						if (!newEventOverlayState.location) {
+							throw new Error("Location is required for event window");
+						}
+						windowsToCreate = [
+							{
+								title: f.data.name,
+								description: f.data.description,
+								location: {
+									type: "Point",
+									coordinates: [newEventOverlayState.location.lng, newEventOverlayState.location.lat]
+								} as any,
+								startTime: new Date(simpleStartTime).toISOString(),
+								endTime: new Date(simpleEndTime).toISOString(),
+							}
+						];
+					}
 
-						await createEventWindowMutation.mutateAsync({
-							eventId: event.id,
-							data: windowBody
-						});
+					if (windowsToCreate.length > 0) {
+						const createWindowEffect = (windowBody: CreateEventWindowBody) =>
+							Effect.tryPromise({
+								try: () =>
+									createEventWindowMutation.mutateAsync({
+										eventId: event.id,
+										data: windowBody
+									}),
+								catch: (error) => new Error(`Failed to create window: ${error}`)
+							});
+
+						const allWindowsEffect = Effect.all(
+							windowsToCreate.map(createWindowEffect),
+							{ concurrency: 3 }
+						);
+
+						await Effect.runPromise(allWindowsEffect);
 					}
 
 					newEventOverlayState.open = false;
 					newEventOverlayState.location = null;
 					f.data = initialData;
+					eventWindows = [];
+					showSimpleMode = true;
+					simpleStartTime = "";
+					simpleEndTime = "";
 					form.reset();
 				} catch (e) {
 					console.error("Failed to create event", e);
@@ -224,6 +263,43 @@
 	});
 
 	const { form: formData, enhance } = form;
+
+	function addEventWindow() {
+		if (showSimpleMode && simpleStartTime && simpleEndTime) {
+			// Move simple mode data to first window
+			eventWindows = [
+				{
+					id: crypto.randomUUID(),
+					title: $formData.name || "Event Window 1",
+					description: $formData.description || "",
+					startTime: simpleStartTime,
+					endTime: simpleEndTime
+				}
+			];
+			simpleStartTime = "";
+			simpleEndTime = "";
+			showSimpleMode = false;
+		} else {
+			// Add new window
+			eventWindows = [
+				...eventWindows,
+				{
+					id: crypto.randomUUID(),
+					title: "",
+					description: "",
+					startTime: "",
+					endTime: ""
+				}
+			];
+		}
+	}
+
+	function removeEventWindow(id: string) {
+		eventWindows = eventWindows.filter((w) => w.id !== id);
+		if (eventWindows.length === 0) {
+			showSimpleMode = true;
+		}
+	}
 
   const locationQuery = $derived(
 		newEventOverlayState.location
@@ -460,56 +536,83 @@
 
 				{#if newEventOverlayState.location}
 					<div class="animate-item border-t pt-4">
-						<h3 class="text-sm font-semibold mb-3">Event Window Details</h3>
-
-						<div class="space-y-4">
-							<Form.Field {form} name="windowTitle">
-								<Form.Control>
-									{#snippet children({ props })}
-										<Form.Label>Window Title</Form.Label>
-										<Input {...props} bind:value={$formData.windowTitle} placeholder="e.g., First meeting" />
-									{/snippet}
-								</Form.Control>
-								<Form.FieldErrors />
-							</Form.Field>
-
-							<Form.Field {form} name="windowDescription">
-								<Form.Control>
-									{#snippet children({ props })}
-										<Form.Label>Window Description</Form.Label>
-										<Textarea
-											{...props}
-											bind:value={$formData.windowDescription}
-											placeholder="Specific details for this event instance..."
-											rows={3}
-										/>
-									{/snippet}
-								</Form.Control>
-								<Form.FieldErrors />
-							</Form.Field>
-
-							<div class="grid grid-cols-2 gap-4">
-								<Form.Field {form} name="startTime">
-									<Form.Control>
-										{#snippet children({ props })}
-											<Form.Label>Start Time</Form.Label>
-											<Input {...props} type="datetime-local" bind:value={$formData.startTime} />
-										{/snippet}
-									</Form.Control>
-									<Form.FieldErrors />
-								</Form.Field>
-
-								<Form.Field {form} name="endTime">
-									<Form.Control>
-										{#snippet children({ props })}
-											<Form.Label>End Time</Form.Label>
-											<Input {...props} type="datetime-local" bind:value={$formData.endTime} />
-										{/snippet}
-									</Form.Control>
-									<Form.FieldErrors />
-								</Form.Field>
-							</div>
+						<div class="flex items-center justify-between mb-3">
+							<h3 class="text-sm font-semibold">Schedule</h3>
+							{#if eventWindows.length === 0}
+								<Button
+									variant="outline"
+									size="sm"
+									onclick={addEventWindow}
+								>
+									Add Event Window
+								</Button>
+							{/if}
 						</div>
+
+						{#if showSimpleMode && eventWindows.length === 0}
+							<div class="space-y-4">
+								<div class="grid grid-cols-2 gap-4">
+									<div class="space-y-2">
+										<Label>Start Time</Label>
+										<Input type="datetime-local" bind:value={simpleStartTime} />
+									</div>
+									<div class="space-y-2">
+										<Label>End Time</Label>
+										<Input type="datetime-local" bind:value={simpleEndTime} />
+									</div>
+								</div>
+								<p class="text-xs text-muted-foreground">
+									Add an event window to create multiple scheduled instances
+								</p>
+							</div>
+						{:else}
+							<div class="space-y-4">
+								{#each eventWindows as window, index (window.id)}
+									<div class="rounded-lg border p-4 space-y-3">
+										<div class="flex items-center justify-between">
+											<h4 class="text-sm font-medium">Window {index + 1}</h4>
+											<Button
+												variant="ghost"
+												size="icon"
+												class="h-6 w-6"
+												onclick={() => removeEventWindow(window.id)}
+											>
+												<X class="h-4 w-4" />
+											</Button>
+										</div>
+										<div class="space-y-2">
+											<Label>Title</Label>
+											<Input bind:value={window.title} placeholder="e.g., First session" />
+										</div>
+										<div class="space-y-2">
+											<Label>Description</Label>
+											<Textarea
+												bind:value={window.description}
+												placeholder="Specific details..."
+												rows={2}
+											/>
+										</div>
+										<div class="grid grid-cols-2 gap-4">
+											<div class="space-y-2">
+												<Label>Start Time</Label>
+												<Input type="datetime-local" bind:value={window.startTime} />
+											</div>
+											<div class="space-y-2">
+												<Label>End Time</Label>
+												<Input type="datetime-local" bind:value={window.endTime} />
+											</div>
+										</div>
+									</div>
+								{/each}
+								<Button
+									variant="outline"
+									class="w-full"
+									onclick={addEventWindow}
+								>
+									Add Another Window
+								</Button>
+							</div>
+						{/if}
 					</div>
 				{/if}
 
@@ -563,7 +666,9 @@
 			>
 				{#if createEventMutation.isPending || createEventWindowMutation.isPending}
 					Creating...
-				{:else if newEventOverlayState.location}
+				{:else if eventWindows.length > 0}
+					Create Event & {eventWindows.length} Window{eventWindows.length > 1 ? 's' : ''}
+				{:else if newEventOverlayState.location && (simpleStartTime || simpleEndTime)}
 					Create Event & Window
 				{:else}
 					Create Event
@@ -587,6 +692,11 @@
 				onclick={() => {
 					form.reset();
 					newEventOverlayState.open = false;
+					newEventOverlayState.location = null;
+					eventWindows = [];
+					showSimpleMode = true;
+					simpleStartTime = "";
+					simpleEndTime = "";
 					cancelDialogOpen = false;
 				}}>Discard</AlertDialog.Action
 			>

@@ -57,6 +57,14 @@
   const ANIMATION_LOCATION_DELTA = 0.001;
 
   const handleUpdateNewEventMarker = (e: mapboxgl.MapMouseEvent) => {
+    const features = mapState.instance!.queryRenderedFeatures(e.point, {
+      layers: ["clusters", "unclustered-point"]
+    });
+
+    if (features.length > 0) {
+      return;
+    }
+
     const prev = selectedLocation;
     const { lng, lat } = e.lngLat;
 
