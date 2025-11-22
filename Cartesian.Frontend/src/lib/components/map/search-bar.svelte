@@ -7,15 +7,18 @@
 		Search01Icon,
 		Location01Icon,
 		Calendar01Icon,
+		UserIcon,
+		UserGroupIcon,
 	} from "@hugeicons/core-free-icons";
 	import { getLayoutContext } from "$lib/context/layout.svelte";
 	import UserMenu from "./user-menu.svelte";
 	import { createForwardGeocodeQuery } from "$lib/api/queries/forward-geocode.query";
+	import { createSearchAllQuery } from "$lib/api/queries/search.query";
 	import { mapState } from "$lib/components/map/map-state.svelte";
 	import { cn } from "$lib/utils";
 	import { animate, stagger } from "motion";
 	import { Debounced } from "runed";
-	import * as Sidebar from "$lib/components/ui/sidebar";
+	import mapboxgl from "mapbox-gl";
 
 	const layout = getLayoutContext();
 
@@ -27,14 +30,9 @@
 	let searchBarRef: HTMLDivElement | undefined = $state();
 	let resultsContainerRef: HTMLDivElement | undefined = $state();
 	const geoQuery = createForwardGeocodeQuery(() => debouncedSearch.current);
+	const searchQuery = createSearchAllQuery(() => ({ query: debouncedSearch.current }));
 
 	const showExpanded = $derived(isFocused && searchValue.length > 0);
-
-	const placeholderEvents = [
-		{ id: 1, name: "Jazz Night at The Blue Note", date: "Tonight, 8:00 PM" },
-		{ id: 2, name: "Tech Meetup 2024", date: "Tomorrow, 6:00 PM" },
-		{ id: 3, name: "Farmers Market", date: "Sat, 9:00 AM" },
-	];
 
 	$effect(() => {
 		if (!searchBarRef || !resultsContainerRef) return;
@@ -99,7 +97,57 @@
 	}
 
 	function handleEventSelect(event: any) {
-		console.log("Selected event:", event);
+		if (!event.windows || event.windows.length === 0) {
+			console.warn("Event has no windows with location data");
+			isFocused = false;
+			return;
+		}
+
+		// Get the first window's location
+		const window = event.windows[0];
+		const location = window.location;
+		
+		if (!location || !location.coordinates) {
+			console.warn("Event window has no location coordinates");
+			isFocused = false;
+			return;
+		}
+
+		const [lng, lat] = location.coordinates;
+
+		// Zoom to the event location
+		mapState.instance?.flyTo({
+			center: [lng, lat],
+			zoom: 16,
+			essential: true,
+			duration: 2000,
+		});
+
+		// Show popup with event details
+		setTimeout(() => {
+			new mapboxgl.Popup()
+				.setLngLat([lng, lat])
+				.setHTML(`
+					<div class="p-2">
+						<h3 class="font-semibold text-sm mb-1">${event.name}</h3>
+						<p class="text-xs text-muted-foreground">${event.description}</p>
+					</div>
+				`)
+				.addTo(mapState.instance!);
+		}, 2100); // Show popup after fly animation completes
+
+		isFocused = false;
+	}
+
+	function handleCommunitySelect(community: any) {
+		console.log("Selected community:", community);
+		// TODO: Navigate to community page
+		isFocused = false;
+	}
+
+	function handleUserSelect(user: any) {
+		console.log("Selected user:", user);
+		// TODO: Navigate to user profile
 		isFocused = false;
 	}
 </script>
@@ -174,25 +222,16 @@
 	>
 		<div class="flex flex-col px-4 py-4">
 			<div class="scrollbar-thin max-h-[60vh] overflow-y-auto">
-				<div class="animate-item mb-4">
-					<h3
-						class="mb-2 px-2 text-xs font-medium tracking-wider text-muted-foreground uppercase"
-					>
-						Events
-					</h3>
-					<div class="flex flex-col gap-1">
-						{#if isAIMode}
-							<div
-								class="flex items-center gap-3 rounded-xl p-3 text-sm text-muted-foreground"
-							>
-								<HugeiconsIcon
-									icon={AiMagicIcon}
-									className="size-5 animate-pulse"
-								/>
-								<span>AI is analyzing your request...</span>
-							</div>
-						{:else}
-							{#each placeholderEvents as event}
+				<!-- Events Section -->
+				{#if searchQuery.data?.events && searchQuery.data.events.length > 0}
+					<div class="animate-item mb-4">
+						<h3
+							class="mb-2 px-2 text-xs font-medium tracking-wider text-muted-foreground uppercase"
+						>
+							Events
+						</h3>
+						<div class="flex flex-col gap-1">
+							{#each searchQuery.data.events as event}
 								<button
 									class="group flex w-full items-center gap-3 rounded-xl p-2 text-left transition-colors hover:bg-secondary/50"
 									onclick={() => handleEventSelect(event)}
@@ -203,19 +242,91 @@
 										<HugeiconsIcon icon={Calendar01Icon} className="size-5" />
 									</div>
 									<div class="flex flex-col overflow-hidden">
-										<span class="truncate text-sm font-medium"
-											>{event.name}</span
-										>
-										<span class="truncate text-xs text-muted-foreground"
-											>{event.date}</span
-										>
+										<span class="truncate text-sm font-medium">{event.name}</span>
+										<span class="truncate text-xs text-muted-foreground">
+											{event.description.substring(0, 60)}{event.description.length > 60 ? "..." : ""}
+										</span>
 									</div>
 								</button>
 							{/each}
-						{/if}
+						</div>
 					</div>
-				</div>
+				{/if}
 
+				<!-- Communities Section -->
+				{#if searchQuery.data?.communities && searchQuery.data.communities.length > 0}
+					<div class="animate-item mb-4">
+						<h3
+							class="mb-2 px-2 text-xs font-medium tracking-wider text-muted-foreground uppercase"
+						>
+							Communities
+						</h3>
+						<div class="flex flex-col gap-1">
+							{#each searchQuery.data.communities as community}
+								<button
+									class="group flex w-full items-center gap-3 rounded-xl p-2 text-left transition-colors hover:bg-secondary/50"
+									onclick={() => handleCommunitySelect(community)}
+								>
+									<div
+										class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-purple-500/10 text-purple-500 group-hover:bg-purple-500/20"
+									>
+										<HugeiconsIcon icon={UserGroupIcon} className="size-5" />
+									</div>
+									<div class="flex flex-col overflow-hidden">
+										<span class="truncate text-sm font-medium">{community.name}</span>
+										<span class="truncate text-xs text-muted-foreground">
+											{community.description.substring(0, 60)}{community.description.length > 60 ? "..." : ""}
+										</span>
+									</div>
+								</button>
+							{/each}
+						</div>
+					</div>
+				{/if}
+
+				<!-- Users Section -->
+				{#if searchQuery.data?.users && searchQuery.data.users.length > 0}
+					<div class="animate-item mb-4">
+						<h3
+							class="mb-2 px-2 text-xs font-medium tracking-wider text-muted-foreground uppercase"
+						>
+							Users
+						</h3>
+						<div class="flex flex-col gap-1">
+							{#each searchQuery.data.users as user}
+								<button
+									class="group flex w-full items-center gap-3 rounded-xl p-2 text-left transition-colors hover:bg-secondary/50"
+									onclick={() => handleUserSelect(user)}
+								>
+									<div
+										class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-500 group-hover:bg-amber-500/20"
+									>
+										<HugeiconsIcon icon={UserIcon} className="size-5" />
+									</div>
+									<div class="flex flex-col overflow-hidden">
+										<span class="truncate text-sm font-medium">{user.name}</span>
+									</div>
+								</button>
+							{/each}
+						</div>
+					</div>
+				{/if}
+
+				<!-- Loading State -->
+				{#if searchQuery.isLoading}
+					<div class="animate-item mb-4">
+						<div
+							class="flex items-center gap-3 rounded-xl p-3 text-sm text-muted-foreground"
+						>
+							<div
+								class="size-4 animate-spin rounded-full border-2 border-primary border-t-transparent"
+							></div>
+							<span>Searching...</span>
+						</div>
+					</div>
+				{/if}
+
+				<!-- Locations Section -->
 				<div class="animate-item">
 					<h3
 						class="mb-2 px-2 text-xs font-medium tracking-wider text-muted-foreground uppercase"

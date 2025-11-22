@@ -341,6 +341,12 @@ export interface MembershipNotFoundError {
 
 export type MemberSortBy = number;
 
+export interface MergedSearchResultsDto {
+	events: EventDto[];
+	communities: CommunityDto[];
+	users: CartesianUserDto[];
+}
+
 /**
  * RequiredPermissions property
  */
@@ -518,6 +524,54 @@ export interface VerifySuccess {
 	claims: ClaimSummary[];
 }
 
+export type GetSearchApiEventsParams = {
+	query: string;
+	/**
+	 * @pattern ^-?(?:0|[1-9]\d*)$
+	 */
+	limit?: number | string;
+	/**
+	 * @pattern ^-?(?:0|[1-9]\d*)$
+	 */
+	skip?: number | string;
+};
+
+export type GetSearchApiCommunitiesParams = {
+	query: string;
+	/**
+	 * @pattern ^-?(?:0|[1-9]\d*)$
+	 */
+	limit?: number | string;
+	/**
+	 * @pattern ^-?(?:0|[1-9]\d*)$
+	 */
+	skip?: number | string;
+};
+
+export type GetSearchApiUsersParams = {
+	query: string;
+	/**
+	 * @pattern ^-?(?:0|[1-9]\d*)$
+	 */
+	limit?: number | string;
+	/**
+	 * @pattern ^-?(?:0|[1-9]\d*)$
+	 */
+	skip?: number | string;
+};
+
+export type GetSearchApiAllParams = {
+	query: string;
+	/**
+	 * @pattern ^-?(?:0|[1-9]\d*)$
+	 */
+	limit?: number | string;
+	/**
+	 * @pattern ^-?(?:0|[1-9]\d*)$
+	 */
+	skip?: number | string;
+};
+
 export type GetEventApiGeojsonParams = {
 	visibility?: EventVisibility;
 	tags?: EventTag[];
@@ -694,6 +748,271 @@ export type GetAccountApiPublicParams = {
 	 */
 	skip?: number | string;
 };
+
+export const getSearchApiEvents = (params: GetSearchApiEventsParams, signal?: AbortSignal) => {
+	return customInstance<EventDto[]>({ url: `/search/api/events`, method: "GET", params, signal });
+};
+
+export const getGetSearchApiEventsQueryKey = (params?: GetSearchApiEventsParams) => {
+	return [`/search/api/events`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetSearchApiEventsQueryOptions = <
+	TData = Awaited<ReturnType<typeof getSearchApiEvents>>,
+	TError = ErrorType<ValidationError>,
+>(
+	params: GetSearchApiEventsParams,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<Awaited<ReturnType<typeof getSearchApiEvents>>, TError, TData>
+		>;
+	},
+) => {
+	const { query: queryOptions } = options ?? {};
+
+	const queryKey = queryOptions?.queryKey ?? getGetSearchApiEventsQueryKey(params);
+
+	const queryFn: QueryFunction<Awaited<ReturnType<typeof getSearchApiEvents>>> = ({ signal }) =>
+		getSearchApiEvents(params, signal);
+
+	return { queryKey, queryFn, ...queryOptions } as CreateQueryOptions<
+		Awaited<ReturnType<typeof getSearchApiEvents>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetSearchApiEventsQueryResult = NonNullable<
+	Awaited<ReturnType<typeof getSearchApiEvents>>
+>;
+export type GetSearchApiEventsQueryError = ErrorType<ValidationError>;
+
+export function createGetSearchApiEvents<
+	TData = Awaited<ReturnType<typeof getSearchApiEvents>>,
+	TError = ErrorType<ValidationError>,
+>(
+	params: GetSearchApiEventsParams,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<Awaited<ReturnType<typeof getSearchApiEvents>>, TError, TData>
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+	const queryOptions = getGetSearchApiEventsQueryOptions(params, options);
+
+	const query = createQuery(() => ({ ...queryOptions, queryClient })) as CreateQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+	query.queryKey = queryOptions.queryKey;
+
+	return query;
+}
+
+export const getSearchApiCommunities = (
+	params: GetSearchApiCommunitiesParams,
+	signal?: AbortSignal,
+) => {
+	return customInstance<CommunityDto[]>({
+		url: `/search/api/communities`,
+		method: "GET",
+		params,
+		signal,
+	});
+};
+
+export const getGetSearchApiCommunitiesQueryKey = (params?: GetSearchApiCommunitiesParams) => {
+	return [`/search/api/communities`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetSearchApiCommunitiesQueryOptions = <
+	TData = Awaited<ReturnType<typeof getSearchApiCommunities>>,
+	TError = ErrorType<ValidationError>,
+>(
+	params: GetSearchApiCommunitiesParams,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<Awaited<ReturnType<typeof getSearchApiCommunities>>, TError, TData>
+		>;
+	},
+) => {
+	const { query: queryOptions } = options ?? {};
+
+	const queryKey = queryOptions?.queryKey ?? getGetSearchApiCommunitiesQueryKey(params);
+
+	const queryFn: QueryFunction<Awaited<ReturnType<typeof getSearchApiCommunities>>> = ({
+		signal,
+	}) => getSearchApiCommunities(params, signal);
+
+	return { queryKey, queryFn, ...queryOptions } as CreateQueryOptions<
+		Awaited<ReturnType<typeof getSearchApiCommunities>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetSearchApiCommunitiesQueryResult = NonNullable<
+	Awaited<ReturnType<typeof getSearchApiCommunities>>
+>;
+export type GetSearchApiCommunitiesQueryError = ErrorType<ValidationError>;
+
+export function createGetSearchApiCommunities<
+	TData = Awaited<ReturnType<typeof getSearchApiCommunities>>,
+	TError = ErrorType<ValidationError>,
+>(
+	params: GetSearchApiCommunitiesParams,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<Awaited<ReturnType<typeof getSearchApiCommunities>>, TError, TData>
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+	const queryOptions = getGetSearchApiCommunitiesQueryOptions(params, options);
+
+	const query = createQuery(() => ({ ...queryOptions, queryClient })) as CreateQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+	query.queryKey = queryOptions.queryKey;
+
+	return query;
+}
+
+export const getSearchApiUsers = (params: GetSearchApiUsersParams, signal?: AbortSignal) => {
+	return customInstance<CartesianUserDto[]>({
+		url: `/search/api/users`,
+		method: "GET",
+		params,
+		signal,
+	});
+};
+
+export const getGetSearchApiUsersQueryKey = (params?: GetSearchApiUsersParams) => {
+	return [`/search/api/users`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetSearchApiUsersQueryOptions = <
+	TData = Awaited<ReturnType<typeof getSearchApiUsers>>,
+	TError = ErrorType<ValidationError>,
+>(
+	params: GetSearchApiUsersParams,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<Awaited<ReturnType<typeof getSearchApiUsers>>, TError, TData>
+		>;
+	},
+) => {
+	const { query: queryOptions } = options ?? {};
+
+	const queryKey = queryOptions?.queryKey ?? getGetSearchApiUsersQueryKey(params);
+
+	const queryFn: QueryFunction<Awaited<ReturnType<typeof getSearchApiUsers>>> = ({ signal }) =>
+		getSearchApiUsers(params, signal);
+
+	return { queryKey, queryFn, ...queryOptions } as CreateQueryOptions<
+		Awaited<ReturnType<typeof getSearchApiUsers>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetSearchApiUsersQueryResult = NonNullable<
+	Awaited<ReturnType<typeof getSearchApiUsers>>
+>;
+export type GetSearchApiUsersQueryError = ErrorType<ValidationError>;
+
+export function createGetSearchApiUsers<
+	TData = Awaited<ReturnType<typeof getSearchApiUsers>>,
+	TError = ErrorType<ValidationError>,
+>(
+	params: GetSearchApiUsersParams,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<Awaited<ReturnType<typeof getSearchApiUsers>>, TError, TData>
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+	const queryOptions = getGetSearchApiUsersQueryOptions(params, options);
+
+	const query = createQuery(() => ({ ...queryOptions, queryClient })) as CreateQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+	query.queryKey = queryOptions.queryKey;
+
+	return query;
+}
+
+export const getSearchApiAll = (params: GetSearchApiAllParams, signal?: AbortSignal) => {
+	return customInstance<MergedSearchResultsDto>({
+		url: `/search/api/all`,
+		method: "GET",
+		params,
+		signal,
+	});
+};
+
+export const getGetSearchApiAllQueryKey = (params?: GetSearchApiAllParams) => {
+	return [`/search/api/all`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetSearchApiAllQueryOptions = <
+	TData = Awaited<ReturnType<typeof getSearchApiAll>>,
+	TError = ErrorType<ValidationError>,
+>(
+	params: GetSearchApiAllParams,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<Awaited<ReturnType<typeof getSearchApiAll>>, TError, TData>
+		>;
+	},
+) => {
+	const { query: queryOptions } = options ?? {};
+
+	const queryKey = queryOptions?.queryKey ?? getGetSearchApiAllQueryKey(params);
+
+	const queryFn: QueryFunction<Awaited<ReturnType<typeof getSearchApiAll>>> = ({ signal }) =>
+		getSearchApiAll(params, signal);
+
+	return { queryKey, queryFn, ...queryOptions } as CreateQueryOptions<
+		Awaited<ReturnType<typeof getSearchApiAll>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetSearchApiAllQueryResult = NonNullable<Awaited<ReturnType<typeof getSearchApiAll>>>;
+export type GetSearchApiAllQueryError = ErrorType<ValidationError>;
+
+export function createGetSearchApiAll<
+	TData = Awaited<ReturnType<typeof getSearchApiAll>>,
+	TError = ErrorType<ValidationError>,
+>(
+	params: GetSearchApiAllParams,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<Awaited<ReturnType<typeof getSearchApiAll>>, TError, TData>
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+	const queryOptions = getGetSearchApiAllQueryOptions(params, options);
+
+	const query = createQuery(() => ({ ...queryOptions, queryClient })) as CreateQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+	query.queryKey = queryOptions.queryKey;
+
+	return query;
+}
 
 export const postEventApiCreate = (createEventBody: CreateEventBody, signal?: AbortSignal) => {
 	return customInstance<EventDto>({

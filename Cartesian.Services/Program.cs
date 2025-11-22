@@ -13,6 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddMinioClient("storage");
 builder.AddNpgsqlDbContext<CartesianDbContext>("database",
     configureDbContextOptions: options => options.UseNpgsql(o => o.UseNetTopologySuite()));
+builder.Services.AddDbContextFactory<CartesianDbContext>();
 builder.AddServiceDefaults();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
