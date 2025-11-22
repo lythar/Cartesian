@@ -8,10 +8,12 @@
 	import { cn } from "$lib/utils";
 	import { authStore } from "$lib/stores/auth.svelte";
 	import { goto } from "$app/navigation";
+	import ProfileDialog from "./profile-dialog.svelte";
 
 	const { class: className } = $props();
 
 	const auth = $derived($authStore);
+	let openProfile = $state(false);
 
 	async function handleLogout() {
 		authStore.clearUser();
@@ -79,7 +81,7 @@
 			</div>
 
 			<DropdownMenu.Group class="[&>div]:py-2 px-2">
-				<DropdownMenu.Item class="gap-3 cursor-pointer">
+				<DropdownMenu.Item class="gap-3 cursor-pointer" onclick={() => (openProfile = true)}>
 					<HugeiconsIcon icon={UserIcon} className="size-5 duotone-fill" />
 					<span class="font-medium">Profile</span>
 				</DropdownMenu.Item>
@@ -103,4 +105,6 @@
 			</div>
 		</DropdownMenu.Content>
 	</DropdownMenu.Root>
+
+	<ProfileDialog bind:open={openProfile} />
 {/if}

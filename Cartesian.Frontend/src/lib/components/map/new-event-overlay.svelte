@@ -320,7 +320,7 @@
 <div
 	bind:this={overlayContainer}
 	class={cn(
-		"pointer-events-none absolute right-4 top-4 bottom-4 z-50 flex w-full max-w-lg origin-top-right flex-col",
+		"pointer-events-none absolute right-4 top-4 bottom-4 z-50 flex w-full max-w-lg hover:scale-110 origin-top-right flex-col",
 		open ? "" : ""
 	)}
 >

@@ -30,5 +30,8 @@ export default defineConfig(async ({ command }) => {
 			sveltekit(),
 		],
 		define,
+		ssr: {
+			noExternal: ["svelte-sonner", "@hugeicons/svelte"],
+		},
 	};
 });
