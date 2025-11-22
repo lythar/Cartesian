@@ -46,6 +46,9 @@ builder.Services.AddProblemDetails();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
+    options.ExpireTimeSpan = TimeSpan.FromDays(7);
+    options.SlidingExpiration = true;
+
     options.Events.OnRedirectToLogin = context =>
     {
         context.Response.StatusCode = 401;
