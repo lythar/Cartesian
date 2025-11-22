@@ -81,7 +81,8 @@ public class CreateEventEndpoint : IEndpoint
             Description = body.Description,
             Author = user,
             CommunityId = membership?.CommunityId,
-            Tags = body.Tags
+            Tags = body.Tags,
+            Visibility = EventVisibility.Public
         };
 
         await dbContext.AddAsync(newEvent);

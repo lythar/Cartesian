@@ -76,8 +76,8 @@ public class EventGeoJsonEndpoint : IEndpoint
 
         var events = await query
             .OrderByDescending(e => e.CreatedAt)
-            .Take(req.Limit)
             .Skip(req.Skip)
+            .Take(req.Limit)
             .ToArrayAsync();
 
         var features = new List<IFeature>();
