@@ -477,7 +477,6 @@
 													class="flex w-full flex-col items-start rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground"
 													onclick={() => {
 														const [lng, lat] = feature.geometry.coordinates;
-														newEventOverlayState.location = { lat, lng };
 														map.flyTo({ center: [lng, lat], zoom: 14 });
 														searchQuery = "";
 														isSearching = false;

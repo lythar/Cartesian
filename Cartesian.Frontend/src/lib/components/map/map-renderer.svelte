@@ -19,7 +19,7 @@
 	import { mapState } from "./map-state.svelte";
 	import MapPointCta from "./map-point-cta.svelte";
 	import NewEventOverlay from "./new-event-overlay.svelte";
-	import { createEventsGeojsonQuery } from "$lib/api/queries/events-geojson.query";
+	import MapEventsLayer from "./map-events-layer.svelte";
 
 	interface Props {
 		ipGeo: IpGeo | null;
@@ -38,14 +38,6 @@
 	const approximateLocation = createIpGeoQuery({
 		query: {
 			initialData: ipGeo ?? undefined,
-		},
-	});
-
-	const eventsQuery = createEventsGeojsonQuery({}, {
-		query: {
-			enabled: true,
-			refetchInterval: 30000,
-			staleTime: 15000,
 		},
 	});
 
@@ -94,141 +86,6 @@
     });
 
     mapState.instance.addControl(attrControl, 'bottom-right');
-
-		mapState.instance.on("load", () => {
-			mapState.instance!.addSource("events", {
-				type: "geojson",
-				generateId: true,
-				data: (eventsQuery.data ?? { type: "FeatureCollection", features: [] }) as GeoJSON.FeatureCollection,
-				cluster: true,
-				clusterMaxZoom: 14,
-				clusterRadius: 50,
-			});
-
-			mapState.instance!.addLayer({
-				id: "clusters",
-				type: "circle",
-				source: "events",
-				filter: ["has", "point_count"],
-				paint: {
-					"circle-color": mode.current == "light" ? "#FFFFFF" : "#101010",
-					"circle-radius": ["step", ["get", "point_count"], 20, 100, 30, 750, 40],
-					"circle-emissive-strength": 1,
-				},
-			});
-
-			mapState.instance!.addLayer({
-				id: "cluster-count",
-				type: "symbol",
-				source: "events",
-				filter: ["has", "point_count"],
-				layout: {
-					"text-field": ["get", "point_count_abbreviated"],
-					"text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
-					"text-size": 12,
-				},
-				paint: {
-					"text-color": mode.current == "light" ? "#101010" : "#FFFFFF",
-				},
-			});
-
-			mapState.instance!.addLayer({
-				id: "unclustered-point",
-				type: "circle",
-				source: "events",
-				filter: ["!", ["has", "point_count"]],
-				paint: {
-					"circle-color": mode.current == "light" ? "#FFFFFF" : "#101010",
-					"circle-radius": 8,
-					"circle-stroke-width": 2,
-					"circle-stroke-color": mode.current == "light" ? "#101010" : "#FFFFFF",
-					"circle-emissive-strength": 1,
-				},
-			});
-
-      mapState.instance!.addInteraction("click-clusters", {
-        type: "click",
-        target: { layerId: "clusters" },
-        handler: e => {
-          const features = mapState.instance!.queryRenderedFeatures(e.point, { layers: ["clusters"] });
-
-					if (!features.length) return;
-
-          const clusterId = features[0].properties!.cluster_id;
-
-					const source = mapState.instance!.getSource("events") as mapboxgl.GeoJSONSource;
-					source.getClusterExpansionZoom(
-            clusterId,
-            (err: any, zoom: any ) => {
-              if (err) return;
-
-              mapState.instance!.easeTo({
-                center: (features[0].geometry as GeoJSON.Point).coordinates as [number, number],
-                zoom: zoom,
-              })
-            }
-          )
-        }
-      })
-
-      mapState.instance!.addInteraction("clusters-mouseenter", {
-        type: "mouseenter",
-        target: { layerId: "clusters" },
-        handler: () => {
-          mapState.instance!.getCanvas().style.cursor = "pointer";
-        }
-      });
-
-      mapState.instance!.addInteraction("clusters-mouseleave", {
-        type: "mouseleave",
-        target: { layerId: 'clusters' },
-        handler: () => {
-          mapState.instance!.getCanvas().style.cursor = "";
-        }
-      });
-
-      mapState.instance!.addInteraction("click-unclustered-point", {
-        type: "click",
-        target: { layerId: "unclustered-point" },
-        handler: e => {
-          const features = mapState.instance!.queryRenderedFeatures(e.point, { layers: ["unclustered-point"] });
-          if (!features.length) return;
-
-          const coordinates = (features[0].geometry as GeoJSON.Point).coordinates.slice();
-          const properties = features[0].properties;
-
-          while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-            coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
-          }
-
-          new mapboxgl.Popup()
-            .setLngLat(coordinates as [number, number])
-            .setHTML(`
-              <div class="p-2">
-                <h3 class="font-semibold text-sm mb-1">${properties?.name ?? "Event"}</h3>
-                <p class="text-xs text-muted-foreground">${properties?.description ?? ""}</p>
-              </div>
-            `)
-            .addTo(mapState.instance!);
-        }
-      });
-
-      mapState.instance!.addInteraction("unclustered-point-mouseenter", {
-        type: "mouseenter",
-        target: { layerId: "unclustered-point" },
-        handler: () => {
-          mapState.instance!.getCanvas().style.cursor = "pointer";
-        }
-      });
-
-      mapState.instance!.addInteraction("unclustered-point-mouseleave", {
-        type: "mouseleave",
-        target: { layerId: "unclustered-point" },
-        handler: () => {
-          mapState.instance!.getCanvas().style.cursor = "";
-        }
-      });
-		});
 	});
 
 	$effect(() => {
@@ -239,32 +96,6 @@
 
 		const preset = getLightingPreset(currentMode);
 		mapState.instance.setConfigProperty("basemap", "lightPreset", preset);
-
-		if (mapState.instance.isStyleLoaded()) {
-			const textColor = currentMode === "light" ? "#101010" : "#FFFFFF";
-			const circleColor = currentMode === "light" ? "#FFFFFF" : "#101010";
-			const strokeColor = currentMode === "light" ? "#101010" : "#FFFFFF";
-
-			if (mapState.instance.getLayer("clusters")) {
-				mapState.instance.setPaintProperty("clusters", "circle-color", circleColor);
-			}
-			if (mapState.instance.getLayer("cluster-count")) {
-				mapState.instance.setPaintProperty("cluster-count", "text-color", textColor);
-			}
-			if (mapState.instance.getLayer("unclustered-point")) {
-				mapState.instance.setPaintProperty("unclustered-point", "circle-color", circleColor);
-				mapState.instance.setPaintProperty("unclustered-point", "circle-stroke-color", strokeColor);
-			}
-		}
-	});
-
-	$effect(() => {
-		if (!mapState.instance || !mapState.instance.isStyleLoaded()) return;
-
-		const source = mapState.instance.getSource("events") as mapboxgl.GeoJSONSource;
-		if (source && eventsQuery.data) {
-			source.setData(eventsQuery.data as GeoJSON.FeatureCollection);
-		}
 	});
 
 	$effect(() => {
@@ -305,6 +136,7 @@
 		<GeolocateControl map={mapState.instance} />
     <MapPointCta map={mapState.instance} bind:selectedLocation />
     <NewEventOverlay map={mapState.instance} />
+	<MapEventsLayer map={mapState.instance} />
 	{/if}
 </div>
 
