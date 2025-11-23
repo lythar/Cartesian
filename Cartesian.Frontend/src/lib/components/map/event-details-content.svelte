@@ -28,11 +28,11 @@
     let eventDetails = $derived(eventDetailsQuery.data);
     let hasMultipleSchedules = $derived((eventDetails?.windows?.length ?? 0) > 1);
 
-	let currentWindow = $derived(eventDetails?.windows?.find((w) => w.id === event.windowId));
-	let eventLocation = $derived(
-		eventDetails?.location as unknown as { coordinates: [number, number] } | undefined
-	);
-	let longitude = $derived(eventLocation?.coordinates?.[0]);
+    let currentWindow = $derived(eventDetails?.windows?.find((w) => w.id === event.windowId));
+    let eventLocation = $derived(
+      eventDetails?.location as unknown as { coordinates: [number, number] } | undefined
+    );
+    let longitude = $derived(eventLocation?.coordinates?.[0]);
     let latitude = $derived(eventLocation?.coordinates?.[1]);
 
     const reverseGeocodeQuery = createReverseGeocodeQuery(() =>
