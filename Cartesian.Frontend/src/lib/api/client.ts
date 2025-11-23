@@ -1,6 +1,6 @@
 import { Effect, Schema } from "effect";
 
-const baseUrl =
+export const baseUrl =
 	import.meta.env.services_url ??
 	import.meta.env.services__https__0 ??
 	import.meta.env.services__http__0 ??
@@ -36,16 +36,32 @@ export const customInstance = async <T>(config: FetchConfig): Promise<T> => {
 			}
 		}
 
+		const isFormData = data instanceof FormData;
+
+		// Filter out Content-Type header for FormData - browser will set it with boundary
+		const filteredHeaders =
+			isFormData && headers
+				? Object.fromEntries(
+						Object.entries(headers).filter(
+							([key]) => key.toLowerCase() !== "content-type",
+						),
+					)
+				: headers;
+
+		const requestHeaders: HeadersInit = isFormData
+			? { ...filteredHeaders }
+			: {
+					"Content-Type": "application/json",
+					...filteredHeaders,
+				};
+
 		const response = yield* Effect.tryPromise({
 			try: () =>
 				fetch(finalUrl, {
 					...fetchConfig,
 					credentials: "include",
-					headers: {
-						"Content-Type": "application/json",
-						...headers,
-					},
-					body: data ? JSON.stringify(data) : undefined,
+					headers: requestHeaders,
+					body: isFormData ? data : data ? JSON.stringify(data) : undefined,
 				}),
 			catch: (error) => new FetchError({ status: 0, message: String(error) }),
 		});

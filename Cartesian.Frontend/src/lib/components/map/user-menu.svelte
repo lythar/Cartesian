@@ -9,6 +9,7 @@
 	import { authStore } from "$lib/stores/auth.svelte";
 	import { goto } from "$app/navigation";
 	import ProfileDialog from "./profile-dialog.svelte";
+	import { baseUrl } from "$lib/api/client";
 
 	const { class: className } = $props();
 
@@ -29,9 +30,9 @@
 			.slice(0, 2);
 	}
 
-	function getAvatarUrl(avatar: { bucketName: string; objectKey: string } | null): string | null {
+	function getAvatarUrl(avatar: { id: string } | null): string | null {
 		if (!avatar) return null;
-		return `/${avatar.bucketName}/${avatar.objectKey}`;
+		return `${baseUrl}/media/api/${avatar.id}`;
 	}
 </script>
 

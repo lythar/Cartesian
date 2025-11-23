@@ -8,12 +8,12 @@
 	import { toast } from "$lib/components/ui/sonner";
 	import { authStore } from "$lib/stores/auth.svelte";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
-	import { 
-		Loading03Icon, 
-		Upload01Icon, 
-		Delete02Icon, 
-		UserIcon, 
-		LockKeyIcon, 
+	import {
+		Loading03Icon,
+		Upload01Icon,
+		Delete02Icon,
+		UserIcon,
+		LockKeyIcon,
 		Mail01Icon,
 		Cancel01Icon,
 		CheckmarkCircle02Icon
@@ -23,6 +23,7 @@
 		putAccountApiMeAvatar,
 		deleteAccountApiMeAvatar
 	} from "$lib/api";
+  import { baseUrl } from "$lib/api/client";
 
 	let { open = $bindable(false) } = $props();
 
@@ -34,6 +35,8 @@
 
 	// Profile Form State
 	let username = $state("");
+	let selectedFile = $state<File | null>(null);
+	let previewUrl = $state<string | null>(null);
 
 	// Password Form State
 	let currentPassword = $state("");
@@ -43,10 +46,20 @@
 	$effect(() => {
 		if (open && auth.user) {
 			username = auth.user.name;
+			selectedFile = null;
+			previewUrl = null;
 			currentPassword = "";
 			newPassword = "";
 			confirmPassword = "";
 		}
+	});
+
+	$effect(() => {
+		return () => {
+			if (previewUrl) {
+				URL.revokeObjectURL(previewUrl);
+			}
+		};
 	});
 
 	function getInitials(name: string): string {
@@ -58,67 +71,69 @@
 			.slice(0, 2);
 	}
 
-	function getAvatarUrl(avatar: { bucketName: string; objectKey: string } | null): string | null {
+	function getAvatarUrl(avatar: { id: string } | null): string | null {
 		if (!avatar) return null;
-		return `/${avatar.bucketName}/${avatar.objectKey}`;
+		return `${baseUrl}/media/api/${avatar.id}`;
 	}
 
-	async function handleFileChange(event: Event) {
+	function handleFileChange(event: Event) {
 		const target = event.target as HTMLInputElement;
 		const file = target.files?.[0];
-		if (!file || !auth.user) return;
+		if (!file) return;
 
 		// 5MB limit check (aligned with backend)
 		if (file.size > 5 * 1024 * 1024) {
 			toast.error("Image must be smaller than 5MB");
+			if (fileInput) fileInput.value = "";
 			return;
 		}
 
-		isLoadingAvatar = true;
-		try {
-			// 1. Upload Avatar
-			const uploadRes = await postMediaApiUploadAvatar({ file });
-			
-			// 2. Set as User Avatar
-			const updateRes = await putAccountApiMeAvatar({ mediaId: uploadRes.id });
-			
-			// 3. Update Store
-			authStore.setUser(updateRes);
-			toast.success("Avatar updated successfully");
-		} catch (error) {
-			console.error(error);
-			toast.error("Failed to update avatar");
-		} finally {
-			isLoadingAvatar = false;
-			if (fileInput) fileInput.value = "";
+		// Revoke previous preview URL if it exists
+		if (previewUrl) {
+			URL.revokeObjectURL(previewUrl);
 		}
+
+		// Create new preview
+		selectedFile = file;
+		previewUrl = URL.createObjectURL(file);
 	}
 
-	async function handleRemoveAvatar() {
-		if (!auth.user?.avatar) return;
-
-		isLoadingAvatar = true;
-		try {
-			const updateRes = await deleteAccountApiMeAvatar();
-			authStore.setUser(updateRes);
-			toast.success("Avatar removed");
-		} catch (error) {
-			console.error(error);
-			toast.error("Failed to remove avatar");
-		} finally {
-			isLoadingAvatar = false;
+	function handleRemoveAvatar() {
+		if (previewUrl) {
+			URL.revokeObjectURL(previewUrl);
 		}
+		selectedFile = null;
+		previewUrl = null;
+		if (fileInput) fileInput.value = "";
 	}
 
-	function handleSaveProfile() {
+	async function handleSaveProfile() {
+		if (!auth.user) return;
+
 		isSavingProfile = true;
-		// Mock API call
-		setTimeout(() => {
-			toast.info("Profile update not implemented yet", {
-				description: "This feature requires backend support."
-			});
+		try {
+			// Upload new avatar if selected
+			if (selectedFile) {
+				const uploadRes = await postMediaApiUploadAvatar({ file: selectedFile });
+				const updateRes = await putAccountApiMeAvatar({ mediaId: uploadRes.id });
+				authStore.setUser(updateRes);
+			}
+
+			toast.success("Profile updated successfully");
+
+			// Clean up
+			if (previewUrl) {
+				URL.revokeObjectURL(previewUrl);
+			}
+			selectedFile = null;
+			previewUrl = null;
+			if (fileInput) fileInput.value = "";
+		} catch (error) {
+			console.error(error);
+			toast.error("Failed to update profile");
+		} finally {
 			isSavingProfile = false;
-		}, 800);
+		}
 	}
 
 	function handleUpdatePassword() {
@@ -126,7 +141,7 @@
 			toast.error("Passwords do not match");
 			return;
 		}
-		
+
 		isSavingPassword = true;
 		// Mock API call
 		setTimeout(() => {
@@ -139,7 +154,7 @@
 </script>
 
 <Dialog.Root bind:open>
-	<Dialog.Content 
+	<Dialog.Content
 		class="max-w-[500px] h-[600px] gap-0 overflow-hidden rounded-3xl border border-border/40 bg-background/95 p-0 shadow-2xl backdrop-blur-xl md:max-w-[600px] flex flex-col"
 		showCloseButton={false}
 	>
@@ -163,15 +178,15 @@
 		<Tabs.Root value="profile" class="flex flex-col flex-1 overflow-hidden">
 			<div class="px-6 pt-4 flex-none">
 				<Tabs.List class="flex w-full items-center rounded-xl bg-muted/30 p-1">
-					<Tabs.Trigger 
-						value="profile" 
+					<Tabs.Trigger
+						value="profile"
 						class="flex-1 gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
 					>
 						<HugeiconsIcon icon={UserIcon} className="size-4" />
 						Profile
 					</Tabs.Trigger>
-					<Tabs.Trigger 
-						value="security" 
+					<Tabs.Trigger
+						value="security"
 						class="flex-1 gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
 					>
 						<HugeiconsIcon icon={LockKeyIcon} className="size-4" />
@@ -186,18 +201,22 @@
 					<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
 						<div class="relative group">
 							<Avatar.Root class="size-24 border-4 border-muted/30 shadow-sm">
-								<Avatar.Image src={getAvatarUrl(auth.user?.avatar ?? null)} alt={auth.user?.name} class="object-cover" />
+								<Avatar.Image
+									src={previewUrl ?? getAvatarUrl(auth.user?.avatar ?? null)}
+									alt={auth.user?.name}
+									class="object-cover"
+								/>
 								<Avatar.Fallback class="bg-muted text-2xl font-medium text-muted-foreground">
 									{auth.user ? getInitials(auth.user.name) : "?"}
 								</Avatar.Fallback>
 							</Avatar.Root>
-							{#if isLoadingAvatar}
-								<div class="absolute inset-0 flex items-center justify-center rounded-full bg-background/60 backdrop-blur-[2px]">
-									<HugeiconsIcon icon={Loading03Icon} className="size-6 animate-spin text-primary" />
+							{#if previewUrl}
+								<div class="absolute -right-1 -top-1 rounded-full bg-primary p-1 shadow-md">
+									<HugeiconsIcon icon={CheckmarkCircle02Icon} className="size-3 text-primary-foreground" />
 								</div>
 							{/if}
 						</div>
-						
+
 						<div class="flex flex-1 flex-col gap-2">
 							<div class="flex flex-col gap-1">
 								<h3 class="font-medium leading-none">Profile Picture</h3>
@@ -206,23 +225,23 @@
 								</p>
 							</div>
 							<div class="flex gap-2">
-								<Button 
-									variant="outline" 
-									size="sm" 
+								<Button
+									variant="outline"
+									size="sm"
 									class="h-8 rounded-full border-border/50 bg-background/50 hover:bg-muted/50"
-									onclick={() => fileInput?.click()} 
-									disabled={isLoadingAvatar}
+									onclick={() => fileInput?.click()}
+									disabled={isSavingProfile}
 								>
 									<HugeiconsIcon icon={Upload01Icon} className="mr-2 size-3.5" />
-									Change
+									{previewUrl ? "Change" : "Upload"}
 								</Button>
-								{#if auth.user?.avatar}
-									<Button 
-										variant="ghost" 
-										size="sm" 
-										class="h-8 rounded-full text-muted-foreground hover:text-destructive" 
-										onclick={handleRemoveAvatar} 
-										disabled={isLoadingAvatar}
+								{#if previewUrl}
+									<Button
+										variant="ghost"
+										size="sm"
+										class="h-8 rounded-full text-muted-foreground hover:text-destructive"
+										onclick={handleRemoveAvatar}
+										disabled={isSavingProfile}
 									>
 										<HugeiconsIcon icon={Delete02Icon} className="mr-2 size-3.5" />
 										Remove
@@ -247,23 +266,23 @@
 							<Label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
 								Display Name
 							</Label>
-							<Input 
-								bind:value={username} 
+							<Input
+								bind:value={username}
 								placeholder="Your display name"
 								class="h-10 border-border/50 bg-muted/30 px-3 font-medium shadow-none transition-all focus-visible:bg-background focus-visible:ring-1"
 							/>
 						</div>
-						
+
 						<div class="space-y-3">
 							<Label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
 								Email Address
 							</Label>
 							<div class="relative">
 								<HugeiconsIcon icon={Mail01Icon} className="absolute left-3 top-2.5 size-4 text-muted-foreground/70" />
-								<Input 
-									value={auth.user?.email} 
-									disabled 
-									class="h-10 border-border/50 bg-muted/10 pl-9 text-muted-foreground shadow-none" 
+								<Input
+									value={auth.user?.email}
+									disabled
+									class="h-10 border-border/50 bg-muted/10 pl-9 text-muted-foreground shadow-none"
 								/>
 							</div>
 							<p class="text-[10px] text-muted-foreground">
@@ -273,10 +292,10 @@
 					</div>
 
 					<div class="flex justify-end pt-2">
-						<Button 
-							onclick={handleSaveProfile} 
-							disabled={isSavingProfile}
-							class="rounded-xl bg-primary font-medium shadow-lg shadow-primary/20 transition-all hover:shadow-primary/30 active:scale-[0.98]"
+						<Button
+							onclick={handleSaveProfile}
+							disabled={isSavingProfile || !selectedFile}
+							class="rounded-xl bg-primary font-medium shadow-lg shadow-primary/20 transition-all hover:shadow-primary/30 active:scale-[0.98] disabled:opacity-50"
 						>
 							{#if isSavingProfile}
 								<HugeiconsIcon icon={Loading03Icon} className="mr-2 size-4 animate-spin" />
@@ -309,31 +328,31 @@
 							<Label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
 								Current Password
 							</Label>
-							<Input 
-								type="password" 
+							<Input
+								type="password"
 								bind:value={currentPassword}
 								class="h-10 border-border/50 bg-muted/30 px-3 shadow-none transition-all focus-visible:bg-background focus-visible:ring-1"
 							/>
 						</div>
-						
+
 						<div class="grid gap-4 sm:grid-cols-2">
 							<div class="space-y-3">
 								<Label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
 									New Password
 								</Label>
-								<Input 
-									type="password" 
+								<Input
+									type="password"
 									bind:value={newPassword}
 									class="h-10 border-border/50 bg-muted/30 px-3 shadow-none transition-all focus-visible:bg-background focus-visible:ring-1"
 								/>
 							</div>
-							
+
 							<div class="space-y-3">
 								<Label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
 									Confirm Password
 								</Label>
-								<Input 
-									type="password" 
+								<Input
+									type="password"
 									bind:value={confirmPassword}
 									class="h-10 border-border/50 bg-muted/30 px-3 shadow-none transition-all focus-visible:bg-background focus-visible:ring-1"
 								/>
@@ -342,8 +361,8 @@
 					</div>
 
 					<div class="flex justify-end pt-2">
-						<Button 
-							onclick={handleUpdatePassword} 
+						<Button
+							onclick={handleUpdatePassword}
 							disabled={isSavingPassword}
 							class="rounded-xl bg-primary font-medium shadow-lg shadow-primary/20 transition-all hover:shadow-primary/30 active:scale-[0.98]"
 						>
