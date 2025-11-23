@@ -23,12 +23,16 @@
 		Clock01Icon,
 		Add01Icon,
 		Delete02Icon,
-		ArrowRight01Icon
+		ArrowRight01Icon,
+		Image01Icon,
+		ImageAdd01Icon
 	} from "@hugeicons/core-free-icons";
 	import { createForwardGeocodeQuery } from "$lib/api/queries/forward-geocode.query";
 	import {
 		createPostEventApiCreate,
 		createPostEventApiEventIdWindowCreate,
+		createPostEventApiEventIdImages,
+		createPostEventApiWindowWindowIdImages,
 		EventTag,
 		type CreateEventBody,
 		type CreateEventWindowBody
@@ -72,6 +76,10 @@
 	let simpleStartTime = $state("");
 	let simpleEndTime = $state("");
 	let tagSearchQuery = $state("");
+
+	let eventImages = $state<File[]>([]);
+	let windowImages = $state<Record<string, File[]>>({});
+	let simpleWindowImages = $state<File[]>([]);
 
 	const searchResults = createForwardGeocodeQuery(() => debouncedSearch.current);
 
@@ -180,6 +188,8 @@
 
 	const createEventMutation = createPostEventApiCreate();
 	const createEventWindowMutation = createPostEventApiEventIdWindowCreate();
+	const createEventImagesMutation = createPostEventApiEventIdImages();
+	const createWindowImagesMutation = createPostEventApiWindowWindowIdImages();
 
 	const initialData: z.infer<typeof formSchema> = {
 		name: "",
@@ -203,13 +213,28 @@
 
 					const event = await createEventMutation.mutateAsync({ data: eventBody });
 
-					let windowsToCreate: CreateEventWindowBody[] = [];
+					if (eventImages.length > 0) {
+						const uploadEffects = eventImages.map((file) =>
+							Effect.tryPromise({
+								try: () =>
+									createEventImagesMutation.mutateAsync({
+										eventId: event.id,
+										data: { file }
+									}),
+								catch: (error) => new Error(`Failed to upload event image: ${error}`)
+							})
+						);
+						await Effect.runPromise(Effect.all(uploadEffects, { concurrency: 3 }));
+					}
+
+					let windowsToCreate: (CreateEventWindowBody & { tempId?: string })[] = [];
 
 					if (eventWindows.length > 0) {
 						if (!newEventOverlayState.location) {
 							throw new Error("Location is required for event windows");
 						}
 						windowsToCreate = eventWindows.map((w) => ({
+							tempId: w.id,
 							title: w.title,
 							description: w.description,
 							location: {
@@ -244,14 +269,37 @@
 					}
 
 					if (windowsToCreate.length > 0) {
-						const createWindowEffect = (windowBody: CreateEventWindowBody) =>
-							Effect.tryPromise({
-								try: () =>
-									createEventWindowMutation.mutateAsync({
-										eventId: event.id,
-										data: windowBody
-									}),
-								catch: (error) => new Error(`Failed to create window: ${error}`)
+						const createWindowEffect = (
+							windowBody: CreateEventWindowBody & { tempId?: string }
+						) =>
+							Effect.gen(function* (_) {
+								const { tempId, ...body } = windowBody;
+								const window = yield* _(
+									Effect.tryPromise({
+										try: () =>
+											createEventWindowMutation.mutateAsync({
+												eventId: event.id,
+												data: body
+											}),
+										catch: (error) => new Error(`Failed to create window: ${error}`)
+									})
+								);
+
+								const images = tempId ? windowImages[tempId] || [] : simpleWindowImages;
+
+								if (images.length > 0) {
+									const imageEffects = images.map((file) =>
+										Effect.tryPromise({
+											try: () =>
+												createWindowImagesMutation.mutateAsync({
+													windowId: window.id,
+													data: { file }
+												}),
+											catch: (error) => new Error(`Failed to upload window image: ${error}`)
+										})
+									);
+									yield* _(Effect.all(imageEffects, { concurrency: 3 }));
+								}
 							});
 
 						const allWindowsEffect = Effect.all(windowsToCreate.map(createWindowEffect), {
@@ -265,6 +313,9 @@
 					newEventOverlayState.location = null;
 					f.data = initialData;
 					eventWindows = [];
+					eventImages = [];
+					windowImages = {};
+					simpleWindowImages = [];
 					showSimpleMode = true;
 					simpleStartTime = "";
 					simpleEndTime = "";
@@ -313,9 +364,58 @@
 			showSimpleMode = true;
 		}
 	}
-
-
 </script>
+
+{#snippet imagePicker(files: File[], onFilesChange: (files: File[]) => void, id: string)}
+	<div class="space-y-3">
+		<div class="flex flex-wrap gap-2">
+			{#each files as file, i}
+				<div
+					class="group relative h-20 w-20 overflow-hidden rounded-lg border border-border/50 bg-muted/30"
+				>
+					<img
+						src={URL.createObjectURL(file)}
+						alt="Preview"
+						class="h-full w-full object-cover transition-transform group-hover:scale-105"
+						onload={(e) => URL.revokeObjectURL(e.currentTarget.src)}
+					/>
+					<button
+						type="button"
+						class="absolute right-1 top-1 rounded-full bg-background/80 p-1 text-muted-foreground opacity-0 backdrop-blur-sm transition-opacity hover:bg-destructive hover:text-destructive-foreground group-hover:opacity-100"
+						onclick={() => {
+							const newFiles = [...files];
+							newFiles.splice(i, 1);
+							onFilesChange(newFiles);
+						}}
+					>
+						<HugeiconsIcon icon={Delete02Icon} size={12} strokeWidth={2} />
+					</button>
+				</div>
+			{/each}
+			<label
+				for={id}
+				class="flex h-20 w-20 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border/50 bg-muted/10 text-muted-foreground transition-colors hover:border-primary/50 hover:bg-primary/5 hover:text-primary"
+			>
+				<HugeiconsIcon icon={ImageAdd01Icon} size={20} strokeWidth={2} />
+				<span class="text-[10px] font-medium">Add</span>
+				<input
+					{id}
+					type="file"
+					accept="image/*"
+					multiple
+					class="hidden"
+					onchange={(e) => {
+						const input = e.currentTarget;
+						if (input.files) {
+							onFilesChange([...files, ...Array.from(input.files)]);
+							input.value = ""; // Reset input
+						}
+					}}
+				/>
+			</label>
+		</div>
+	</div>
+{/snippet}
 
 <div
 	bind:this={overlayContainer}
@@ -425,6 +525,11 @@
 								</span>
 							</Button>
 						</div>
+					</div>
+
+					<div class="space-y-1.5">
+						<Label class="ml-1 text-xs text-muted-foreground">Images</Label>
+						{@render imagePicker(eventImages, (f) => (eventImages = f), "event-images")}
 					</div>
 				</div>
 
@@ -621,6 +726,15 @@
 									Add multiple times
 								</button>
 							{/if}
+
+							<div class="mt-3 border-t border-border/50 pt-3">
+								<Label class="mb-2 block text-[10px] text-muted-foreground">Window Images</Label>
+								{@render imagePicker(
+									simpleWindowImages,
+									(f) => (simpleWindowImages = f),
+									"simple-window-images"
+								)}
+							</div>
 						</div>
 					{:else}
 						<div class="space-y-3">
@@ -679,6 +793,17 @@
 													placeholder="Pick end time"
 												/>
 											</div>
+										</div>
+
+										<div>
+											<Label class="mb-2 block text-[10px] text-muted-foreground">Window Images</Label>
+											{@render imagePicker(
+												windowImages[window.id] || [],
+												(f) => {
+													windowImages[window.id] = f;
+												},
+												`window-images-${window.id}`
+											)}
 										</div>
 									</div>
 								</div>
@@ -771,9 +896,12 @@
 					type="submit"
 					form="create-event-form"
 					class="flex-[2] rounded-xl bg-primary font-semibold shadow-lg shadow-primary/25 transition-all hover:shadow-primary/40 active:scale-[0.98]"
-					disabled={createEventMutation.isPending || createEventWindowMutation.isPending}
+					disabled={createEventMutation.isPending ||
+						createEventWindowMutation.isPending ||
+						createEventImagesMutation.isPending ||
+						createWindowImagesMutation.isPending}
 				>
-					{#if createEventMutation.isPending || createEventWindowMutation.isPending}
+					{#if createEventMutation.isPending || createEventWindowMutation.isPending || createEventImagesMutation.isPending || createWindowImagesMutation.isPending}
 						<HugeiconsIcon icon={Loading03Icon} size={16} strokeWidth={2} className="mr-2 animate-spin" />
 						Creating...
 					{:else}
