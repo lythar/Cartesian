@@ -5,7 +5,7 @@
 	import { LogOut } from "@lucide/svelte";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import { Bookmark02Icon, Settings01Icon, UserIcon } from "@hugeicons/core-free-icons";
-	import { cn } from "$lib/utils";
+	import { cn, getAvatarUrl, getInitials } from "$lib/utils";
 	import { authStore } from "$lib/stores/auth.svelte";
 	import { goto } from "$app/navigation";
 	import ProfileDialog from "./profile-dialog.svelte";
@@ -21,19 +21,7 @@
 		goto("/login");
 	}
 
-	function getInitials(name: string): string {
-		return name
-			.split(" ")
-			.map((n) => n[0])
-			.join("")
-			.toUpperCase()
-			.slice(0, 2);
-	}
 
-	function getAvatarUrl(avatar: { id: string } | null): string | null {
-		if (!avatar) return null;
-		return `${baseUrl}/media/api/${avatar.id}`;
-	}
 </script>
 
 {#if !auth.isAuthenticated}
@@ -69,7 +57,7 @@
 			<div class="px-3 py-4 mb-2">
 				<div class="flex items-center gap-3">
 					<Avatar.Root class="size-12">
-						<Avatar.Image src={getAvatarUrl(auth.user.avatar)} alt={auth.user.name} />
+						<Avatar.Image src={getAvatarUrl({ id: auth.user.avatar?.id! })} alt={auth.user.name} />
 						<Avatar.Fallback class="bg-primary text-primary-foreground text-lg font-semibold">
 							{getInitials(auth.user.name)}
 						</Avatar.Fallback>

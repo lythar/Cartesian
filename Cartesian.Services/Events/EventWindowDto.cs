@@ -9,6 +9,5 @@ public record EventWindowDto(
     string Title,
     string Description,
     Point Location,
-    IEnumerable<CartesianUserDto> Participants,
     DateTime? StartTime,
     DateTime? EndTime);

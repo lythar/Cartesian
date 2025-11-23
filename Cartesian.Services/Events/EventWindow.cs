@@ -13,11 +13,10 @@ public class EventWindow
     public required string Title { get; set; }
     public required string Description { get; set; }
     public required Point Location { get; set; }
-    public List<CartesianUser> Participants { get; set; } = [];
     public List<Media> Images { get; set; } = [];
     public DateTime? StartTime { get; set; }
     public DateTime? EndTime { get; set; }
 
     public EventWindowDto ToDto() =>
-        new(Id, EventId, Title, Description, Location, Participants.Select(p => p.ToDto()), StartTime, EndTime);
+        new(Id, EventId, Title, Description, Location, StartTime, EndTime);
 }

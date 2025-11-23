@@ -67,6 +67,39 @@ export const fetchForwardGeocode = (query: string) =>
 		);
 	});
 
+export const fetchReverseGeocode = (longitude: number, latitude: number) =>
+	Effect.gen(function* () {
+		if (longitude === undefined || latitude === undefined) return { features: [] };
+
+		const url = `https://api.mapbox.com/search/geocode/v6/reverse?longitude=${longitude}&latitude=${latitude}&access_token=${MAPBOX_ACCESS_TOKEN}`;
+
+		const response = yield* Effect.tryPromise({
+			try: () => fetch(url),
+			catch: (error) =>
+				new ForwardGeocodeError({ message: `Failed to fetch: ${String(error)}` }),
+		});
+
+		if (!response.ok) {
+			return yield* Effect.fail(
+				new ForwardGeocodeError({
+					message: `HTTP ${response.status}: ${response.statusText}`,
+				}),
+			);
+		}
+
+		const data = yield* Effect.tryPromise({
+			try: () => response.json(),
+			catch: (error) =>
+				new ForwardGeocodeError({ message: `Failed to parse JSON: ${String(error)}` }),
+		});
+
+		return yield* Schema.decodeUnknown(ForwardGeocodeSchema)(data).pipe(
+			Effect.catchAll(() =>
+				Effect.fail(new ForwardGeocodeError({ message: "Invalid geocoding data" })),
+			),
+		);
+	});
+
 export function createForwardGeocodeQuery<TData = ForwardGeocode, TError = ForwardGeocodeError>(
 	query: () => string,
 	options?: { query?: Partial<CreateQueryOptions<ForwardGeocode, TError, TData>> },
@@ -79,6 +112,24 @@ export function createForwardGeocodeQuery<TData = ForwardGeocode, TError = Forwa
 			queryFn: () => Effect.runPromise(fetchForwardGeocode(q)),
 			staleTime: 1000 * 60 * 60,
 			enabled: !!q && q.length >= 3,
+			...options?.query,
+			queryClient,
+		};
+	}) as CreateQueryResult<TData, TError>;
+}
+
+export function createReverseGeocodeQuery<TData = ForwardGeocode, TError = ForwardGeocodeError>(
+	coordinates: () => { longitude: number; latitude: number } | null | undefined,
+	options?: { query?: Partial<CreateQueryOptions<ForwardGeocode, TError, TData>> },
+	queryClient?: QueryClient,
+): CreateQueryResult<TData, TError> {
+	return createQuery(() => {
+		const coords = coordinates();
+		return {
+			queryKey: ["reverse-geocode", coords?.longitude, coords?.latitude] as const,
+			queryFn: () => Effect.runPromise(fetchReverseGeocode(coords!.longitude, coords!.latitude)),
+			staleTime: 1000 * 60 * 60,
+			enabled: !!coords && coords.longitude !== undefined && coords.latitude !== undefined,
 			...options?.query,
 			queryClient,
 		};

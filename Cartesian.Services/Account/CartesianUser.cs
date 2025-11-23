@@ -13,7 +13,7 @@ public class CartesianUser : IdentityUser
     public List<Media> Media { get; set; } = [];
     public List<Membership> Memberships { get; set; } = [];
     public List<Event> SubscribedEvents { get; set; } = [];
-    public List<EventWindow> ParticipatedWindows { get; set; } = [];
+    public List<Event> ParticipatedEvents { get; set; } = [];
 
     public CartesianUserDto ToDto() => new(Id, UserName!, Avatar?.ToDto());
     public MyUserDto ToMyUserDto() => new(Id, UserName!, Email!, EmailConfirmed, Avatar?.ToDto());

@@ -20,6 +20,7 @@
 	import MapPointCta from "./map-point-cta.svelte";
 	import NewEventOverlay from "./new-event-overlay.svelte";
 	import MapEventsLayer from "./map-events-layer.svelte";
+	import EventDetailsOverlay from "./event-details-overlay.svelte";
 
 	interface Props {
 		ipGeo: IpGeo | null;
@@ -136,6 +137,7 @@
 		<GeolocateControl map={mapState.instance} />
     <MapPointCta map={mapState.instance} bind:selectedLocation />
     <NewEventOverlay map={mapState.instance} />
+	<EventDetailsOverlay />
 	<MapEventsLayer map={mapState.instance} />
 	{/if}
 </div>

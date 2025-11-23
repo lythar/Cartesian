@@ -12,4 +12,5 @@ public record EventDto(
     EventVisibility Visibility,
     EventTiming Timing,
     IEnumerable<EventTag> Tags,
-    IEnumerable<EventWindowDto> Windows);
+    IEnumerable<EventWindowDto> Windows,
+    IEnumerable<CartesianUserDto> Participants);

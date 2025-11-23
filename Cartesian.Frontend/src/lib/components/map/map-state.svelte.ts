@@ -6,7 +6,34 @@ export let geolocateState = $state({ state: "disabled" });
 export let navigationMode = $state({ enabled: false });
 export let mapState = $state<{ instance: mapboxgl.Map | null }>({ instance: null });
 export let mapMarkers = $state<mapboxgl.Marker[]>([]);
-export let newEventMarkerLocation = $state<{data: LatLng} | null>(null);
+export let newEventMarkerLocation = $state<{ data: LatLng } | null>(null);
+
+export interface MapEventProperties {
+	eventId: string;
+	eventName: string;
+	eventDescription: string;
+	windowId: string;
+	windowTitle: string;
+	windowDescription: string;
+	authorId: string;
+	authorName: string;
+	authorAvatar: string;
+	communityId: string | null;
+	communityName: string | null;
+	communityAvatar: string | null;
+	visibility: string;
+	timing: string;
+	tags: string[];
+	startTime: string;
+	endTime: string;
+	createdAt: string;
+}
+
+export const mapInteractionState = $state({
+	selectedEvent: null as MapEventProperties | null,
+	eventDetailsOpen: false,
+});
+
 export let newEventOverlayState = $state<{
 	open: boolean;
 	/**
@@ -14,13 +41,13 @@ export let newEventOverlayState = $state<{
 	 * picker - user clicked on map > "add event here"
 	 * progammatic - restore draft / deep-link?
 	 */
-	source: "create" | 'toolbar' | "programmatic";
+	source: "create" | "toolbar" | "programmatic";
 	location: LatLng | null;
 }>({
 	open: false,
 	source: "create",
 	location: null,
-})
+});
 
 export let deviceHeading = $state<{ heading: number | null }>({ heading: null });
 

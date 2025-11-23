@@ -89,6 +89,8 @@ public class CartesianDbContext : IdentityDbContext<CartesianUser>
                 .WithOne(e => e.Event);
             entity.HasMany(e => e.Subscribers)
                 .WithMany(e => e.SubscribedEvents);
+            entity.HasMany(e => e.Participants)
+                .WithMany(e => e.ParticipatedEvents);
             entity.HasMany(e => e.Images)
                 .WithOne()
                 .HasForeignKey(m => m.EventId)
@@ -98,8 +100,6 @@ public class CartesianDbContext : IdentityDbContext<CartesianUser>
         builder.Entity<EventWindow>(entity =>
         {
             entity.HasOne(e => e.Event);
-            entity.HasMany(e => e.Participants)
-                .WithMany(e => e.ParticipatedWindows);
             entity.HasMany(e => e.Images)
                 .WithOne()
                 .HasForeignKey(m => m.EventWindowId)

@@ -2,12 +2,17 @@
 	import { createEventsGeojsonQuery } from "$lib/api/queries/events-geojson.query";
 	import mapboxgl from "mapbox-gl";
 	import { mode } from "mode-watcher";
+	import { getAllContexts, mount, unmount } from "svelte";
+	import EventPreview from "./event-preview.svelte";
+	import type { MapEventProperties } from "./map-state.svelte";
 
 	interface Props {
 		map: mapboxgl.Map;
 	}
 
 	let { map }: Props = $props();
+
+	const componentContexts = getAllContexts();
 
 	const eventsQuery = createEventsGeojsonQuery(
 		{},
@@ -77,86 +82,69 @@
 			}
 		});
 
-		map.addInteraction("click-clusters", {
-			type: "click",
-			target: { layerId: "clusters" },
-			handler: (e: any) => {
-				const features = map.queryRenderedFeatures(e.point, { layers: ["clusters"] });
+		// Interactions
+		map.on("click", "clusters", (e) => {
+			const features = map.queryRenderedFeatures(e.point, { layers: ["clusters"] });
+			if (!features.length) return;
 
-				if (!features.length) return;
+			const clusterId = features[0].properties!.cluster_id;
+			const source = map.getSource("events") as mapboxgl.GeoJSONSource;
 
-				const clusterId = features[0].properties!.cluster_id;
-
-				const source = map.getSource("events") as mapboxgl.GeoJSONSource;
-				source.getClusterExpansionZoom(clusterId, (err: any, zoom: any) => {
-					if (err) return;
-
-					map.easeTo({
-						center: (features[0].geometry as GeoJSON.Point).coordinates as [number, number],
-						zoom: zoom
-					});
+			source.getClusterExpansionZoom(clusterId, (err, zoom) => {
+				if (err) return;
+				map.easeTo({
+					center: (features[0].geometry as GeoJSON.Point).coordinates as [number, number],
+					zoom: zoom || 15
 				});
-			}
+			});
 		});
 
-		map.addInteraction("clusters-mouseenter", {
-			type: "mouseenter",
-			target: { layerId: "clusters" },
-			handler: () => {
-				map.getCanvas().style.cursor = "pointer";
-			}
+		map.on("mouseenter", "clusters", () => {
+			map.getCanvas().style.cursor = "pointer";
 		});
 
-		map.addInteraction("clusters-mouseleave", {
-			type: "mouseleave",
-			target: { layerId: "clusters" },
-			handler: () => {
-				map.getCanvas().style.cursor = "";
-			}
+		map.on("mouseleave", "clusters", () => {
+			map.getCanvas().style.cursor = "";
 		});
 
-		map.addInteraction("click-unclustered-point", {
-			type: "click",
-			target: { layerId: "unclustered-point" },
-			handler: (e: any) => {
-				const features = map.queryRenderedFeatures(e.point, { layers: ["unclustered-point"] });
-				if (!features.length) return;
+		map.on("click", "unclustered-point", (e) => {
+			const features = map.queryRenderedFeatures(e.point, { layers: ["unclustered-point"] });
+			if (!features.length) return;
 
-				const coordinates = (features[0].geometry as GeoJSON.Point).coordinates.slice();
-				const properties = features[0].properties;
+			const coordinates = (features[0].geometry as GeoJSON.Point).coordinates.slice();
+			const properties = features[0].properties as unknown as MapEventProperties;
 
-				while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-					coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
-				}
-
-				new mapboxgl.Popup()
-					.setLngLat(coordinates as [number, number])
-					.setHTML(
-						`
-              <div class="p-2">
-                <h3 class="font-semibold text-sm mb-1">${properties?.name ?? "Event"}</h3>
-                <p class="text-xs text-muted-foreground">${properties?.description ?? ""}</p>
-              </div>
-            `
-					)
-					.addTo(map);
+			while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+				coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
 			}
+
+		const popupNode = document.createElement("div");
+		const component = mount(EventPreview, {
+			target: popupNode,
+			props: { event: properties },
+			context: componentContexts
 		});
 
-		map.addInteraction("unclustered-point-mouseenter", {
-			type: "mouseenter",
-			target: { layerId: "unclustered-point" },
-			handler: () => {
-				map.getCanvas().style.cursor = "pointer";
-			}
+		const popup = new mapboxgl.Popup({
+				closeButton: false,
+				maxWidth: "300px",
+				className: "p-0 bg-transparent shadow-none border-none"
+			})
+				.setLngLat(coordinates as [number, number])
+				.setDOMContent(popupNode)
+				.addTo(map);
+
+			popup.on('close', () => {
+				unmount(component);
+			});
 		});
 
-		map.addInteraction("unclustered-point-mouseleave", {
-			type: "mouseleave",
-			target: { layerId: "unclustered-point" },
-			handler: () => {
-				map.getCanvas().style.cursor = "";
-			}
+		map.on("mouseenter", "unclustered-point", () => {
+			map.getCanvas().style.cursor = "pointer";
+		});
+
+		map.on("mouseleave", "unclustered-point", () => {
+			map.getCanvas().style.cursor = "";
 		});
 	}
 
@@ -173,6 +161,13 @@
 				if (map.getLayer("cluster-count")) map.removeLayer("cluster-count");
 				if (map.getLayer("unclustered-point")) map.removeLayer("unclustered-point");
 				if (map.getSource("events")) map.removeSource("events");
+
+				// Note: map.off() is not strictly necessary if we remove layers,
+				// but good practice if we were keeping layers.
+				// Since we remove layers, the listeners attached to layer IDs might persist
+				// but won't fire. However, to be clean, we should remove them if possible,
+				// but we used anonymous functions so we can't easily remove them here
+				// without extracting them. Given the component lifecycle, removing layers is sufficient.
 			} catch (e) {
 				console.warn("Error cleaning up map events layer", e);
 			}
@@ -208,3 +203,18 @@
 		}
 	});
 </script>
+
+<style>
+  :global(.mapboxgl-popup-content)  {
+    background: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    pointer-events: auto;
+    position: relative;
+    margin-bottom: 0.75rem;
+  }
+
+  :global(.mapboxgl-popup-tip) {
+    display: none !important;
+  }
+</style>

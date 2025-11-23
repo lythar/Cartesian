@@ -19,9 +19,10 @@ public class Event
     public List<EventTag> Tags { get; set; } = [];
     public List<EventWindow> Windows { get; set; } = [];
     public List<CartesianUser> Subscribers { get; set; } = [];
+    public List<CartesianUser> Participants { get; set; } = [];
     public List<Media> Images { get; set; } = [];
 
     public EventDto ToDto() =>
         new(Id, Name, Description, Author.ToDto(), Community?.ToDto(), Visibility, Timing, Tags,
-            Windows.Select(w => w.ToDto()));
+            Windows.Select(w => w.ToDto()), Participants.Select(p => p.ToDto()));
 }

@@ -184,7 +184,6 @@ public class CreateEventEndpoint : IEndpoint
             return Results.NotFound(new EventNotFoundError(eventId.ToString()));
 
         var existingWindow = await dbContext.EventWindows
-            .Include(w => w.Participants)
             .Where(w => w.Id == windowId && w.EventId == eventId)
             .FirstOrDefaultAsync();
 

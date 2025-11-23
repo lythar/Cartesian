@@ -171,6 +171,7 @@ export interface EventDto {
 	timing: EventTiming;
 	tags: EventTag[];
 	windows: EventWindowDto[];
+	participants: CartesianUserDto[];
 }
 
 export interface EventNotFoundError {
@@ -247,7 +248,6 @@ export interface EventWindowDto {
 	title: string;
 	description: string;
 	location: Point;
-	participants: CartesianUserDto[];
 	startTime: unknown;
 	endTime: unknown;
 }
@@ -1592,6 +1592,68 @@ export function createGetEventApiList<
 	queryClient?: QueryClient,
 ): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 	const queryOptions = getGetEventApiListQueryOptions(params, options);
+
+	const query = createQuery(() => ({ ...queryOptions, queryClient })) as CreateQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+	query.queryKey = queryOptions.queryKey;
+
+	return query;
+}
+
+export const getEventApiEventId = (eventId: string, signal?: AbortSignal) => {
+	return customInstance<EventDto>({ url: `/event/api/${eventId}`, method: "GET", signal });
+};
+
+export const getGetEventApiEventIdQueryKey = (eventId?: string) => {
+	return [`/event/api/${eventId}`] as const;
+};
+
+export const getGetEventApiEventIdQueryOptions = <
+	TData = Awaited<ReturnType<typeof getEventApiEventId>>,
+	TError = ErrorType<EventNotFoundError>,
+>(
+	eventId: string,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<Awaited<ReturnType<typeof getEventApiEventId>>, TError, TData>
+		>;
+	},
+) => {
+	const { query: queryOptions } = options ?? {};
+
+	const queryKey = queryOptions?.queryKey ?? getGetEventApiEventIdQueryKey(eventId);
+
+	const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventApiEventId>>> = ({ signal }) =>
+		getEventApiEventId(eventId, signal);
+
+	return { queryKey, queryFn, enabled: !!eventId, ...queryOptions } as CreateQueryOptions<
+		Awaited<ReturnType<typeof getEventApiEventId>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetEventApiEventIdQueryResult = NonNullable<
+	Awaited<ReturnType<typeof getEventApiEventId>>
+>;
+export type GetEventApiEventIdQueryError = ErrorType<EventNotFoundError>;
+
+export function createGetEventApiEventId<
+	TData = Awaited<ReturnType<typeof getEventApiEventId>>,
+	TError = ErrorType<EventNotFoundError>,
+>(
+	eventId: string,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<Awaited<ReturnType<typeof getEventApiEventId>>, TError, TData>
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+	const queryOptions = getGetEventApiEventIdQueryOptions(eventId, options);
 
 	const query = createQuery(() => ({ ...queryOptions, queryClient })) as CreateQueryResult<
 		TData,

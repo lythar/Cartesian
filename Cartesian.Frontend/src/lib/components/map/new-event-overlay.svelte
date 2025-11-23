@@ -895,7 +895,7 @@
 				<Button
 					type="submit"
 					form="create-event-form"
-					class="flex-[2] rounded-xl bg-primary font-semibold shadow-lg shadow-primary/25 transition-all hover:shadow-primary/40 active:scale-[0.98]"
+					class="flex-2 rounded-xl bg-primary font-semibold shadow-lg shadow-primary/25 transition-all hover:shadow-primary/40 active:scale-[0.98]"
 					disabled={createEventMutation.isPending ||
 						createEventWindowMutation.isPending ||
 						createEventImagesMutation.isPending ||

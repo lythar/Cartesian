@@ -13,12 +13,38 @@ public class EventQueryEndpoints : IEndpoint
             .AddEndpointFilter<ValidationFilter>()
             .Produces(200, typeof(IEnumerable<EventDto>))
             .Produces(400, typeof(ValidationError));
+
+        app.MapGet("/event/api/{eventId}", GetEvent)
+            .Produces(200, typeof(EventDto))
+            .Produces(404, typeof(EventNotFoundError));
+    }
+
+    async Task<IResult> GetEvent(CartesianDbContext dbContext, Guid eventId)
+    {
+        var @event = await dbContext.Events
+            .Include(e => e.Windows)
+            .Include(e => e.Participants)
+            .ThenInclude(p => p.Avatar)
+            .Include(e => e.Author)
+            .ThenInclude(u => u.Avatar)
+            .Include(e => e.Community)
+            .ThenInclude(c => c!.Avatar)
+            .FirstOrDefaultAsync(e => e.Id == eventId);
+
+        if (@event == null)
+        {
+            return Results.NotFound(new EventNotFoundError(eventId.ToString()));
+        }
+
+        return Results.Ok(@event.ToDto());
     }
 
     async Task<IResult> GetEventList(CartesianDbContext dbContext, [AsParameters] GetEventListRequest req)
     {
         var query = dbContext.Events
             .Include(e => e.Windows)
+            .Include(e => e.Participants)
+            .ThenInclude(p => p.Avatar)
             .Include(e => e.Author)
             .ThenInclude(u => u.Avatar)
             .Include(e => e.Community)
