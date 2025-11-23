@@ -4,6 +4,7 @@
 	import { goto } from "$app/navigation";
 	import { getEventApiEventId } from "$lib/api/cartesian-client";
 	import { mapInteractionState } from "$lib/components/map/map-state.svelte";
+	import { getMediaUrl } from "$lib/utils";
 
 	let { data } = $props();
 
@@ -44,5 +45,24 @@
 		}
 	});
 </script>
+
+<svelte:head>
+	{#if data.metaEvent}
+		<title>{data.metaEvent.name} | Lythar</title>
+		<meta name="description" content={data.metaEvent.description} />
+		<meta property="og:title" content={data.metaEvent.name} />
+		<meta property="og:description" content={data.metaEvent.description} />
+		<meta property="og:site_name" content={`Hosted by ${data.metaEvent.author.name}`} />
+
+		{#if data.metaEvent.image}
+			<meta property="og:image" content={getMediaUrl(data.metaEvent.image.id)} />
+			<meta name="twitter:image" content={getMediaUrl(data.metaEvent.image.id)} />
+		{/if}
+
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={data.metaEvent.name} />
+		<meta name="twitter:description" content={data.metaEvent.description} />
+	{/if}
+</svelte:head>
 
 <MapRenderer ipGeo={data.ipGeo} />
