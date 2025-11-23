@@ -21,7 +21,8 @@
 	import {
 		postMediaApiUploadAvatar,
 		putAccountApiMeAvatar,
-		deleteAccountApiMeAvatar
+		deleteAccountApiMeAvatar,
+		getAccountApiMe
 	} from "$lib/api";
   import { baseUrl } from "$lib/api/client";
 
@@ -115,8 +116,9 @@
 			// Upload new avatar if selected
 			if (selectedFile) {
 				const uploadRes = await postMediaApiUploadAvatar({ file: selectedFile });
-				const updateRes = await putAccountApiMeAvatar({ mediaId: uploadRes.id });
-				authStore.setUser(updateRes);
+				await putAccountApiMeAvatar({ mediaId: uploadRes.id });
+				const userData = await getAccountApiMe();
+				authStore.setUser(userData);
 			}
 
 			toast.success("Profile updated successfully");

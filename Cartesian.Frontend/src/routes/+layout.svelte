@@ -6,8 +6,8 @@
 	import { onMount } from "svelte";
 	import { onNavigate } from "$app/navigation";
 	import { authStore } from "$lib/stores/auth.svelte";
-	import { getAccountApiVerify } from "$lib/api";
-	
+	import { getAccountApiMe } from "$lib/api";
+
 
 	let { children } = $props();
 
@@ -24,12 +24,8 @@
 
 	onMount(async () => {
 		try {
-			const result = await getAccountApiVerify();
-			if (result.me) {
-				authStore.setUser(result.me);
-			} else {
-				authStore.setLoading(false);
-			}
+			const userData = await getAccountApiMe();
+			authStore.setUser(userData);
 		} catch (error) {
 			console.log("Not authenticated");
 			authStore.setLoading(false);

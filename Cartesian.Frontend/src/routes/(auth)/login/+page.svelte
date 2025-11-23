@@ -5,7 +5,7 @@
 	import type { PageData } from "./$types";
 	import { superForm } from "sveltekit-superforms";
 	import { zod4Client } from "sveltekit-superforms/adapters";
-	import { createPostAccountApiLogin, type InvalidCredentialsError } from "$lib/api";
+	import { createPostAccountApiLogin, getAccountApiMe, type InvalidCredentialsError } from "$lib/api";
 	import { goto } from "$app/navigation";
 	import { authStore } from "$lib/stores/auth.svelte";
 
@@ -15,11 +15,17 @@
 
 	const loginMutation = createPostAccountApiLogin({
 		mutation: {
-			onSuccess: (data) => {
-				console.log("Login successful:", data.me);
-				authStore.setUser(data.me);
-				errorMessage = null;
-				goto("/app/map");
+			onSuccess: async () => {
+				console.log("Login successful, fetching user data");
+				try {
+					const userData = await getAccountApiMe();
+					authStore.setUser(userData);
+					errorMessage = null;
+					goto("/app/map");
+				} catch (error) {
+					console.error("Failed to fetch user data:", error);
+					errorMessage = "Login successful but failed to fetch user data";
+				}
 			},
 			onError: (error: InvalidCredentialsError) => {
 				console.error("Login failed:", error);
