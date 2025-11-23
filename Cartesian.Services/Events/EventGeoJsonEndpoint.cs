@@ -71,7 +71,7 @@ public class EventGeoJsonEndpoint : IEndpoint
             var envelope = new Envelope(req.MinLon.Value, req.MaxLon.Value, req.MinLat.Value, req.MaxLat.Value);
             var bbox = geometryFactory.ToGeometry(envelope);
 
-            query = query.Where(e => e.Windows.Any(w => w.Location.Intersects(bbox)));
+            query = query.Where(e => e.Location.Intersects(bbox));
         }
 
         var events = await query
@@ -84,33 +84,27 @@ public class EventGeoJsonEndpoint : IEndpoint
 
         foreach (var evt in events)
         {
-            foreach (var window in evt.Windows)
+            var attributes = new AttributesTable
             {
-                var attributes = new AttributesTable
-                {
-                    { "eventId", evt.Id },
-                    { "eventName", evt.Name },
-                    { "eventDescription", evt.Description },
-                    { "windowId", window.Id },
-                    { "windowTitle", window.Title },
-                    { "windowDescription", window.Description },
-                    { "authorId", evt.Author.Id },
-                    { "authorName", evt.Author.UserName },
-                    { "authorAvatar", evt.Author.Avatar?.Id },
-                    { "communityId", evt.Community?.Id },
-                    { "communityName", evt.Community?.Name },
-                    { "communityAvatar", evt.Community?.Avatar?.Id },
-                    { "visibility", evt.Visibility.ToString() },
-                    { "timing", evt.Timing.ToString() },
-                    { "tags", evt.Tags.Select(t => t.ToString()).ToArray() },
-                    { "startTime", window.StartTime },
-                    { "endTime", window.EndTime },
-                    { "createdAt", evt.CreatedAt }
-                };
+                { "eventId", evt.Id },
+                { "eventName", evt.Name },
+                { "eventDescription", evt.Description },
+                { "authorId", evt.Author.Id },
+                { "authorName", evt.Author.UserName },
+                { "authorAvatar", evt.Author.Avatar?.Id },
+                { "communityId", evt.Community?.Id },
+                { "communityName", evt.Community?.Name },
+                { "communityAvatar", evt.Community?.Avatar?.Id },
+                { "visibility", evt.Visibility.ToString() },
+                { "timing", evt.Timing.ToString() },
+                { "tags", evt.Tags.Select(t => t.ToString()).ToArray() },
+                { "startTime", evt.Windows.Where(w => w.StartTime != null).MinBy(w => w.StartTime)?.StartTime },
+                { "endTime", evt.Windows.Where(w => w.EndTime != null).MaxBy(w => w.EndTime)?.EndTime },
+                { "createdAt", evt.CreatedAt }
+            };
 
-                var feature = new Feature(window.Location, attributes);
-                features.Add(feature);
-            }
+            var feature = new Feature(evt.Location, attributes);
+            features.Add(feature);
         }
 
         var featureCollection = new FeatureCollection();

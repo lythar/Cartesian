@@ -8,6 +8,5 @@ public record EventWindowDto(
     Guid EventId,
     string Title,
     string Description,
-    Point Location,
     DateTime? StartTime,
     DateTime? EndTime);

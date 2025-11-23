@@ -79,6 +79,7 @@ public class CreateEventEndpoint : IEndpoint
             Id = Guid.NewGuid(),
             Name = body.Name,
             Description = body.Description,
+            Location = body.Location,
             Author = user,
             CommunityId = membership?.CommunityId,
             Tags = body.Tags,
@@ -116,6 +117,7 @@ public class CreateEventEndpoint : IEndpoint
 
         if (body.Name is {} name) existingEvent.Name = name;
         if (body.Description is {} description) existingEvent.Description = description;
+        if (body.Location is {} location) existingEvent.Location = location;
         if (body.Tags is {} tags) existingEvent.Tags = tags;
         if (body.Timing is {} timing) existingEvent.Timing = timing;
         if (body.Visibility is {} visibility) existingEvent.Visibility = visibility;
@@ -156,7 +158,6 @@ public class CreateEventEndpoint : IEndpoint
             EventId = eventId,
             Title = body.Title,
             Description = body.Description,
-            Location = body.Location,
             StartTime = body.StartTime,
             EndTime = body.EndTime
         };
@@ -200,7 +201,6 @@ public class CreateEventEndpoint : IEndpoint
 
         if (body.Title is {} title) existingWindow.Title = title;
         if (body.Description is {} description) existingWindow.Description = description;
-        if (body.Location is {} location) existingWindow.Location = location;
         if (body.StartTime is {} startTime) existingWindow.StartTime = startTime;
         if (body.EndTime is {} endTime) existingWindow.EndTime = endTime;
 
@@ -246,8 +246,8 @@ public class CreateEventEndpoint : IEndpoint
         return Results.Ok();
     }
 
-    public record CreateEventBody(string Name, string Description, Guid? CommunityId, List<EventTag> Tags);
-    record PutEditEventBody(string? Name, string? Description, List<EventTag>? Tags, EventTiming? Timing, EventVisibility? Visibility);
-    public record CreateEventWindowBody(string Title, string Description, Point Location, DateTime? StartTime, DateTime? EndTime);
-    record PutEditEventWindowBody(string? Title, string? Description, Point? Location, DateTime? StartTime, DateTime? EndTime);
+    public record CreateEventBody(string Name, string Description, Point Location, Guid? CommunityId, List<EventTag> Tags);
+    record PutEditEventBody(string? Name, string? Description, Point? Location, List<EventTag>? Tags, EventTiming? Timing, EventVisibility? Visibility);
+    public record CreateEventWindowBody(string Title, string Description, DateTime? StartTime, DateTime? EndTime);
+    record PutEditEventWindowBody(string? Title, string? Description, DateTime? StartTime, DateTime? EndTime);
 }

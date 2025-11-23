@@ -147,6 +147,7 @@ export type CreateEventBodyCommunityId = null | string;
 export interface CreateEventBody {
 	name: string;
 	description: string;
+	location: Point;
 	communityId: CreateEventBodyCommunityId;
 	tags: EventTag[];
 }
@@ -154,7 +155,6 @@ export interface CreateEventBody {
 export interface CreateEventWindowBody {
 	title: string;
 	description: string;
-	location: Point;
 	startTime: unknown;
 	endTime: unknown;
 }
@@ -165,6 +165,7 @@ export interface EventDto {
 	id: string;
 	name: string;
 	description: string;
+	location: Point;
 	author: CartesianUserDto;
 	community: EventDtoCommunity;
 	visibility: EventVisibility;
@@ -247,7 +248,6 @@ export interface EventWindowDto {
 	eventId: string;
 	title: string;
 	description: string;
-	location: Point;
 	startTime: unknown;
 	endTime: unknown;
 }
@@ -419,6 +419,8 @@ export type PutEditEventBodyName = null | string;
 
 export type PutEditEventBodyDescription = null | string;
 
+export type PutEditEventBodyLocation = null | Point;
+
 export type PutEditEventBodyTags = null | EventTag[];
 
 export type PutEditEventBodyTiming = null | EventTiming;
@@ -428,6 +430,7 @@ export type PutEditEventBodyVisibility = null | EventVisibility;
 export interface PutEditEventBody {
 	name: PutEditEventBodyName;
 	description: PutEditEventBodyDescription;
+	location: PutEditEventBodyLocation;
 	tags: PutEditEventBodyTags;
 	timing: PutEditEventBodyTiming;
 	visibility: PutEditEventBodyVisibility;
@@ -437,12 +440,9 @@ export type PutEditEventWindowBodyTitle = null | string;
 
 export type PutEditEventWindowBodyDescription = null | string;
 
-export type PutEditEventWindowBodyLocation = null | Point;
-
 export interface PutEditEventWindowBody {
 	title: PutEditEventWindowBodyTitle;
 	description: PutEditEventWindowBodyDescription;
-	location: PutEditEventWindowBodyLocation;
 	startTime: unknown;
 	endTime: unknown;
 }

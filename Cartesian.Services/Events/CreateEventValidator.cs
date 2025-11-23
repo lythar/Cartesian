@@ -14,6 +14,9 @@ public class CreateEventBodyValidator : AbstractValidator<CreateEventEndpoint.Cr
             .NotEmpty().WithMessage("Event description is required")
             .MaximumLength(2000).WithMessage("Event description must not exceed 2000 characters");
 
+        RuleFor(x => x.Location)
+            .NotNull().WithMessage("Location is required");
+
         RuleFor(x => x.Tags)
             .NotNull().WithMessage("Tags are required")
             .Must(tags => tags.Count <= 10).WithMessage("Maximum 10 tags allowed");
@@ -31,9 +34,6 @@ public class CreateEventWindowBodyValidator : AbstractValidator<CreateEventEndpo
         RuleFor(x => x.Description)
             .NotEmpty().WithMessage("Event window description is required")
             .MaximumLength(2000).WithMessage("Event window description must not exceed 2000 characters");
-
-        RuleFor(x => x.Location)
-            .NotNull().WithMessage("Location is required");
 
         RuleFor(x => x)
             .Must(x => x.StartTime == null || x.EndTime == null || x.StartTime < x.EndTime)

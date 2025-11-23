@@ -204,11 +204,22 @@
 		onUpdate: async ({ form: f }) => {
 			if (f.valid) {
 				try {
+					if (!newEventOverlayState.location) {
+						throw new Error("Location is required");
+					}
+
 					const eventBody: CreateEventBody = {
 						name: f.data.name,
 						description: f.data.description,
 						communityId: f.data.communityId,
-						tags: f.data.tags as EventTag[]
+						tags: f.data.tags as EventTag[],
+						location: {
+							type: "Point",
+							coordinates: [
+								newEventOverlayState.location.lng,
+								newEventOverlayState.location.lat
+							]
+						} as any
 					};
 
 					const event = await createEventMutation.mutateAsync({ data: eventBody });
@@ -230,38 +241,18 @@
 					let windowsToCreate: (CreateEventWindowBody & { tempId?: string })[] = [];
 
 					if (eventWindows.length > 0) {
-						if (!newEventOverlayState.location) {
-							throw new Error("Location is required for event windows");
-						}
 						windowsToCreate = eventWindows.map((w) => ({
 							tempId: w.id,
 							title: w.title,
 							description: w.description,
-							location: {
-								type: "Point",
-								coordinates: [
-									newEventOverlayState.location!.lng,
-									newEventOverlayState.location!.lat
-								]
-							} as any,
 							startTime: new Date(w.startTime).toISOString(),
 							endTime: new Date(w.endTime).toISOString()
 						}));
 					} else if (simpleStartTime && simpleEndTime) {
-						if (!newEventOverlayState.location) {
-							throw new Error("Location is required for event window");
-						}
 						windowsToCreate = [
 							{
 								title: f.data.name,
 								description: f.data.description,
-								location: {
-									type: "Point",
-									coordinates: [
-										newEventOverlayState.location.lng,
-										newEventOverlayState.location.lat
-									]
-								} as any,
 								startTime: new Date(simpleStartTime).toISOString(),
 								endTime: new Date(simpleEndTime).toISOString()
 							}
@@ -377,7 +368,7 @@
 						src={URL.createObjectURL(file)}
 						alt="Preview"
 						class="h-full w-full object-cover transition-transform group-hover:scale-105"
-						onload={(e) => URL.revokeObjectURL(e.currentTarget.src)}
+						onload={(e) => URL.revokeObjectURL((e.currentTarget as HTMLImageElement).src)}
 					/>
 					<button
 						type="button"
