@@ -10,7 +10,7 @@
 
   const navigationElements = [
     { name: "nav_home", href: "/app/home", icon: Home07Icon },
-    { name: "nav_map", href: "/app/map", icon: MapsLocation02Icon },
+    { name: "nav_map", href: "/app", icon: MapsLocation02Icon },
     { name: "nav_settings", href: "/app/settings", icon: Settings01Icon },
   ]
 
