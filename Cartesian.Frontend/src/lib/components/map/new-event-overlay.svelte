@@ -62,6 +62,7 @@
 	let isSearching = $state<boolean>(false);
 	let cancelDialogOpen = $state(false);
 	let isGlowing = $state(false);
+	let submitError = $state<string | null>(null);
 	const debouncedSearch = new Debounced<string>(() => searchQuery, 300);
 
 	type EventWindowInput = {
@@ -98,6 +99,7 @@
 
 	$effect(() => {
 		open = newEventOverlayState.open;
+		if (open) submitError = null;
 	});
 
 	$effect(() => {
@@ -201,9 +203,11 @@
 
 	const form = superForm(defaults(initialData, zod4(formSchema)), {
 		SPA: true,
+		resetForm: false,
 		validators: zod4(formSchema),
 		onUpdate: async ({ form: f }) => {
 			if (f.valid) {
+				submitError = null;
 				try {
 					if (!newEventOverlayState.location) {
 						throw new Error("Location is required");
@@ -233,7 +237,7 @@
 										eventId: event.id,
 										data: { file }
 									}),
-								catch: (error) => new Error(`Failed to upload event image: ${error}`)
+								catch: (error) => error
 							})
 						);
 						await Effect.runPromise(Effect.all(uploadEffects, { concurrency: 3 }));
@@ -287,7 +291,7 @@
 													windowId: window.id,
 													data: { file }
 												}),
-											catch: (error) => new Error(`Failed to upload window image: ${error}`)
+											catch: (error) => error
 										})
 									);
 									yield* _(Effect.all(imageEffects, { concurrency: 3 }));
@@ -315,6 +319,15 @@
 					form.reset();
 				} catch (e) {
 					console.error("Failed to create event", e);
+					if (e instanceof Error) {
+						// Clean up Effect error prefixes to show the actual message
+						submitError = e.message
+							.replace(/^\(FiberFailure\) /, "")
+							.replace(/^FetchError: /, "")
+							.trim();
+					} else {
+						submitError = "An unknown error occurred";
+					}
 				}
 			}
 		}
@@ -355,6 +368,34 @@
 		eventWindows = eventWindows.filter((w) => w.id !== id);
 		if (eventWindows.length === 0) {
 			showSimpleMode = true;
+		}
+	}
+
+	function validateAndAddImages(
+		currentFiles: File[],
+		newFiles: File[],
+		onUpdate: (files: File[]) => void
+	) {
+		const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+		const MAX_FILES = 10;
+
+		const schema = z
+			.array(
+				z
+					.instanceof(File)
+					.refine((file) => file.size <= MAX_FILE_SIZE, "Max image size is 5MB.")
+					.refine((file) => file.type.startsWith("image/"), "Only image files are allowed.")
+			)
+			.max(MAX_FILES, `You can only upload up to ${MAX_FILES} images.`);
+
+		const combined = [...currentFiles, ...newFiles];
+		const result = schema.safeParse(combined);
+
+		if (result.success) {
+			onUpdate(result.data);
+		} else {
+			const firstIssue = result.error.issues[0];
+			toast.error(firstIssue.message);
 		}
 	}
 </script>
@@ -400,8 +441,8 @@
 					onchange={(e) => {
 						const input = e.currentTarget;
 						if (input.files) {
-							onFilesChange([...files, ...Array.from(input.files)]);
-							input.value = ""; // Reset input
+							validateAndAddImages(files, Array.from(input.files), onFilesChange);
+							input.value = "";
 						}
 					}}
 				/>
@@ -875,6 +916,11 @@
 
 		<!-- Footer -->
 		<div class="border-t border-border/10 bg-background/40 p-6 backdrop-blur-sm">
+			{#if submitError}
+				<div class="mb-4 rounded-lg bg-destructive/10 p-3 text-sm font-medium text-destructive">
+					{submitError}
+				</div>
+			{/if}
 			<div class="flex items-center gap-3">
 				<Button
 					variant="ghost"

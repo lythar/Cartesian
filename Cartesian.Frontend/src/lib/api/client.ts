@@ -67,8 +67,23 @@ export const customInstance = async <T>(config: FetchConfig): Promise<T> => {
 		});
 
 		if (!response.ok) {
+			const text = yield* Effect.tryPromise({
+				try: () => response.text(),
+				catch: () => "Unknown error",
+			});
+
+			let message = response.statusText;
+			try {
+				const json = JSON.parse(text);
+				if (json.message) message = json.message;
+				else if (json.title) message = json.title;
+				else message = text;
+			} catch {
+				if (text) message = text;
+			}
+
 			return yield* Effect.fail(
-				new FetchError({ status: response.status, message: response.statusText }),
+				new FetchError({ status: response.status, message }),
 			);
 		}
 
