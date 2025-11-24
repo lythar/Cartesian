@@ -82,9 +82,7 @@ export const customInstance = async <T>(config: FetchConfig): Promise<T> => {
 				if (text) message = text;
 			}
 
-			return yield* Effect.fail(
-				new FetchError({ status: response.status, message }),
-			);
+			return yield* Effect.fail(new FetchError({ status: response.status, message }));
 		}
 
 		const contentType = response.headers.get("content-type");

@@ -27,6 +27,10 @@ export interface AccountNotFoundError {
 	accountId: string;
 }
 
+export interface AddReactionRequest {
+	emoji: string;
+}
+
 export interface AuthorizationFailedError {
 	code: "AuthorizationFailedError";
 	/** Error message describing the failure */
@@ -54,6 +58,21 @@ export interface CartesianUserDto {
 	id: string;
 	name: string;
 	avatar: CartesianUserDtoAvatar;
+}
+
+export type ChannelListItemDtoCommunityId = null | string;
+
+export type ChannelListItemDtoEventId = null | string;
+
+export interface ChannelListItemDto {
+	channelId: string;
+	type: ChatChannelType;
+	isEnabled: boolean;
+	name: string;
+	communityId: ChannelListItemDtoCommunityId;
+	eventId: ChannelListItemDtoEventId;
+	entityCreatedAt: unknown;
+	channelCreatedAt: unknown;
 }
 
 export interface ChatAccessDeniedError {
@@ -94,6 +113,14 @@ export interface ChatDisabledError {
 	message: string;
 }
 
+export interface ChatMessageAlreadyPinnedError {
+	code: "ChatMessageAlreadyPinnedError";
+	/** Error message describing the failure */
+	message: string;
+}
+
+export type ChatMessageDtoReactionSummary = null | ReactionSummaryDto[];
+
 export interface ChatMessageDto {
 	id: string;
 	channelId: string;
@@ -104,12 +131,28 @@ export interface ChatMessageDto {
 	isDeleted: boolean;
 	mentionedUserIds: string[];
 	attachmentIds: string[];
+	reactionSummary?: ChatMessageDtoReactionSummary;
 }
 
 export interface ChatMessageNotFoundError {
 	code: "ChatMessageNotFoundError";
 	/** Error message describing the failure */
 	message: string;
+}
+
+export interface ChatPinNotFoundError {
+	code: "ChatPinNotFoundError";
+	/** Error message describing the failure */
+	message: string;
+}
+
+export interface ChatReactionDto {
+	id: string;
+	messageId: string;
+	userId: string;
+	username: string;
+	emoji: string;
+	createdAt: unknown;
 }
 
 export interface ChatUserMutedError {
@@ -144,12 +187,15 @@ export interface CommunityNotFoundError {
 
 export type CreateEventBodyCommunityId = null | string;
 
+export type CreateEventBodyWindows = null | CreateEventWindowBody[];
+
 export interface CreateEventBody {
 	name: string;
 	description: string;
 	location: Point;
 	communityId: CreateEventBodyCommunityId;
 	tags: EventTag[];
+	windows: CreateEventBodyWindows;
 }
 
 export interface CreateEventWindowBody {
@@ -262,9 +308,22 @@ export interface EventWindowNotFoundError {
 
 export interface FeatureCollection {}
 
+export interface GetChannelsResponse {
+	channels: ChannelListItemDto[];
+}
+
 export interface GetMessagesResponse {
 	messages: ChatMessageDto[];
 	hasMore: boolean;
+}
+
+export interface GetPinnedMessagesResponse {
+	pins: PinnedChatMessageDto[];
+	hasMore: boolean;
+}
+
+export interface GetReactionsResponse {
+	reactions: ChatReactionDto[];
 }
 
 export interface IdentityError {
@@ -288,6 +347,14 @@ export interface InvalidCredentialsError {
 	code: "InvalidCredentialsError";
 	/** Error message describing the failure */
 	message: string;
+}
+
+export interface InvalidEmojiError {
+	code: "InvalidEmojiError";
+	/** Error message describing the failure */
+	message: string;
+	/** Emoji property */
+	emoji: string;
 }
 
 export interface InvalidMediaTypeError {
@@ -388,6 +455,14 @@ export interface MyUserDto {
 
 export type Permissions = number;
 
+export interface PinnedChatMessageDto {
+	pinId: string;
+	message: ChatMessageDto;
+	pinnedById: string;
+	pinnedByUsername: string;
+	pinnedAt: unknown;
+}
+
 export interface Point {}
 
 export interface PostCreateCommunityBody {
@@ -451,6 +526,19 @@ export interface PutUpdateMemberPermissionsBody {
 	permissions: Permissions;
 }
 
+/**
+ * @pattern ^-?(?:0|[1-9]\d*)$
+ */
+export type ReactionSummaryDtoCount = number | string;
+
+export interface ReactionSummaryDto {
+	emoji: string;
+	/** @pattern ^-?(?:0|[1-9]\d*)$ */
+	count: ReactionSummaryDtoCount;
+	userIds: string[];
+	currentUserReacted: boolean;
+}
+
 export interface RegisterBody {
 	username: string;
 	email: string;
@@ -461,37 +549,14 @@ export interface RegisterSuccess {
 	me: MyUserDto;
 }
 
-export type SendCommunityMessageRequestMentionedUserIds = null | string[];
+export type SendMessageRequestMentionedUserIds = null | string[];
 
-export type SendCommunityMessageRequestAttachmentIds = null | string[];
+export type SendMessageRequestAttachmentIds = null | string[];
 
-export interface SendCommunityMessageRequest {
-	communityId: string;
+export interface SendMessageRequest {
 	content: string;
-	mentionedUserIds: SendCommunityMessageRequestMentionedUserIds;
-	attachmentIds: SendCommunityMessageRequestAttachmentIds;
-}
-
-export type SendDirectMessageRequestMentionedUserIds = null | string[];
-
-export type SendDirectMessageRequestAttachmentIds = null | string[];
-
-export interface SendDirectMessageRequest {
-	recipientId: string;
-	content: string;
-	mentionedUserIds: SendDirectMessageRequestMentionedUserIds;
-	attachmentIds: SendDirectMessageRequestAttachmentIds;
-}
-
-export type SendEventMessageRequestMentionedUserIds = null | string[];
-
-export type SendEventMessageRequestAttachmentIds = null | string[];
-
-export interface SendEventMessageRequest {
-	eventId: string;
-	content: string;
-	mentionedUserIds: SendEventMessageRequestMentionedUserIds;
-	attachmentIds: SendEventMessageRequestAttachmentIds;
+	mentionedUserIds: SendMessageRequestMentionedUserIds;
+	attachmentIds: SendMessageRequestAttachmentIds;
 }
 
 export interface SetAvatarBody {
@@ -746,6 +811,22 @@ export type GetChatApiEventChannelParams = {
 export type DeleteChatApiMuteParams = {
 	channelId: string;
 	targetUserId: string;
+};
+
+export type GetChatApiChannelChannelIdPinsParams = {
+	/**
+	 * @pattern ^-?(?:0|[1-9]\d*)$
+	 */
+	limit?: number | string;
+	before?: unknown;
+};
+
+export type DeleteChatApiMessageMessageIdReactParams = {
+	emoji: string;
+};
+
+export type GetChatApiMessageMessageIdReactionsParams = {
+	groupByEmoji?: boolean;
 };
 
 export type GetAccountApiPublicParams = {
@@ -4324,36 +4405,43 @@ export const createDeleteCommunityApiCommunityIdMembersTargetUserId = <
 	return createMutation(() => ({ ...mutationOptions, queryClient }));
 };
 
-export const postChatApiDmSend = (
-	sendDirectMessageRequest: SendDirectMessageRequest,
+export const postChatApiChannelChannelIdSend = (
+	channelId: string,
+	sendMessageRequest: SendMessageRequest,
 	signal?: AbortSignal,
 ) => {
 	return customInstance<ChatMessageDto>({
-		url: `/chat/api/dm/send`,
+		url: `/chat/api/channel/${channelId}/send`,
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
-		data: sendDirectMessageRequest,
+		data: sendMessageRequest,
 		signal,
 	});
 };
 
-export const getPostChatApiDmSendMutationOptions = <
-	TError = ErrorType<ValidationError | AuthorizationFailedError | void | InternalServerError>,
+export const getPostChatApiChannelChannelIdSendMutationOptions = <
+	TError = ErrorType<
+		| ValidationError
+		| AuthorizationFailedError
+		| ChatAccessDeniedError
+		| ChatChannelNotFoundError
+		| InternalServerError
+	>,
 	TContext = unknown,
 >(options?: {
 	mutation?: CreateMutationOptions<
-		Awaited<ReturnType<typeof postChatApiDmSend>>,
+		Awaited<ReturnType<typeof postChatApiChannelChannelIdSend>>,
 		TError,
-		{ data: SendDirectMessageRequest },
+		{ channelId: string; data: SendMessageRequest },
 		TContext
 	>;
 }): CreateMutationOptions<
-	Awaited<ReturnType<typeof postChatApiDmSend>>,
+	Awaited<ReturnType<typeof postChatApiChannelChannelIdSend>>,
 	TError,
-	{ data: SendDirectMessageRequest },
+	{ channelId: string; data: SendMessageRequest },
 	TContext
 > => {
-	const mutationKey = ["postChatApiDmSend"];
+	const mutationKey = ["postChatApiChannelChannelIdSend"];
 	const { mutation: mutationOptions } = options
 		? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
 			? options
@@ -4361,205 +4449,55 @@ export const getPostChatApiDmSendMutationOptions = <
 		: { mutation: { mutationKey } };
 
 	const mutationFn: MutationFunction<
-		Awaited<ReturnType<typeof postChatApiDmSend>>,
-		{ data: SendDirectMessageRequest }
+		Awaited<ReturnType<typeof postChatApiChannelChannelIdSend>>,
+		{ channelId: string; data: SendMessageRequest }
 	> = (props) => {
-		const { data } = props ?? {};
+		const { channelId, data } = props ?? {};
 
-		return postChatApiDmSend(data);
+		return postChatApiChannelChannelIdSend(channelId, data);
 	};
 
 	return { mutationFn, ...mutationOptions };
 };
 
-export type PostChatApiDmSendMutationResult = NonNullable<
-	Awaited<ReturnType<typeof postChatApiDmSend>>
+export type PostChatApiChannelChannelIdSendMutationResult = NonNullable<
+	Awaited<ReturnType<typeof postChatApiChannelChannelIdSend>>
 >;
-export type PostChatApiDmSendMutationBody = SendDirectMessageRequest;
-export type PostChatApiDmSendMutationError = ErrorType<
-	ValidationError | AuthorizationFailedError | void | InternalServerError
+export type PostChatApiChannelChannelIdSendMutationBody = SendMessageRequest;
+export type PostChatApiChannelChannelIdSendMutationError = ErrorType<
+	| ValidationError
+	| AuthorizationFailedError
+	| ChatAccessDeniedError
+	| ChatChannelNotFoundError
+	| InternalServerError
 >;
 
-export const createPostChatApiDmSend = <
-	TError = ErrorType<ValidationError | AuthorizationFailedError | void | InternalServerError>,
+export const createPostChatApiChannelChannelIdSend = <
+	TError = ErrorType<
+		| ValidationError
+		| AuthorizationFailedError
+		| ChatAccessDeniedError
+		| ChatChannelNotFoundError
+		| InternalServerError
+	>,
 	TContext = unknown,
 >(
 	options?: {
 		mutation?: CreateMutationOptions<
-			Awaited<ReturnType<typeof postChatApiDmSend>>,
+			Awaited<ReturnType<typeof postChatApiChannelChannelIdSend>>,
 			TError,
-			{ data: SendDirectMessageRequest },
+			{ channelId: string; data: SendMessageRequest },
 			TContext
 		>;
 	},
 	queryClient?: QueryClient,
 ): CreateMutationResult<
-	Awaited<ReturnType<typeof postChatApiDmSend>>,
+	Awaited<ReturnType<typeof postChatApiChannelChannelIdSend>>,
 	TError,
-	{ data: SendDirectMessageRequest },
+	{ channelId: string; data: SendMessageRequest },
 	TContext
 > => {
-	const mutationOptions = getPostChatApiDmSendMutationOptions(options);
-
-	return createMutation(() => ({ ...mutationOptions, queryClient }));
-};
-
-export const postChatApiCommunitySend = (
-	sendCommunityMessageRequest: SendCommunityMessageRequest,
-	signal?: AbortSignal,
-) => {
-	return customInstance<ChatMessageDto>({
-		url: `/chat/api/community/send`,
-		method: "POST",
-		headers: { "Content-Type": "application/json" },
-		data: sendCommunityMessageRequest,
-		signal,
-	});
-};
-
-export const getPostChatApiCommunitySendMutationOptions = <
-	TError = ErrorType<ValidationError | AuthorizationFailedError | void | InternalServerError>,
-	TContext = unknown,
->(options?: {
-	mutation?: CreateMutationOptions<
-		Awaited<ReturnType<typeof postChatApiCommunitySend>>,
-		TError,
-		{ data: SendCommunityMessageRequest },
-		TContext
-	>;
-}): CreateMutationOptions<
-	Awaited<ReturnType<typeof postChatApiCommunitySend>>,
-	TError,
-	{ data: SendCommunityMessageRequest },
-	TContext
-> => {
-	const mutationKey = ["postChatApiCommunitySend"];
-	const { mutation: mutationOptions } = options
-		? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
-			? options
-			: { ...options, mutation: { ...options.mutation, mutationKey } }
-		: { mutation: { mutationKey } };
-
-	const mutationFn: MutationFunction<
-		Awaited<ReturnType<typeof postChatApiCommunitySend>>,
-		{ data: SendCommunityMessageRequest }
-	> = (props) => {
-		const { data } = props ?? {};
-
-		return postChatApiCommunitySend(data);
-	};
-
-	return { mutationFn, ...mutationOptions };
-};
-
-export type PostChatApiCommunitySendMutationResult = NonNullable<
-	Awaited<ReturnType<typeof postChatApiCommunitySend>>
->;
-export type PostChatApiCommunitySendMutationBody = SendCommunityMessageRequest;
-export type PostChatApiCommunitySendMutationError = ErrorType<
-	ValidationError | AuthorizationFailedError | void | InternalServerError
->;
-
-export const createPostChatApiCommunitySend = <
-	TError = ErrorType<ValidationError | AuthorizationFailedError | void | InternalServerError>,
-	TContext = unknown,
->(
-	options?: {
-		mutation?: CreateMutationOptions<
-			Awaited<ReturnType<typeof postChatApiCommunitySend>>,
-			TError,
-			{ data: SendCommunityMessageRequest },
-			TContext
-		>;
-	},
-	queryClient?: QueryClient,
-): CreateMutationResult<
-	Awaited<ReturnType<typeof postChatApiCommunitySend>>,
-	TError,
-	{ data: SendCommunityMessageRequest },
-	TContext
-> => {
-	const mutationOptions = getPostChatApiCommunitySendMutationOptions(options);
-
-	return createMutation(() => ({ ...mutationOptions, queryClient }));
-};
-
-export const postChatApiEventSend = (
-	sendEventMessageRequest: SendEventMessageRequest,
-	signal?: AbortSignal,
-) => {
-	return customInstance<ChatMessageDto>({
-		url: `/chat/api/event/send`,
-		method: "POST",
-		headers: { "Content-Type": "application/json" },
-		data: sendEventMessageRequest,
-		signal,
-	});
-};
-
-export const getPostChatApiEventSendMutationOptions = <
-	TError = ErrorType<ValidationError | AuthorizationFailedError | void | InternalServerError>,
-	TContext = unknown,
->(options?: {
-	mutation?: CreateMutationOptions<
-		Awaited<ReturnType<typeof postChatApiEventSend>>,
-		TError,
-		{ data: SendEventMessageRequest },
-		TContext
-	>;
-}): CreateMutationOptions<
-	Awaited<ReturnType<typeof postChatApiEventSend>>,
-	TError,
-	{ data: SendEventMessageRequest },
-	TContext
-> => {
-	const mutationKey = ["postChatApiEventSend"];
-	const { mutation: mutationOptions } = options
-		? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
-			? options
-			: { ...options, mutation: { ...options.mutation, mutationKey } }
-		: { mutation: { mutationKey } };
-
-	const mutationFn: MutationFunction<
-		Awaited<ReturnType<typeof postChatApiEventSend>>,
-		{ data: SendEventMessageRequest }
-	> = (props) => {
-		const { data } = props ?? {};
-
-		return postChatApiEventSend(data);
-	};
-
-	return { mutationFn, ...mutationOptions };
-};
-
-export type PostChatApiEventSendMutationResult = NonNullable<
-	Awaited<ReturnType<typeof postChatApiEventSend>>
->;
-export type PostChatApiEventSendMutationBody = SendEventMessageRequest;
-export type PostChatApiEventSendMutationError = ErrorType<
-	ValidationError | AuthorizationFailedError | void | InternalServerError
->;
-
-export const createPostChatApiEventSend = <
-	TError = ErrorType<ValidationError | AuthorizationFailedError | void | InternalServerError>,
-	TContext = unknown,
->(
-	options?: {
-		mutation?: CreateMutationOptions<
-			Awaited<ReturnType<typeof postChatApiEventSend>>,
-			TError,
-			{ data: SendEventMessageRequest },
-			TContext
-		>;
-	},
-	queryClient?: QueryClient,
-): CreateMutationResult<
-	Awaited<ReturnType<typeof postChatApiEventSend>>,
-	TError,
-	{ data: SendEventMessageRequest },
-	TContext
-> => {
-	const mutationOptions = getPostChatApiEventSendMutationOptions(options);
+	const mutationOptions = getPostChatApiChannelChannelIdSendMutationOptions(options);
 
 	return createMutation(() => ({ ...mutationOptions, queryClient }));
 };
@@ -4907,6 +4845,70 @@ export function createGetChatApiSubscribe<
 	queryClient?: QueryClient,
 ): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 	const queryOptions = getGetChatApiSubscribeQueryOptions(options);
+
+	const query = createQuery(() => ({ ...queryOptions, queryClient })) as CreateQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+	query.queryKey = queryOptions.queryKey;
+
+	return query;
+}
+
+export const getChatApiChannels = (signal?: AbortSignal) => {
+	return customInstance<GetChannelsResponse>({
+		url: `/chat/api/channels`,
+		method: "GET",
+		signal,
+	});
+};
+
+export const getGetChatApiChannelsQueryKey = () => {
+	return [`/chat/api/channels`] as const;
+};
+
+export const getGetChatApiChannelsQueryOptions = <
+	TData = Awaited<ReturnType<typeof getChatApiChannels>>,
+	TError = ErrorType<AuthorizationFailedError | void | InternalServerError>,
+>(options?: {
+	query?: Partial<
+		CreateQueryOptions<Awaited<ReturnType<typeof getChatApiChannels>>, TError, TData>
+	>;
+}) => {
+	const { query: queryOptions } = options ?? {};
+
+	const queryKey = queryOptions?.queryKey ?? getGetChatApiChannelsQueryKey();
+
+	const queryFn: QueryFunction<Awaited<ReturnType<typeof getChatApiChannels>>> = ({ signal }) =>
+		getChatApiChannels(signal);
+
+	return { queryKey, queryFn, ...queryOptions } as CreateQueryOptions<
+		Awaited<ReturnType<typeof getChatApiChannels>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetChatApiChannelsQueryResult = NonNullable<
+	Awaited<ReturnType<typeof getChatApiChannels>>
+>;
+export type GetChatApiChannelsQueryError = ErrorType<
+	AuthorizationFailedError | void | InternalServerError
+>;
+
+export function createGetChatApiChannels<
+	TData = Awaited<ReturnType<typeof getChatApiChannels>>,
+	TError = ErrorType<AuthorizationFailedError | void | InternalServerError>,
+>(
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<Awaited<ReturnType<typeof getChatApiChannels>>, TError, TData>
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+	const queryOptions = getGetChatApiChannelsQueryOptions(options);
 
 	const query = createQuery(() => ({ ...queryOptions, queryClient })) as CreateQueryResult<
 		TData,
@@ -5370,6 +5372,579 @@ export const createPutChatApiEventEventIdToggle = <
 
 	return createMutation(() => ({ ...mutationOptions, queryClient }));
 };
+
+export const postChatApiChannelChannelIdPinMessageId = (
+	channelId: string,
+	messageId: string,
+	signal?: AbortSignal,
+) => {
+	return customInstance<PinnedChatMessageDto>({
+		url: `/chat/api/channel/${channelId}/pin/${messageId}`,
+		method: "POST",
+		signal,
+	});
+};
+
+export const getPostChatApiChannelChannelIdPinMessageIdMutationOptions = <
+	TError = ErrorType<
+		| ChatMessageAlreadyPinnedError
+		| AuthorizationFailedError
+		| ChatAccessDeniedError
+		| ChatMessageNotFoundError
+		| InternalServerError
+	>,
+	TContext = unknown,
+>(options?: {
+	mutation?: CreateMutationOptions<
+		Awaited<ReturnType<typeof postChatApiChannelChannelIdPinMessageId>>,
+		TError,
+		{ channelId: string; messageId: string },
+		TContext
+	>;
+}): CreateMutationOptions<
+	Awaited<ReturnType<typeof postChatApiChannelChannelIdPinMessageId>>,
+	TError,
+	{ channelId: string; messageId: string },
+	TContext
+> => {
+	const mutationKey = ["postChatApiChannelChannelIdPinMessageId"];
+	const { mutation: mutationOptions } = options
+		? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey } };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof postChatApiChannelChannelIdPinMessageId>>,
+		{ channelId: string; messageId: string }
+	> = (props) => {
+		const { channelId, messageId } = props ?? {};
+
+		return postChatApiChannelChannelIdPinMessageId(channelId, messageId);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PostChatApiChannelChannelIdPinMessageIdMutationResult = NonNullable<
+	Awaited<ReturnType<typeof postChatApiChannelChannelIdPinMessageId>>
+>;
+
+export type PostChatApiChannelChannelIdPinMessageIdMutationError = ErrorType<
+	| ChatMessageAlreadyPinnedError
+	| AuthorizationFailedError
+	| ChatAccessDeniedError
+	| ChatMessageNotFoundError
+	| InternalServerError
+>;
+
+export const createPostChatApiChannelChannelIdPinMessageId = <
+	TError = ErrorType<
+		| ChatMessageAlreadyPinnedError
+		| AuthorizationFailedError
+		| ChatAccessDeniedError
+		| ChatMessageNotFoundError
+		| InternalServerError
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: CreateMutationOptions<
+			Awaited<ReturnType<typeof postChatApiChannelChannelIdPinMessageId>>,
+			TError,
+			{ channelId: string; messageId: string },
+			TContext
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateMutationResult<
+	Awaited<ReturnType<typeof postChatApiChannelChannelIdPinMessageId>>,
+	TError,
+	{ channelId: string; messageId: string },
+	TContext
+> => {
+	const mutationOptions = getPostChatApiChannelChannelIdPinMessageIdMutationOptions(options);
+
+	return createMutation(() => ({ ...mutationOptions, queryClient }));
+};
+
+export const deleteChatApiChannelChannelIdPinMessageId = (channelId: string, messageId: string) => {
+	return customInstance<void>({
+		url: `/chat/api/channel/${channelId}/pin/${messageId}`,
+		method: "DELETE",
+	});
+};
+
+export const getDeleteChatApiChannelChannelIdPinMessageIdMutationOptions = <
+	TError = ErrorType<
+		| AuthorizationFailedError
+		| ChatAccessDeniedError
+		| ChatPinNotFoundError
+		| InternalServerError
+	>,
+	TContext = unknown,
+>(options?: {
+	mutation?: CreateMutationOptions<
+		Awaited<ReturnType<typeof deleteChatApiChannelChannelIdPinMessageId>>,
+		TError,
+		{ channelId: string; messageId: string },
+		TContext
+	>;
+}): CreateMutationOptions<
+	Awaited<ReturnType<typeof deleteChatApiChannelChannelIdPinMessageId>>,
+	TError,
+	{ channelId: string; messageId: string },
+	TContext
+> => {
+	const mutationKey = ["deleteChatApiChannelChannelIdPinMessageId"];
+	const { mutation: mutationOptions } = options
+		? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey } };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof deleteChatApiChannelChannelIdPinMessageId>>,
+		{ channelId: string; messageId: string }
+	> = (props) => {
+		const { channelId, messageId } = props ?? {};
+
+		return deleteChatApiChannelChannelIdPinMessageId(channelId, messageId);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteChatApiChannelChannelIdPinMessageIdMutationResult = NonNullable<
+	Awaited<ReturnType<typeof deleteChatApiChannelChannelIdPinMessageId>>
+>;
+
+export type DeleteChatApiChannelChannelIdPinMessageIdMutationError = ErrorType<
+	AuthorizationFailedError | ChatAccessDeniedError | ChatPinNotFoundError | InternalServerError
+>;
+
+export const createDeleteChatApiChannelChannelIdPinMessageId = <
+	TError = ErrorType<
+		| AuthorizationFailedError
+		| ChatAccessDeniedError
+		| ChatPinNotFoundError
+		| InternalServerError
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: CreateMutationOptions<
+			Awaited<ReturnType<typeof deleteChatApiChannelChannelIdPinMessageId>>,
+			TError,
+			{ channelId: string; messageId: string },
+			TContext
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateMutationResult<
+	Awaited<ReturnType<typeof deleteChatApiChannelChannelIdPinMessageId>>,
+	TError,
+	{ channelId: string; messageId: string },
+	TContext
+> => {
+	const mutationOptions = getDeleteChatApiChannelChannelIdPinMessageIdMutationOptions(options);
+
+	return createMutation(() => ({ ...mutationOptions, queryClient }));
+};
+
+export const getChatApiChannelChannelIdPins = (
+	channelId: string,
+	params?: GetChatApiChannelChannelIdPinsParams,
+	signal?: AbortSignal,
+) => {
+	return customInstance<GetPinnedMessagesResponse>({
+		url: `/chat/api/channel/${channelId}/pins`,
+		method: "GET",
+		params,
+		signal,
+	});
+};
+
+export const getGetChatApiChannelChannelIdPinsQueryKey = (
+	channelId?: string,
+	params?: GetChatApiChannelChannelIdPinsParams,
+) => {
+	return [`/chat/api/channel/${channelId}/pins`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetChatApiChannelChannelIdPinsQueryOptions = <
+	TData = Awaited<ReturnType<typeof getChatApiChannelChannelIdPins>>,
+	TError = ErrorType<
+		| AuthorizationFailedError
+		| ChatAccessDeniedError
+		| ChatChannelNotFoundError
+		| InternalServerError
+	>,
+>(
+	channelId: string,
+	params?: GetChatApiChannelChannelIdPinsParams,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<
+				Awaited<ReturnType<typeof getChatApiChannelChannelIdPins>>,
+				TError,
+				TData
+			>
+		>;
+	},
+) => {
+	const { query: queryOptions } = options ?? {};
+
+	const queryKey =
+		queryOptions?.queryKey ?? getGetChatApiChannelChannelIdPinsQueryKey(channelId, params);
+
+	const queryFn: QueryFunction<Awaited<ReturnType<typeof getChatApiChannelChannelIdPins>>> = ({
+		signal,
+	}) => getChatApiChannelChannelIdPins(channelId, params, signal);
+
+	return { queryKey, queryFn, enabled: !!channelId, ...queryOptions } as CreateQueryOptions<
+		Awaited<ReturnType<typeof getChatApiChannelChannelIdPins>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetChatApiChannelChannelIdPinsQueryResult = NonNullable<
+	Awaited<ReturnType<typeof getChatApiChannelChannelIdPins>>
+>;
+export type GetChatApiChannelChannelIdPinsQueryError = ErrorType<
+	| AuthorizationFailedError
+	| ChatAccessDeniedError
+	| ChatChannelNotFoundError
+	| InternalServerError
+>;
+
+export function createGetChatApiChannelChannelIdPins<
+	TData = Awaited<ReturnType<typeof getChatApiChannelChannelIdPins>>,
+	TError = ErrorType<
+		| AuthorizationFailedError
+		| ChatAccessDeniedError
+		| ChatChannelNotFoundError
+		| InternalServerError
+	>,
+>(
+	channelId: string,
+	params?: GetChatApiChannelChannelIdPinsParams,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<
+				Awaited<ReturnType<typeof getChatApiChannelChannelIdPins>>,
+				TError,
+				TData
+			>
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+	const queryOptions = getGetChatApiChannelChannelIdPinsQueryOptions(channelId, params, options);
+
+	const query = createQuery(() => ({ ...queryOptions, queryClient })) as CreateQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+	query.queryKey = queryOptions.queryKey;
+
+	return query;
+}
+
+export const postChatApiMessageMessageIdReact = (
+	messageId: string,
+	addReactionRequest: AddReactionRequest,
+	signal?: AbortSignal,
+) => {
+	return customInstance<ChatReactionDto>({
+		url: `/chat/api/message/${messageId}/react`,
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		data: addReactionRequest,
+		signal,
+	});
+};
+
+export const getPostChatApiMessageMessageIdReactMutationOptions = <
+	TError = ErrorType<
+		| InvalidEmojiError
+		| AuthorizationFailedError
+		| ChatAccessDeniedError
+		| ChatMessageNotFoundError
+		| InternalServerError
+	>,
+	TContext = unknown,
+>(options?: {
+	mutation?: CreateMutationOptions<
+		Awaited<ReturnType<typeof postChatApiMessageMessageIdReact>>,
+		TError,
+		{ messageId: string; data: AddReactionRequest },
+		TContext
+	>;
+}): CreateMutationOptions<
+	Awaited<ReturnType<typeof postChatApiMessageMessageIdReact>>,
+	TError,
+	{ messageId: string; data: AddReactionRequest },
+	TContext
+> => {
+	const mutationKey = ["postChatApiMessageMessageIdReact"];
+	const { mutation: mutationOptions } = options
+		? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey } };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof postChatApiMessageMessageIdReact>>,
+		{ messageId: string; data: AddReactionRequest }
+	> = (props) => {
+		const { messageId, data } = props ?? {};
+
+		return postChatApiMessageMessageIdReact(messageId, data);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PostChatApiMessageMessageIdReactMutationResult = NonNullable<
+	Awaited<ReturnType<typeof postChatApiMessageMessageIdReact>>
+>;
+export type PostChatApiMessageMessageIdReactMutationBody = AddReactionRequest;
+export type PostChatApiMessageMessageIdReactMutationError = ErrorType<
+	| InvalidEmojiError
+	| AuthorizationFailedError
+	| ChatAccessDeniedError
+	| ChatMessageNotFoundError
+	| InternalServerError
+>;
+
+export const createPostChatApiMessageMessageIdReact = <
+	TError = ErrorType<
+		| InvalidEmojiError
+		| AuthorizationFailedError
+		| ChatAccessDeniedError
+		| ChatMessageNotFoundError
+		| InternalServerError
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: CreateMutationOptions<
+			Awaited<ReturnType<typeof postChatApiMessageMessageIdReact>>,
+			TError,
+			{ messageId: string; data: AddReactionRequest },
+			TContext
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateMutationResult<
+	Awaited<ReturnType<typeof postChatApiMessageMessageIdReact>>,
+	TError,
+	{ messageId: string; data: AddReactionRequest },
+	TContext
+> => {
+	const mutationOptions = getPostChatApiMessageMessageIdReactMutationOptions(options);
+
+	return createMutation(() => ({ ...mutationOptions, queryClient }));
+};
+
+export const deleteChatApiMessageMessageIdReact = (
+	messageId: string,
+	params: DeleteChatApiMessageMessageIdReactParams,
+) => {
+	return customInstance<void>({
+		url: `/chat/api/message/${messageId}/react`,
+		method: "DELETE",
+		params,
+	});
+};
+
+export const getDeleteChatApiMessageMessageIdReactMutationOptions = <
+	TError = ErrorType<
+		| AuthorizationFailedError
+		| ChatAccessDeniedError
+		| ChatMessageNotFoundError
+		| InternalServerError
+	>,
+	TContext = unknown,
+>(options?: {
+	mutation?: CreateMutationOptions<
+		Awaited<ReturnType<typeof deleteChatApiMessageMessageIdReact>>,
+		TError,
+		{ messageId: string; params: DeleteChatApiMessageMessageIdReactParams },
+		TContext
+	>;
+}): CreateMutationOptions<
+	Awaited<ReturnType<typeof deleteChatApiMessageMessageIdReact>>,
+	TError,
+	{ messageId: string; params: DeleteChatApiMessageMessageIdReactParams },
+	TContext
+> => {
+	const mutationKey = ["deleteChatApiMessageMessageIdReact"];
+	const { mutation: mutationOptions } = options
+		? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey } };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof deleteChatApiMessageMessageIdReact>>,
+		{ messageId: string; params: DeleteChatApiMessageMessageIdReactParams }
+	> = (props) => {
+		const { messageId, params } = props ?? {};
+
+		return deleteChatApiMessageMessageIdReact(messageId, params);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteChatApiMessageMessageIdReactMutationResult = NonNullable<
+	Awaited<ReturnType<typeof deleteChatApiMessageMessageIdReact>>
+>;
+
+export type DeleteChatApiMessageMessageIdReactMutationError = ErrorType<
+	| AuthorizationFailedError
+	| ChatAccessDeniedError
+	| ChatMessageNotFoundError
+	| InternalServerError
+>;
+
+export const createDeleteChatApiMessageMessageIdReact = <
+	TError = ErrorType<
+		| AuthorizationFailedError
+		| ChatAccessDeniedError
+		| ChatMessageNotFoundError
+		| InternalServerError
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: CreateMutationOptions<
+			Awaited<ReturnType<typeof deleteChatApiMessageMessageIdReact>>,
+			TError,
+			{ messageId: string; params: DeleteChatApiMessageMessageIdReactParams },
+			TContext
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateMutationResult<
+	Awaited<ReturnType<typeof deleteChatApiMessageMessageIdReact>>,
+	TError,
+	{ messageId: string; params: DeleteChatApiMessageMessageIdReactParams },
+	TContext
+> => {
+	const mutationOptions = getDeleteChatApiMessageMessageIdReactMutationOptions(options);
+
+	return createMutation(() => ({ ...mutationOptions, queryClient }));
+};
+
+export const getChatApiMessageMessageIdReactions = (
+	messageId: string,
+	params?: GetChatApiMessageMessageIdReactionsParams,
+	signal?: AbortSignal,
+) => {
+	return customInstance<GetReactionsResponse>({
+		url: `/chat/api/message/${messageId}/reactions`,
+		method: "GET",
+		params,
+		signal,
+	});
+};
+
+export const getGetChatApiMessageMessageIdReactionsQueryKey = (
+	messageId?: string,
+	params?: GetChatApiMessageMessageIdReactionsParams,
+) => {
+	return [`/chat/api/message/${messageId}/reactions`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetChatApiMessageMessageIdReactionsQueryOptions = <
+	TData = Awaited<ReturnType<typeof getChatApiMessageMessageIdReactions>>,
+	TError = ErrorType<
+		| AuthorizationFailedError
+		| ChatAccessDeniedError
+		| ChatMessageNotFoundError
+		| InternalServerError
+	>,
+>(
+	messageId: string,
+	params?: GetChatApiMessageMessageIdReactionsParams,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<
+				Awaited<ReturnType<typeof getChatApiMessageMessageIdReactions>>,
+				TError,
+				TData
+			>
+		>;
+	},
+) => {
+	const { query: queryOptions } = options ?? {};
+
+	const queryKey =
+		queryOptions?.queryKey ?? getGetChatApiMessageMessageIdReactionsQueryKey(messageId, params);
+
+	const queryFn: QueryFunction<
+		Awaited<ReturnType<typeof getChatApiMessageMessageIdReactions>>
+	> = ({ signal }) => getChatApiMessageMessageIdReactions(messageId, params, signal);
+
+	return { queryKey, queryFn, enabled: !!messageId, ...queryOptions } as CreateQueryOptions<
+		Awaited<ReturnType<typeof getChatApiMessageMessageIdReactions>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetChatApiMessageMessageIdReactionsQueryResult = NonNullable<
+	Awaited<ReturnType<typeof getChatApiMessageMessageIdReactions>>
+>;
+export type GetChatApiMessageMessageIdReactionsQueryError = ErrorType<
+	| AuthorizationFailedError
+	| ChatAccessDeniedError
+	| ChatMessageNotFoundError
+	| InternalServerError
+>;
+
+export function createGetChatApiMessageMessageIdReactions<
+	TData = Awaited<ReturnType<typeof getChatApiMessageMessageIdReactions>>,
+	TError = ErrorType<
+		| AuthorizationFailedError
+		| ChatAccessDeniedError
+		| ChatMessageNotFoundError
+		| InternalServerError
+	>,
+>(
+	messageId: string,
+	params?: GetChatApiMessageMessageIdReactionsParams,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<
+				Awaited<ReturnType<typeof getChatApiMessageMessageIdReactions>>,
+				TError,
+				TData
+			>
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+	const queryOptions = getGetChatApiMessageMessageIdReactionsQueryOptions(
+		messageId,
+		params,
+		options,
+	);
+
+	const query = createQuery(() => ({ ...queryOptions, queryClient })) as CreateQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+	query.queryKey = queryOptions.queryKey;
+
+	return query;
+}
 
 export const postAccountApiLogin = (loginBody: LoginBody, signal?: AbortSignal) => {
 	return customInstance<LoginSuccess>({
