@@ -2,6 +2,7 @@
 	import type { MembershipDto, MyUserDto } from "$lib/api/cartesian-client";
 	import { createRemoveMemberMutation } from "$lib/api/queries/community.query";
 	import * as Avatar from "$lib/components/ui/avatar";
+	import { Badge } from "$lib/components/ui/badge";
 	import { Button } from "$lib/components/ui/button";
 	import { ScrollArea } from "$lib/components/ui/scroll-area";
 	import { Delete01Icon } from "@hugeicons/core-free-icons";
@@ -50,7 +51,14 @@
 							</Avatar.Fallback>
 						</Avatar.Root>
 						<div>
-							<p class="font-medium leading-none">{membership.user.name}</p>
+							<div class="flex items-center gap-2">
+								<p class="font-medium leading-none">{membership.user.name}</p>
+								{#if (membership.permissions ?? 0) >= 2}
+									<Badge variant="default" class="h-5 px-1.5 text-[10px]">Admin</Badge>
+								{:else} 
+									<Badge variant="secondary" class="h-5 px-1.5 text-[10px]">Member</Badge>
+								{/if}
+							</div>
 							<p class="text-xs text-muted-foreground">Joined {new Date(membership.createdAt as string).toLocaleDateString()}</p>
 						</div>
 					</div>
