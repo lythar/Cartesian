@@ -15,7 +15,7 @@
 	const componentContexts = getAllContexts();
 
 	const eventsQuery = createEventsGeojsonQuery(
-		{},
+		undefined,
 		{
 			query: {
 				enabled: true,
@@ -25,6 +25,8 @@
 		},
 	);
 
+	const eventsData = $derived(eventsQuery.data);
+
 	function addEventsLayer() {
 		if (!map.isStyleLoaded()) return;
 		if (map.getSource("events")) return;
@@ -32,7 +34,7 @@
 		map.addSource("events", {
 			type: "geojson",
 			generateId: true,
-			data: (eventsQuery.data ?? {
+			data: (eventsData ?? {
 				type: "FeatureCollection",
 				features: [],
 			}) as GeoJSON.FeatureCollection,
@@ -195,11 +197,12 @@
 	});
 
 	$effect(() => {
-		if (!map.isStyleLoaded()) return;
-
+		const data = eventsData;
 		const source = map.getSource("events") as mapboxgl.GeoJSONSource;
-		if (source && eventsQuery.data) {
-			source.setData(eventsQuery.data as GeoJSON.FeatureCollection);
+
+		if (source && data) {
+			source.setData({ ...data } as GeoJSON.FeatureCollection);
+			map.triggerRepaint();
 		}
 	});
 </script>

@@ -44,7 +44,7 @@
 		if (isRefreshing) return;
 		isRefreshing = true;
 		try {
-			await queryClient.invalidateQueries({ queryKey: ["/event/api/geojson"] });
+			await queryClient.refetchQueries({ queryKey: ["/event/api/geojson"] });
 			toast.success("Events refreshed");
 		} catch (e) {
 			toast.error("Failed to refresh events");
