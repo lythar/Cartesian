@@ -60,6 +60,11 @@ export interface CartesianUserDto {
 	avatar: CartesianUserDtoAvatar;
 }
 
+export interface ChangePasswordBody {
+	currentPassword: string;
+	newPassword: string;
+}
+
 export type ChannelListItemDtoCommunityId = null | string;
 
 export type ChannelListItemDtoEventId = null | string;
@@ -129,7 +134,6 @@ export interface ChatMessageDto {
 	createdAt: unknown;
 	editedAt?: unknown;
 	isDeleted: boolean;
-	mentionedUserIds: string[];
 	attachmentIds: string[];
 	reactionSummary?: ChatMessageDtoReactionSummary;
 }
@@ -175,6 +179,11 @@ export interface CommunityDto {
 	inviteOnly: boolean;
 	memberPermissions: Permissions;
 	avatar: CommunityDtoAvatar;
+}
+
+export interface CommunityHighlightsDto {
+	community: CommunityDto;
+	highlights: HighlightItemDto[];
 }
 
 export interface CommunityNotFoundError {
@@ -326,6 +335,17 @@ export interface GetReactionsResponse {
 	reactions: ChatReactionDto[];
 }
 
+export type HighlightItemDtoEvent = null | EventDto;
+
+export type HighlightItemDtoPinnedMessage = null | PinnedMessageHighlightDto;
+
+export interface HighlightItemDto {
+	type: string;
+	date: unknown;
+	event: HighlightItemDtoEvent;
+	pinnedMessage: HighlightItemDtoPinnedMessage;
+}
+
 export interface IdentityError {
 	code?: string;
 	description?: string;
@@ -463,6 +483,22 @@ export interface PinnedChatMessageDto {
 	pinnedAt: unknown;
 }
 
+export type PinnedMessageHighlightDtoAuthor = null | CartesianUserDto;
+
+export type PinnedMessageHighlightDtoPinnedBy = null | CartesianUserDto;
+
+export interface PinnedMessageHighlightDto {
+	pinId: string;
+	messageId: string;
+	content: string;
+	author: PinnedMessageHighlightDtoAuthor;
+	createdAt: unknown;
+	pinnedBy: PinnedMessageHighlightDtoPinnedBy;
+	pinnedAt: unknown;
+	attachments: MediaDto[];
+	reactionSummary: ReactionSummaryDto[];
+}
+
 export interface Point {}
 
 export interface PostCreateCommunityBody {
@@ -549,13 +585,10 @@ export interface RegisterSuccess {
 	me: MyUserDto;
 }
 
-export type SendMessageRequestMentionedUserIds = null | string[];
-
 export type SendMessageRequestAttachmentIds = null | string[];
 
 export interface SendMessageRequest {
 	content: string;
-	mentionedUserIds: SendMessageRequestMentionedUserIds;
 	attachmentIds: SendMessageRequestAttachmentIds;
 }
 
@@ -749,6 +782,21 @@ export type PostMediaApiUploadBody = {
 
 export type PostMediaApiUploadAvatarBody = {
 	file: IFormFile;
+};
+
+export type GetCommunityApiCommunityIdHighlightsParams = {
+	/**
+	 * @pattern ^-?(?:0|[1-9]\d*)$
+	 */
+	limit?: number | string;
+	/**
+	 * @pattern ^-?(?:0|[1-9]\d*)$
+	 */
+	eventLimit?: number | string;
+	/**
+	 * @pattern ^-?(?:0|[1-9]\d*)$
+	 */
+	pinnedMessageLimit?: number | string;
 };
 
 export type GetCommunityApiPublicListParams = {
@@ -3434,6 +3482,115 @@ export const createDeleteCommunityApiCommunityIdAvatar = <
 	return createMutation(() => ({ ...mutationOptions, queryClient }));
 };
 
+export const getCommunityApiCommunityIdHighlights = (
+	communityId: string,
+	params?: GetCommunityApiCommunityIdHighlightsParams,
+	signal?: AbortSignal,
+) => {
+	return customInstance<CommunityHighlightsDto>({
+		url: `/community/api/${communityId}/highlights`,
+		method: "GET",
+		params,
+		signal,
+	});
+};
+
+export const getGetCommunityApiCommunityIdHighlightsQueryKey = (
+	communityId?: string,
+	params?: GetCommunityApiCommunityIdHighlightsParams,
+) => {
+	return [`/community/api/${communityId}/highlights`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetCommunityApiCommunityIdHighlightsQueryOptions = <
+	TData = Awaited<ReturnType<typeof getCommunityApiCommunityIdHighlights>>,
+	TError = ErrorType<
+		| ValidationError
+		| AuthorizationFailedError
+		| MissingPermissionError
+		| CommunityNotFoundError
+		| InternalServerError
+	>,
+>(
+	communityId: string,
+	params?: GetCommunityApiCommunityIdHighlightsParams,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<
+				Awaited<ReturnType<typeof getCommunityApiCommunityIdHighlights>>,
+				TError,
+				TData
+			>
+		>;
+	},
+) => {
+	const { query: queryOptions } = options ?? {};
+
+	const queryKey =
+		queryOptions?.queryKey ??
+		getGetCommunityApiCommunityIdHighlightsQueryKey(communityId, params);
+
+	const queryFn: QueryFunction<
+		Awaited<ReturnType<typeof getCommunityApiCommunityIdHighlights>>
+	> = ({ signal }) => getCommunityApiCommunityIdHighlights(communityId, params, signal);
+
+	return { queryKey, queryFn, enabled: !!communityId, ...queryOptions } as CreateQueryOptions<
+		Awaited<ReturnType<typeof getCommunityApiCommunityIdHighlights>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetCommunityApiCommunityIdHighlightsQueryResult = NonNullable<
+	Awaited<ReturnType<typeof getCommunityApiCommunityIdHighlights>>
+>;
+export type GetCommunityApiCommunityIdHighlightsQueryError = ErrorType<
+	| ValidationError
+	| AuthorizationFailedError
+	| MissingPermissionError
+	| CommunityNotFoundError
+	| InternalServerError
+>;
+
+export function createGetCommunityApiCommunityIdHighlights<
+	TData = Awaited<ReturnType<typeof getCommunityApiCommunityIdHighlights>>,
+	TError = ErrorType<
+		| ValidationError
+		| AuthorizationFailedError
+		| MissingPermissionError
+		| CommunityNotFoundError
+		| InternalServerError
+	>,
+>(
+	communityId: string,
+	params?: GetCommunityApiCommunityIdHighlightsParams,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<
+				Awaited<ReturnType<typeof getCommunityApiCommunityIdHighlights>>,
+				TError,
+				TData
+			>
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+	const queryOptions = getGetCommunityApiCommunityIdHighlightsQueryOptions(
+		communityId,
+		params,
+		options,
+	);
+
+	const query = createQuery(() => ({ ...queryOptions, queryClient })) as CreateQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+	query.queryKey = queryOptions.queryKey;
+
+	return query;
+}
+
 export const putCommunityApiCommunityIdEdit = (
 	communityId: string,
 	putEditCommunityBody: PutEditCommunityBody,
@@ -5945,6 +6102,86 @@ export function createGetChatApiMessageMessageIdReactions<
 
 	return query;
 }
+
+export const putAccountApiMePassword = (changePasswordBody: ChangePasswordBody) => {
+	return customInstance<void>({
+		url: `/account/api/me/password`,
+		method: "PUT",
+		headers: { "Content-Type": "application/json" },
+		data: changePasswordBody,
+	});
+};
+
+export const getPutAccountApiMePasswordMutationOptions = <
+	TError = ErrorType<
+		CartesianIdentityError | AuthorizationFailedError | void | InternalServerError
+	>,
+	TContext = unknown,
+>(options?: {
+	mutation?: CreateMutationOptions<
+		Awaited<ReturnType<typeof putAccountApiMePassword>>,
+		TError,
+		{ data: ChangePasswordBody },
+		TContext
+	>;
+}): CreateMutationOptions<
+	Awaited<ReturnType<typeof putAccountApiMePassword>>,
+	TError,
+	{ data: ChangePasswordBody },
+	TContext
+> => {
+	const mutationKey = ["putAccountApiMePassword"];
+	const { mutation: mutationOptions } = options
+		? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey } };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof putAccountApiMePassword>>,
+		{ data: ChangePasswordBody }
+	> = (props) => {
+		const { data } = props ?? {};
+
+		return putAccountApiMePassword(data);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PutAccountApiMePasswordMutationResult = NonNullable<
+	Awaited<ReturnType<typeof putAccountApiMePassword>>
+>;
+export type PutAccountApiMePasswordMutationBody = ChangePasswordBody;
+export type PutAccountApiMePasswordMutationError = ErrorType<
+	CartesianIdentityError | AuthorizationFailedError | void | InternalServerError
+>;
+
+export const createPutAccountApiMePassword = <
+	TError = ErrorType<
+		CartesianIdentityError | AuthorizationFailedError | void | InternalServerError
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: CreateMutationOptions<
+			Awaited<ReturnType<typeof putAccountApiMePassword>>,
+			TError,
+			{ data: ChangePasswordBody },
+			TContext
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateMutationResult<
+	Awaited<ReturnType<typeof putAccountApiMePassword>>,
+	TError,
+	{ data: ChangePasswordBody },
+	TContext
+> => {
+	const mutationOptions = getPutAccountApiMePasswordMutationOptions(options);
+
+	return createMutation(() => ({ ...mutationOptions, queryClient }));
+};
 
 export const postAccountApiLogin = (loginBody: LoginBody, signal?: AbortSignal) => {
 	return customInstance<LoginSuccess>({
