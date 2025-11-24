@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Input } from "$lib/components/ui/input";
 	import { Button } from "$lib/components/ui/button";
+	import * as Tooltip from "$lib/components/ui/tooltip";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import {
 		AiMagicIcon,
@@ -9,6 +10,7 @@
 		Calendar01Icon,
 		UserIcon,
 		UserGroupIcon,
+		RefreshIcon,
 	} from "@hugeicons/core-free-icons";
 	import { getLayoutContext } from "$lib/context/layout.svelte";
 	import UserMenu from "./user-menu.svelte";
@@ -19,13 +21,17 @@
 	import { animate, stagger } from "motion";
 	import { Debounced } from "runed";
 	import mapboxgl from "mapbox-gl";
+	import { useQueryClient } from "@tanstack/svelte-query";
+	import { toast } from "svelte-sonner";
 
 	const layout = getLayoutContext();
+	const queryClient = useQueryClient();
 
 	let searchValue = $state("");
 	const debouncedSearch = new Debounced<string>(() => searchValue, 300);
 	let isAIMode = $state(false);
 	let isFocused = $state(false);
+	let isRefreshing = $state(false);
 
 	let searchBarRef: HTMLDivElement | undefined = $state();
 	let resultsContainerRef: HTMLDivElement | undefined = $state();
@@ -33,6 +39,19 @@
 	const searchQuery = createSearchAllQuery(() => ({ query: debouncedSearch.current }));
 
 	const showExpanded = $derived(isFocused && searchValue.length > 0);
+
+	async function handleRefreshEvents() {
+		if (isRefreshing) return;
+		isRefreshing = true;
+		try {
+			await queryClient.invalidateQueries({ queryKey: ["/event/api/geojson"] });
+			toast.success("Events refreshed");
+		} catch (e) {
+			toast.error("Failed to refresh events");
+		} finally {
+			isRefreshing = false;
+		}
+	}
 
 	$effect(() => {
 		if (!searchBarRef || !resultsContainerRef) return;
@@ -106,7 +125,7 @@
 		// Get the first window's location
 		const window = event.windows[0];
 		const location = window.location;
-		
+
 		if (!location || !location.coordinates) {
 			console.warn("Event window has no location coordinates");
 			isFocused = false;
@@ -127,12 +146,14 @@
 		setTimeout(() => {
 			new mapboxgl.Popup()
 				.setLngLat([lng, lat])
-				.setHTML(`
+				.setHTML(
+					`
 					<div class="p-2">
 						<h3 class="font-semibold text-sm mb-1">${event.name}</h3>
 						<p class="text-xs text-muted-foreground">${event.description}</p>
 					</div>
-				`)
+				`,
+				)
 				.addTo(mapState.instance!);
 		}, 2100); // Show popup after fly animation completes
 
@@ -170,7 +191,7 @@
 						placeholder={isAIMode
 							? "Ask AI to find events..."
 							: "Search events, locations..."}
-						class="h-10 border-0 bg-transparent dark:bg-transparent px-0 text-base shadow-none placeholder:text-muted-foreground/70 focus-visible:ring-0"
+						class="h-10 border-0 bg-transparent px-0 text-base shadow-none placeholder:text-muted-foreground/70 focus-visible:ring-0 dark:bg-transparent"
 						onfocus={() => (isFocused = true)}
 						onblur={() => {
 							// Small timeout to allow clicks on results to register
@@ -188,24 +209,48 @@
 				{/if}
 			</div>
 
-			<Button
-				variant={isAIMode ? "default" : "ghost"}
-				size="icon"
-				class={cn(
-					"h-12 w-12 shrink-0 rounded-full transition-all duration-200 lg:h-10 lg:w-10",
-					isAIMode
-						? "bg-primary text-primary-foreground shadow-lg"
-						: "bg-secondary/50 text-foreground",
-				)}
-				onclick={() => (isAIMode = !isAIMode)}
-			>
-				<HugeiconsIcon
-					icon={AiMagicIcon}
-					size={20}
-					className={isAIMode ? "" : "duotone-fill"}
-				/>
-				<span class="sr-only">Toggle AI mode</span>
-			</Button>
+			<Tooltip.Root>
+				<Tooltip.Trigger>
+					<Button
+						variant={isAIMode ? "default" : "ghost"}
+						size="icon"
+						class={cn(
+							"h-12 w-12 shrink-0 rounded-full transition-all duration-200 lg:h-10 lg:w-10",
+							isAIMode
+								? "bg-primary text-primary-foreground shadow-lg"
+								: "bg-secondary/50 text-foreground",
+						)}
+						onclick={() => (isAIMode = !isAIMode)}
+					>
+						<HugeiconsIcon
+							icon={AiMagicIcon}
+							size={20}
+							className={isAIMode ? "" : "duotone-fill"}
+						/>
+						<span class="sr-only">Toggle AI mode</span>
+					</Button>
+				</Tooltip.Trigger>
+				<Tooltip.Content>{isAIMode ? "Disable AI mode" : "Enable AI mode"}</Tooltip.Content>
+			</Tooltip.Root>
+
+			<Tooltip.Root>
+				<Tooltip.Trigger>
+					<Button
+						variant="ghost"
+						size="icon"
+						class={cn(
+							"h-12 w-12 shrink-0 rounded-full bg-secondary/50 text-foreground transition-all duration-200 lg:h-10 lg:w-10",
+							isRefreshing && "animate-spin",
+						)}
+						onclick={handleRefreshEvents}
+						disabled={isRefreshing}
+					>
+						<HugeiconsIcon icon={RefreshIcon} size={20} className="duotone-fill" />
+						<span class="sr-only">Refresh events</span>
+					</Button>
+				</Tooltip.Trigger>
+				<Tooltip.Content>Refresh events</Tooltip.Content>
+			</Tooltip.Root>
 
 			{#if layout.isMobile && !showExpanded}
 				<div class="animate-in duration-300 fade-in slide-in-from-right-4">
@@ -242,9 +287,14 @@
 										<HugeiconsIcon icon={Calendar01Icon} className="size-5" />
 									</div>
 									<div class="flex flex-col overflow-hidden">
-										<span class="truncate text-sm font-medium">{event.name}</span>
+										<span class="truncate text-sm font-medium"
+											>{event.name}</span
+										>
 										<span class="truncate text-xs text-muted-foreground">
-											{event.description.substring(0, 60)}{event.description.length > 60 ? "..." : ""}
+											{event.description.substring(0, 60)}{event.description
+												.length > 60
+												? "..."
+												: ""}
 										</span>
 									</div>
 								</button>
@@ -273,9 +323,14 @@
 										<HugeiconsIcon icon={UserGroupIcon} className="size-5" />
 									</div>
 									<div class="flex flex-col overflow-hidden">
-										<span class="truncate text-sm font-medium">{community.name}</span>
+										<span class="truncate text-sm font-medium"
+											>{community.name}</span
+										>
 										<span class="truncate text-xs text-muted-foreground">
-											{community.description.substring(0, 60)}{community.description.length > 60 ? "..." : ""}
+											{community.description.substring(0, 60)}{community
+												.description.length > 60
+												? "..."
+												: ""}
 										</span>
 									</div>
 								</button>
@@ -304,7 +359,8 @@
 										<HugeiconsIcon icon={UserIcon} className="size-5" />
 									</div>
 									<div class="flex flex-col overflow-hidden">
-										<span class="truncate text-sm font-medium">{user.name}</span>
+										<span class="truncate text-sm font-medium">{user.name}</span
+										>
 									</div>
 								</button>
 							{/each}

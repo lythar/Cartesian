@@ -66,7 +66,7 @@ Svelte Runes
 - `$effect`: Manage side effects and lifecycle
     ```typescript
     $effect(() => {
-      console.log(`Count is now ${count}`);
+    	console.log(`Count is now ${count}`);
     });
     ```
 - `$props`: Declare component props
@@ -146,20 +146,20 @@ State Management
     ```typescript
     // counter.svelte.ts
     class Counter {
-      count = $state(0);
-      incrementor = $state(1);
+    	count = $state(0);
+    	incrementor = $state(1);
 
-      increment() {
-        this.count += this.incrementor;
-      }
+    	increment() {
+    		this.count += this.incrementor;
+    	}
 
-      resetCount() {
-        this.count = 0;
-      }
+    	resetCount() {
+    		this.count = 0;
+    	}
 
-      resetIncrementor() {
-        this.incrementor = 1;
-      }
+    	resetIncrementor() {
+    		this.incrementor = 1;
+    	}
     }
 
     export const counter = new Counter();

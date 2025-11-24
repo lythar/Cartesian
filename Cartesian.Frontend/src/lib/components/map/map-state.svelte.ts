@@ -49,6 +49,16 @@ export let newEventOverlayState = $state<{
 	location: null,
 });
 
+export let editEventOverlayState = $state<{
+	open: boolean;
+	eventId: string | null;
+	location: LatLng | null;
+}>({
+	open: false,
+	eventId: null,
+	location: null,
+});
+
 export let deviceHeading = $state<{ heading: number | null }>({ heading: null });
 
 if (browser) {

@@ -13,20 +13,20 @@
 
 <div
 	class={cn(
-		"pointer-events-none absolute left-4 top-4 bottom-4 z-50 flex w-full max-w-lg flex-col transition-all duration-300 ease-in-out",
-		open ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0"
+		"pointer-events-none absolute top-4 bottom-4 left-4 z-50 flex w-full max-w-lg flex-col transition-all duration-300 ease-in-out",
+		open ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0",
 	)}
 >
 	<div
 		class={cn(
 			"flex h-full flex-col overflow-hidden rounded-3xl border border-border/40 bg-background shadow-2xl transition-all",
-			open ? "pointer-events-auto" : "pointer-events-none"
+			open ? "pointer-events-auto" : "pointer-events-none",
 		)}
 	>
-    {#if event}
-      {#key event.eventId}
-        <EventDetailsContent {event} onClose={close} />
-      {/key}
-    {/if}
+		{#if event}
+			{#key event.eventId}
+				<EventDetailsContent {event} onClose={close} />
+			{/key}
+		{/if}
 	</div>
 </div>

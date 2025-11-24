@@ -19,10 +19,10 @@
 		{
 			query: {
 				enabled: true,
-				refetchInterval: 30000,
-				staleTime: 15000
-			}
-		}
+				refetchInterval: 10 * 60 * 1000,
+				staleTime: 5 * 60 * 1000,
+			},
+		},
 	);
 
 	function addEventsLayer() {
@@ -34,11 +34,11 @@
 			generateId: true,
 			data: (eventsQuery.data ?? {
 				type: "FeatureCollection",
-				features: []
+				features: [],
 			}) as GeoJSON.FeatureCollection,
 			cluster: true,
 			clusterMaxZoom: 14,
-			clusterRadius: 50
+			clusterRadius: 50,
 		});
 
 		map.addLayer({
@@ -49,8 +49,8 @@
 			paint: {
 				"circle-color": mode.current == "light" ? "#FFFFFF" : "#101010",
 				"circle-radius": ["step", ["get", "point_count"], 20, 100, 30, 750, 40],
-				"circle-emissive-strength": 1
-			}
+				"circle-emissive-strength": 1,
+			},
 		});
 
 		map.addLayer({
@@ -61,11 +61,11 @@
 			layout: {
 				"text-field": ["get", "point_count_abbreviated"],
 				"text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
-				"text-size": 12
+				"text-size": 12,
 			},
 			paint: {
-				"text-color": mode.current == "light" ? "#101010" : "#FFFFFF"
-			}
+				"text-color": mode.current == "light" ? "#101010" : "#FFFFFF",
+			},
 		});
 
 		map.addLayer({
@@ -78,8 +78,8 @@
 				"circle-radius": 8,
 				"circle-stroke-width": 2,
 				"circle-stroke-color": mode.current == "light" ? "#101010" : "#FFFFFF",
-				"circle-emissive-strength": 1
-			}
+				"circle-emissive-strength": 1,
+			},
 		});
 
 		// Interactions
@@ -94,7 +94,7 @@
 				if (err) return;
 				map.easeTo({
 					center: (features[0].geometry as GeoJSON.Point).coordinates as [number, number],
-					zoom: zoom || 15
+					zoom: zoom || 15,
 				});
 			});
 		});
@@ -118,23 +118,23 @@
 				coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
 			}
 
-		const popupNode = document.createElement("div");
-		const component = mount(EventPreview, {
-			target: popupNode,
-			props: { event: properties },
-			context: componentContexts
-		});
+			const popupNode = document.createElement("div");
+			const component = mount(EventPreview, {
+				target: popupNode,
+				props: { event: properties },
+				context: componentContexts,
+			});
 
-		const popup = new mapboxgl.Popup({
+			const popup = new mapboxgl.Popup({
 				closeButton: false,
 				maxWidth: "300px",
-				className: "p-0 bg-transparent shadow-none border-none"
+				className: "p-0 bg-transparent shadow-none border-none",
 			})
 				.setLngLat(coordinates as [number, number])
 				.setDOMContent(popupNode)
 				.addTo(map);
 
-			popup.on('close', () => {
+			popup.on("close", () => {
 				unmount(component);
 			});
 		});
@@ -205,16 +205,16 @@
 </script>
 
 <style>
-  :global(.mapboxgl-popup-content)  {
-    background: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    pointer-events: auto;
-    position: relative;
-    margin-bottom: 0.75rem;
-  }
+	:global(.mapboxgl-popup-content) {
+		background: none !important;
+		box-shadow: none !important;
+		padding: 0 !important;
+		pointer-events: auto;
+		position: relative;
+		margin-bottom: 0.75rem;
+	}
 
-  :global(.mapboxgl-popup-tip) {
-    display: none !important;
-  }
+	:global(.mapboxgl-popup-tip) {
+		display: none !important;
+	}
 </style>

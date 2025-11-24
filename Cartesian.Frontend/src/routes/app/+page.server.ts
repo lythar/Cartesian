@@ -20,14 +20,14 @@ export const load: PageServerLoad = async ({ getClientAddress, url }) => {
 		try {
 			const [event, images] = await Promise.all([
 				getEventApiEventId(eventId),
-				getEventApiEventIdImages(eventId).catch(() => [])
+				getEventApiEventIdImages(eventId).catch(() => []),
 			]);
 
 			metaEvent = {
 				name: event.name,
 				description: event.description,
 				image: images.length > 0 ? images[0] : null,
-				author: event.author
+				author: event.author,
 			};
 		} catch (e) {
 			console.error("Failed to fetch event for meta tags", e);
@@ -36,6 +36,6 @@ export const load: PageServerLoad = async ({ getClientAddress, url }) => {
 
 	return {
 		ipGeo: geoData,
-		metaEvent
+		metaEvent,
 	};
 };

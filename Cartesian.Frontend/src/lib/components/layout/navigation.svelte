@@ -1,7 +1,10 @@
 <script lang="ts">
 	import { page } from "$app/stores";
 	import { baseUrl } from "$lib/api/client";
-	import { createGetMyMembershipsQuery, createGetPublicCommunitiesQuery } from "$lib/api/queries/community.query";
+	import {
+		createGetMyMembershipsQuery,
+		createGetPublicCommunitiesQuery,
+	} from "$lib/api/queries/community.query";
 	import { newCommunityOverlayState } from "$lib/components/community/community-state.svelte";
 	import * as Sidebar from "$lib/components/ui/sidebar";
 	import { getLayoutContext } from "$lib/context/layout.svelte";
@@ -10,8 +13,6 @@
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import MobileNavigation from "./mobile-navigation.svelte";
 	import NavigationHeader from "./navigation-header.svelte";
-
-
 
 	const layout = getLayoutContext();
 
@@ -41,124 +42,183 @@
 					<p class="text-sm text-muted-foreground">
 						Sign in to access communities and join the conversation.
 					</p>
-					<a href="/login" class="mt-4 inline-block rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+					<a
+						href="/login"
+						class="mt-4 inline-block rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+					>
 						Sign in
 					</a>
 				</div>
 			{:else}
-				<Sidebar.Header>
-					Community center
-				</Sidebar.Header>
+				<div class="flex-1 overflow-auto px-3 py-4">
+					<Sidebar.Group>
+						<Sidebar.GroupLabel
+							class="px-2 text-[10px] font-semibold tracking-wider text-muted-foreground/40 uppercase"
+						>
+							Your Communities
+						</Sidebar.GroupLabel>
 
-				<Sidebar.Group>
-					<Sidebar.GroupLabel>
-						Your communities
-					</Sidebar.GroupLabel>
-
-					<Sidebar.GroupContent>
-						<Sidebar.Menu>
-							{#if myMembershipsQuery.isLoading}
-								{#each Array(3) as _}
+						<Sidebar.GroupContent>
+							<Sidebar.Menu>
+								{#if myMembershipsQuery.isLoading}
+									{#each Array(3) as _}
+										<Sidebar.MenuItem>
+											<Sidebar.MenuButton
+												class="h-8 w-full justify-start gap-2.5 rounded-lg px-2"
+											>
+												<div
+													class="h-5 w-5 animate-pulse rounded-md bg-muted"
+												></div>
+												<div
+													class="h-3 w-20 animate-pulse rounded bg-muted"
+												></div>
+											</Sidebar.MenuButton>
+										</Sidebar.MenuItem>
+									{/each}
+								{:else if myMembershipsQuery.isError}
 									<Sidebar.MenuItem>
-										<Sidebar.MenuButton>
-											<div class="h-4 w-4 animate-pulse rounded bg-muted"></div>
-											<div class="h-4 w-24 animate-pulse rounded bg-muted"></div>
-										</Sidebar.MenuButton>
+										<span class="px-2 text-xs text-destructive"
+											>Error loading communities</span
+										>
 									</Sidebar.MenuItem>
-								{/each}
-							{:else if myMembershipsQuery.isError}
-								<Sidebar.MenuItem>
-									<span class="px-2 text-xs text-destructive">Error loading communities</span>
-								</Sidebar.MenuItem>
-							{:else if myMembershipsQuery.data}
-								{#each myMembershipsQuery.data as membership}
-									<Sidebar.MenuItem>
-										<Sidebar.MenuButton>
-											{#snippet child({ props })}
-												<a href="/community/{membership.communityId}" {...props}>
-													{#if getAvatarUrl(membership.user.avatar)}
-														<img
-															src={getAvatarUrl(membership.user.avatar)}
-															alt={membership.communityId}
-															class="h-4 w-4 rounded object-cover"
-														/>
-													{:else}
-														<div class="flex h-4 w-4 items-center justify-center rounded bg-muted text-[10px]">
-															{membership.communityId.substring(0, 2).toUpperCase()}
-														</div>
-													{/if}
-													<span>{membership.communityId}</span>
-												</a>
-											{/snippet}
-										</Sidebar.MenuButton>
-									</Sidebar.MenuItem>
-								{/each}
-								{#if myMembershipsQuery.data.length === 0}
-									<Sidebar.MenuItem>
-										<span class="px-2 text-xs text-muted-foreground">No communities joined</span>
-									</Sidebar.MenuItem>
+								{:else if myMembershipsQuery.data}
+									{#each myMembershipsQuery.data as membership}
+										<Sidebar.MenuItem>
+											<Sidebar.MenuButton
+												isActive={isActive(
+													`/community/${membership.communityId}`,
+												)}
+												class="group h-8 w-full justify-start gap-2.5 rounded-lg px-2 text-sm text-muted-foreground transition-all hover:bg-muted/50 hover:text-foreground data-[active=true]:bg-muted/50 data-[active=true]:font-medium data-[active=true]:text-foreground"
+											>
+												{#snippet child({ props })}
+													<a
+														href="/community/{membership.communityId}"
+														{...props}
+													>
+														{#if getAvatarUrl(membership.user.avatar)}
+															<img
+																src={getAvatarUrl(
+																	membership.user.avatar,
+																)}
+																alt={membership.communityId}
+																class="h-5 w-5 rounded-md object-cover transition-transform group-hover:scale-105"
+															/>
+														{:else}
+															<div
+																class="flex h-5 w-5 items-center justify-center rounded-md bg-muted text-[9px] font-medium text-muted-foreground group-data-[active=true]:bg-primary/10 group-data-[active=true]:text-primary"
+															>
+																{membership.communityId
+																	.substring(0, 2)
+																	.toUpperCase()}
+															</div>
+														{/if}
+														<span class="truncate"
+															>{membership.communityId}</span
+														>
+													</a>
+												{/snippet}
+											</Sidebar.MenuButton>
+										</Sidebar.MenuItem>
+									{/each}
+									{#if myMembershipsQuery.data.length === 0}
+										<Sidebar.MenuItem>
+											<span class="px-2 text-xs text-muted-foreground"
+												>No communities joined</span
+											>
+										</Sidebar.MenuItem>
+									{/if}
 								{/if}
-							{/if}
-						</Sidebar.Menu>
-					</Sidebar.GroupContent>
-				</Sidebar.Group>
+							</Sidebar.Menu>
+						</Sidebar.GroupContent>
+					</Sidebar.Group>
 
-				<Sidebar.Group>
-					<Sidebar.GroupLabel>
-						Discover communities
-					</Sidebar.GroupLabel>
+					<Sidebar.Group class="mt-6">
+						<Sidebar.GroupLabel
+							class="px-2 text-[10px] font-semibold tracking-wider text-muted-foreground/40 uppercase"
+						>
+							Discover
+						</Sidebar.GroupLabel>
 
-					<Sidebar.GroupContent>
-						<Sidebar.Menu>
-							{#if publicCommunitiesQuery.isLoading}
-								{#each Array(3) as _}
+						<Sidebar.GroupContent>
+							<Sidebar.Menu>
+								{#if publicCommunitiesQuery.isLoading}
+									{#each Array(3) as _}
+										<Sidebar.MenuItem>
+											<Sidebar.MenuButton
+												class="h-8 w-full justify-start gap-2.5 rounded-lg px-2"
+											>
+												<div
+													class="h-5 w-5 animate-pulse rounded-md bg-muted"
+												></div>
+												<div
+													class="h-3 w-20 animate-pulse rounded bg-muted"
+												></div>
+											</Sidebar.MenuButton>
+										</Sidebar.MenuItem>
+									{/each}
+								{:else if publicCommunitiesQuery.isError}
 									<Sidebar.MenuItem>
-										<Sidebar.MenuButton>
-											<div class="h-4 w-4 animate-pulse rounded bg-muted"></div>
-											<div class="h-4 w-24 animate-pulse rounded bg-muted"></div>
-										</Sidebar.MenuButton>
+										<span class="px-2 text-xs text-destructive"
+											>Error loading communities</span
+										>
 									</Sidebar.MenuItem>
-								{/each}
-							{:else if publicCommunitiesQuery.isError}
+								{:else if publicCommunitiesQuery.data}
+									{#each publicCommunitiesQuery.data as community}
+										<Sidebar.MenuItem>
+											<Sidebar.MenuButton
+												isActive={isActive(`/community/${community.id}`)}
+												class="group h-8 w-full justify-start gap-2.5 rounded-lg px-2 text-sm text-muted-foreground transition-all hover:bg-muted/50 hover:text-foreground data-[active=true]:bg-muted/50 data-[active=true]:font-medium data-[active=true]:text-foreground"
+											>
+												{#snippet child({ props })}
+													<a href="/community/{community.id}" {...props}>
+														{#if getAvatarUrl(community.avatar)}
+															<img
+																src={getAvatarUrl(community.avatar)}
+																alt={community.name}
+																class="h-5 w-5 rounded-md object-cover transition-transform group-hover:scale-105"
+															/>
+														{:else}
+															<div
+																class="flex h-5 w-5 items-center justify-center rounded-md bg-muted text-[9px] font-medium text-muted-foreground group-data-[active=true]:bg-primary/10 group-data-[active=true]:text-primary"
+															>
+																{community.name
+																	.substring(0, 2)
+																	.toUpperCase()}
+															</div>
+														{/if}
+														<span class="truncate"
+															>{community.name}</span
+														>
+													</a>
+												{/snippet}
+											</Sidebar.MenuButton>
+										</Sidebar.MenuItem>
+									{/each}
+								{/if}
+
 								<Sidebar.MenuItem>
-									<span class="px-2 text-xs text-destructive">Error loading communities</span>
+									<Sidebar.MenuButton
+										class="group h-8 w-full justify-start gap-2.5 rounded-lg px-2 text-sm text-muted-foreground transition-all hover:bg-muted/50 hover:text-foreground"
+										onclick={() => {
+											newCommunityOverlayState.open = true;
+										}}
+									>
+										<div
+											class="flex h-5 w-5 items-center justify-center rounded-md border border-dashed border-border group-hover:border-foreground/50"
+										>
+											<HugeiconsIcon
+												icon={PlusSignIcon}
+												size={12}
+												strokeWidth={2}
+											/>
+										</div>
+										<span class="font-medium">New Community</span>
+									</Sidebar.MenuButton>
 								</Sidebar.MenuItem>
-							{:else if publicCommunitiesQuery.data}
-								{#each publicCommunitiesQuery.data as community}
-									<Sidebar.MenuItem>
-										<Sidebar.MenuButton>
-											{#snippet child({ props })}
-												<a href="/community/{community.id}" {...props}>
-													{#if getAvatarUrl(community.avatar)}
-														<img
-															src={getAvatarUrl(community.avatar)}
-															alt={community.name}
-															class="h-4 w-4 rounded object-cover"
-														/>
-													{:else}
-														<div class="flex h-4 w-4 items-center justify-center rounded bg-muted text-[10px]">
-															{community.name.substring(0, 2).toUpperCase()}
-														</div>
-													{/if}
-													<span>{community.name}</span>
-												</a>
-											{/snippet}
-										</Sidebar.MenuButton>
-									</Sidebar.MenuItem>
-								{/each}
-							{/if}
-
-							<Sidebar.MenuButton
-								onclick={() => {
-									newCommunityOverlayState.open = true;
-								}}
-							>
-								<HugeiconsIcon icon={PlusSignIcon} />
-								New Community
-							</Sidebar.MenuButton>
-						</Sidebar.Menu>
-					</Sidebar.GroupContent>
-				</Sidebar.Group>
+							</Sidebar.Menu>
+						</Sidebar.GroupContent>
+					</Sidebar.Group>
+				</div>
 			{/if}
 		</Sidebar.Content>
 	</Sidebar.Root>

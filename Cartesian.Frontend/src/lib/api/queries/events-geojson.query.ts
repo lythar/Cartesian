@@ -12,8 +12,8 @@ export const createEventsGeojsonQuery = (
 ) => {
 	return createGetEventApiGeojson(params, {
 		query: {
-			refetchInterval: 30000,
-			staleTime: 15000,
+			refetchInterval: 10 * 60 * 1000,
+			staleTime: 5 * 60 * 1000,
 			...options?.query,
 		},
 	});

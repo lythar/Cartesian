@@ -2,7 +2,7 @@
 	import type { MembershipDto, MyUserDto } from "$lib/api/cartesian-client";
 	import {
 		createRemoveMemberMutation,
-		createUpdateMemberPermissionsMutation
+		createUpdateMemberPermissionsMutation,
 	} from "$lib/api/queries/community.query";
 	import * as Avatar from "$lib/components/ui/avatar";
 	import { Badge } from "$lib/components/ui/badge";
@@ -18,7 +18,7 @@
 		members,
 		currentUser,
 		userPermissions = 0,
-		communityId
+		communityId,
 	} = $props<{
 		members: MembershipDto[];
 		currentUser: MyUserDto | undefined;
@@ -30,7 +30,9 @@
 	const removeMemberMutation = createRemoveMemberMutation(queryClient);
 	const updateMemberPermissionsMutation = createUpdateMemberPermissionsMutation(queryClient);
 
-	const canManagePeople = $derived((userPermissions & Permissions.ManagePeople) === Permissions.ManagePeople);
+	const canManagePeople = $derived(
+		(userPermissions & Permissions.ManagePeople) === Permissions.ManagePeople,
+	);
 
 	async function handleRemoveMember(userId: string) {
 		if (!confirm("Are you sure you want to remove this member?")) return;
@@ -46,7 +48,7 @@
 			await updateMemberPermissionsMutation.mutateAsync({
 				communityId,
 				userId,
-				permissions: newPermissions
+				permissions: newPermissions,
 			});
 		} catch (error) {
 			console.error("Failed to update member permissions", error);
@@ -54,45 +56,69 @@
 	}
 </script>
 
-<div class="rounded-3xl border border-border/40 bg-card shadow-sm">
-	<div class="border-b border-border/40 px-6 py-4">
-		<h2 class="text-lg font-semibold tracking-tight">Members</h2>
-		<p class="text-sm text-muted-foreground">{members.length} members</p>
+<div class="flex flex-col gap-3">
+	<div class="flex items-center justify-between px-2">
+		<h2 class="text-[10px] font-semibold tracking-widest text-muted-foreground/60 uppercase">
+			Members
+		</h2>
+		<span class="text-[10px] font-medium text-muted-foreground/50">{members.length}</span>
 	</div>
 
-	<ScrollArea class="h-[400px]">
-		<div class="p-2">
+	<ScrollArea class="h-[400px] pr-4">
+		<div class="space-y-0.5">
 			{#each members as membership (membership.id)}
-				<div class="flex items-center justify-between rounded-xl p-3 transition-colors hover:bg-muted/50">
-					<div class="flex items-center gap-3">
-						<Avatar.Root class="h-10 w-10 rounded-full border border-border">
+				<div
+					class="group flex items-center justify-between rounded-lg px-2 py-1.5 transition-colors hover:bg-muted/40"
+				>
+					<div class="flex items-center gap-2.5">
+						<Avatar.Root
+							class="h-7 w-7 rounded-md border border-transparent transition-colors group-hover:border-border/50"
+						>
 							<Avatar.Image
 								src={membership.user.avatar?.url}
 								alt={membership.user.name}
 								class="object-cover"
 							/>
-							<Avatar.Fallback class="bg-primary/10 font-medium text-primary">
+							<Avatar.Fallback
+								class="rounded-md bg-primary/5 text-[10px] font-medium text-primary"
+							>
 								{membership.user.name.substring(0, 2).toUpperCase()}
 							</Avatar.Fallback>
 						</Avatar.Root>
 						<div>
 							<div class="flex items-center gap-2">
-								<p class="font-medium leading-none">{membership.user.name}</p>
+								<p class="text-xs leading-none font-medium text-foreground/90">
+									{membership.user.name}
+								</p>
 								{#if (membership.permissions & Permissions.Admin) === Permissions.Admin}
-									<Badge variant="default" class="h-5 px-1.5 text-[10px]">Admin</Badge>
-								{:else}
-									<Badge variant="secondary" class="h-5 px-1.5 text-[10px]">Member</Badge>
+									<Badge
+										variant="secondary"
+										class="h-3.5 rounded-[3px] px-1 text-[8px] font-semibold tracking-wider text-primary uppercase opacity-80"
+										>Admin</Badge
+									>
 								{/if}
 							</div>
-							<p class="text-xs text-muted-foreground">Joined {new Date(membership.createdAt as string).toLocaleDateString()}</p>
+							<p class="text-[9px] text-muted-foreground/60">
+								Joined {new Date(
+									membership.createdAt as string,
+								).toLocaleDateString()}
+							</p>
 						</div>
 					</div>
 
 					{#if canManagePeople && membership.userId !== currentUser?.id}
 						<DropdownMenu.Root>
 							<DropdownMenu.Trigger>
-								<Button variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground">
-									<HugeiconsIcon icon={MoreHorizontalIcon} size={16} strokeWidth={2} />
+								<Button
+									variant="ghost"
+									size="icon"
+									class="h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
+								>
+									<HugeiconsIcon
+										icon={MoreHorizontalIcon}
+										size={14}
+										strokeWidth={1.5}
+									/>
 									<span class="sr-only">Open menu</span>
 								</Button>
 							</DropdownMenu.Trigger>
@@ -100,13 +126,21 @@
 								<DropdownMenu.Label>Actions</DropdownMenu.Label>
 								{#if (membership.permissions & Permissions.Admin) === Permissions.Admin}
 									<DropdownMenu.Item
-										onclick={() => handleUpdatePermissions(membership.userId, Permissions.Member)}
+										onclick={() =>
+											handleUpdatePermissions(
+												membership.userId,
+												Permissions.Member,
+											)}
 									>
 										Make Member
 									</DropdownMenu.Item>
 								{:else}
 									<DropdownMenu.Item
-										onclick={() => handleUpdatePermissions(membership.userId, Permissions.Admin)}
+										onclick={() =>
+											handleUpdatePermissions(
+												membership.userId,
+												Permissions.Admin,
+											)}
 									>
 										Make Admin
 									</DropdownMenu.Item>

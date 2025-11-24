@@ -1616,6 +1616,143 @@ export const createDeleteEventApiEventIdWindowWindowId = <
 	return createMutation(() => ({ ...mutationOptions, queryClient }));
 };
 
+export const deleteEventApiEventId = (eventId: string) => {
+	return customInstance<void>({ url: `/event/api/${eventId}`, method: "DELETE" });
+};
+
+export const getDeleteEventApiEventIdMutationOptions = <
+	TError = ErrorType<
+		AccountNotFoundError | AuthorizationFailedError | EventNotFoundError | InternalServerError
+	>,
+	TContext = unknown,
+>(options?: {
+	mutation?: CreateMutationOptions<
+		Awaited<ReturnType<typeof deleteEventApiEventId>>,
+		TError,
+		{ eventId: string },
+		TContext
+	>;
+}): CreateMutationOptions<
+	Awaited<ReturnType<typeof deleteEventApiEventId>>,
+	TError,
+	{ eventId: string },
+	TContext
+> => {
+	const mutationKey = ["deleteEventApiEventId"];
+	const { mutation: mutationOptions } = options
+		? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey } };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof deleteEventApiEventId>>,
+		{ eventId: string }
+	> = (props) => {
+		const { eventId } = props ?? {};
+
+		return deleteEventApiEventId(eventId);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteEventApiEventIdMutationResult = NonNullable<
+	Awaited<ReturnType<typeof deleteEventApiEventId>>
+>;
+
+export type DeleteEventApiEventIdMutationError = ErrorType<
+	AccountNotFoundError | AuthorizationFailedError | EventNotFoundError | InternalServerError
+>;
+
+export const createDeleteEventApiEventId = <
+	TError = ErrorType<
+		AccountNotFoundError | AuthorizationFailedError | EventNotFoundError | InternalServerError
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: CreateMutationOptions<
+			Awaited<ReturnType<typeof deleteEventApiEventId>>,
+			TError,
+			{ eventId: string },
+			TContext
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateMutationResult<
+	Awaited<ReturnType<typeof deleteEventApiEventId>>,
+	TError,
+	{ eventId: string },
+	TContext
+> => {
+	const mutationOptions = getDeleteEventApiEventIdMutationOptions(options);
+
+	return createMutation(() => ({ ...mutationOptions, queryClient }));
+};
+
+export const getEventApiEventId = (eventId: string, signal?: AbortSignal) => {
+	return customInstance<EventDto>({ url: `/event/api/${eventId}`, method: "GET", signal });
+};
+
+export const getGetEventApiEventIdQueryKey = (eventId?: string) => {
+	return [`/event/api/${eventId}`] as const;
+};
+
+export const getGetEventApiEventIdQueryOptions = <
+	TData = Awaited<ReturnType<typeof getEventApiEventId>>,
+	TError = ErrorType<EventNotFoundError>,
+>(
+	eventId: string,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<Awaited<ReturnType<typeof getEventApiEventId>>, TError, TData>
+		>;
+	},
+) => {
+	const { query: queryOptions } = options ?? {};
+
+	const queryKey = queryOptions?.queryKey ?? getGetEventApiEventIdQueryKey(eventId);
+
+	const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventApiEventId>>> = ({ signal }) =>
+		getEventApiEventId(eventId, signal);
+
+	return { queryKey, queryFn, enabled: !!eventId, ...queryOptions } as CreateQueryOptions<
+		Awaited<ReturnType<typeof getEventApiEventId>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetEventApiEventIdQueryResult = NonNullable<
+	Awaited<ReturnType<typeof getEventApiEventId>>
+>;
+export type GetEventApiEventIdQueryError = ErrorType<EventNotFoundError>;
+
+export function createGetEventApiEventId<
+	TData = Awaited<ReturnType<typeof getEventApiEventId>>,
+	TError = ErrorType<EventNotFoundError>,
+>(
+	eventId: string,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<Awaited<ReturnType<typeof getEventApiEventId>>, TError, TData>
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+	const queryOptions = getGetEventApiEventIdQueryOptions(eventId, options);
+
+	const query = createQuery(() => ({ ...queryOptions, queryClient })) as CreateQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+	query.queryKey = queryOptions.queryKey;
+
+	return query;
+}
+
 export const getEventApiGeojson = (params?: GetEventApiGeojsonParams, signal?: AbortSignal) => {
 	return customInstance<FeatureCollection>({
 		url: `/event/api/geojson`,
@@ -1794,68 +1931,6 @@ export function createGetEventApiMy<
 	queryClient?: QueryClient,
 ): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 	const queryOptions = getGetEventApiMyQueryOptions(params, options);
-
-	const query = createQuery(() => ({ ...queryOptions, queryClient })) as CreateQueryResult<
-		TData,
-		TError
-	> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-	query.queryKey = queryOptions.queryKey;
-
-	return query;
-}
-
-export const getEventApiEventId = (eventId: string, signal?: AbortSignal) => {
-	return customInstance<EventDto>({ url: `/event/api/${eventId}`, method: "GET", signal });
-};
-
-export const getGetEventApiEventIdQueryKey = (eventId?: string) => {
-	return [`/event/api/${eventId}`] as const;
-};
-
-export const getGetEventApiEventIdQueryOptions = <
-	TData = Awaited<ReturnType<typeof getEventApiEventId>>,
-	TError = ErrorType<EventNotFoundError>,
->(
-	eventId: string,
-	options?: {
-		query?: Partial<
-			CreateQueryOptions<Awaited<ReturnType<typeof getEventApiEventId>>, TError, TData>
-		>;
-	},
-) => {
-	const { query: queryOptions } = options ?? {};
-
-	const queryKey = queryOptions?.queryKey ?? getGetEventApiEventIdQueryKey(eventId);
-
-	const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventApiEventId>>> = ({ signal }) =>
-		getEventApiEventId(eventId, signal);
-
-	return { queryKey, queryFn, enabled: !!eventId, ...queryOptions } as CreateQueryOptions<
-		Awaited<ReturnType<typeof getEventApiEventId>>,
-		TError,
-		TData
-	> & { queryKey: DataTag<QueryKey, TData, TError> };
-};
-
-export type GetEventApiEventIdQueryResult = NonNullable<
-	Awaited<ReturnType<typeof getEventApiEventId>>
->;
-export type GetEventApiEventIdQueryError = ErrorType<EventNotFoundError>;
-
-export function createGetEventApiEventId<
-	TData = Awaited<ReturnType<typeof getEventApiEventId>>,
-	TError = ErrorType<EventNotFoundError>,
->(
-	eventId: string,
-	options?: {
-		query?: Partial<
-			CreateQueryOptions<Awaited<ReturnType<typeof getEventApiEventId>>, TError, TData>
-		>;
-	},
-	queryClient?: QueryClient,
-): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-	const queryOptions = getGetEventApiEventIdQueryOptions(eventId, options);
 
 	const query = createQuery(() => ({ ...queryOptions, queryClient })) as CreateQueryResult<
 		TData,

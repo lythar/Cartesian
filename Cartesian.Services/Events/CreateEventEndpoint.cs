@@ -55,6 +55,13 @@ public class CreateEventEndpoint : IEndpoint
             .Produces(404, typeof(EventNotFoundError))
             .Produces(404, typeof(EventWindowNotFoundError))
             .Produces(403, typeof(MissingPermissionError));
+
+        app.MapDelete("/event/api/{eventId}", DeleteEvent)
+            .RequireAuthorization()
+            .Produces(200)
+            .Produces(400, typeof(AccountNotFoundError))
+            .Produces(404, typeof(EventNotFoundError))
+            .Produces(403, typeof(AuthorizationFailedError));
     }
 
     async Task<IResult> PostCreateEvent(CartesianDbContext dbContext, UserManager<CartesianUser> userManager, ClaimsPrincipal principal, CreateEventBody body)
@@ -131,13 +138,18 @@ public class CreateEventEndpoint : IEndpoint
         if (existingEvent == null)
             return Results.NotFound(new EventNotFoundError(eventId.ToString()));
 
+        var isOwner = existingEvent.AuthorId == userId;
+        var hasCommunityPermission = false;
+
         if (existingEvent.CommunityId is { } communityId)
         {
             var membership = await dbContext.Memberships.WhereMember(userId, communityId).FirstOrDefaultAsync();
-            if (membership == null) return Results.BadRequest(new CommunityNotFoundError(communityId.ToString()));
-            if (membership.TryAssertPermission(Permissions.ManageEvents, out var error))
-                return Results.Json(error, statusCode: 403);
+            if (membership != null && !membership.TryAssertPermission(Permissions.ManageEvents, out _))
+                hasCommunityPermission = true;
         }
+
+        if (!isOwner && !hasCommunityPermission)
+            return Results.Json(new AuthorizationFailedError("You can only edit events you created"), statusCode: 403);
 
         if (body.Name is { } name) existingEvent.Name = name;
         if (body.Description is { } description) existingEvent.Description = description;
@@ -265,6 +277,76 @@ public class CreateEventEndpoint : IEndpoint
         }
 
         dbContext.EventWindows.Remove(existingWindow);
+        await dbContext.SaveChangesAsync();
+
+        return Results.Ok();
+    }
+
+    async Task<IResult> DeleteEvent(CartesianDbContext dbContext, UserManager<CartesianUser> userManager,
+        ClaimsPrincipal principal, Guid eventId)
+    {
+        var userId = userManager.GetUserId(principal);
+        if (userId == null) return Results.Unauthorized();
+
+        var user = await userManager.FindByIdAsync(userId);
+        if (user == null) return Results.BadRequest(new AccountNotFoundError(userId));
+
+        var existingEvent = await dbContext.Events
+            .Include(e => e.Windows)
+            .Include(e => e.FavoritedBy)
+            .Include(e => e.Participants)
+            .Include(e => e.Subscribers)
+            .Include(e => e.Images)
+            .Where(e => e.Id == eventId)
+            .FirstOrDefaultAsync();
+
+        if (existingEvent == null)
+            return Results.NotFound(new EventNotFoundError(eventId.ToString()));
+
+        var isOwner = existingEvent.AuthorId == userId;
+        var hasCommunityPermission = false;
+
+        if (existingEvent.CommunityId is { } communityId)
+        {
+            var membership = await dbContext.Memberships.WhereMember(userId, communityId).FirstOrDefaultAsync();
+            if (membership != null && !membership.TryAssertPermission(Permissions.ManageEvents, out _))
+                hasCommunityPermission = true;
+        }
+
+        if (!isOwner && !hasCommunityPermission)
+            return Results.Json(new AuthorizationFailedError("You can only delete events you created"), statusCode: 403);
+
+        var chatChannel = await dbContext.ChatChannels
+            .Include(c => c.Messages)
+                .ThenInclude(m => m.Reactions)
+            .Include(c => c.Messages)
+                .ThenInclude(m => m.PinnedIn)
+            .Include(c => c.Mutes)
+            .Include(c => c.PinnedMessages)
+            .Where(c => c.EventId == eventId)
+            .FirstOrDefaultAsync();
+
+        if (chatChannel != null)
+        {
+            foreach (var message in chatChannel.Messages)
+            {
+                dbContext.ChatReactions.RemoveRange(message.Reactions);
+                dbContext.ChatPinnedMessages.RemoveRange(message.PinnedIn);
+            }
+            dbContext.ChatMessages.RemoveRange(chatChannel.Messages);
+            dbContext.ChatMutes.RemoveRange(chatChannel.Mutes);
+            dbContext.ChatPinnedMessages.RemoveRange(chatChannel.PinnedMessages);
+            dbContext.ChatChannels.Remove(chatChannel);
+        }
+
+        existingEvent.FavoritedBy.Clear();
+        existingEvent.Participants.Clear();
+        existingEvent.Subscribers.Clear();
+
+        dbContext.Media.RemoveRange(existingEvent.Images);
+        dbContext.EventWindows.RemoveRange(existingEvent.Windows);
+        dbContext.Events.Remove(existingEvent);
+
         await dbContext.SaveChangesAsync();
 
         return Results.Ok();

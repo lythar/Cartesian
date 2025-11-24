@@ -16,18 +16,18 @@
 		.object({
 			currentPassword: z.string().min(1, "Current password is required"),
 			newPassword: z.string().min(8, "Password must be at least 8 characters"),
-			confirmPassword: z.string().min(1, "Confirm password is required")
+			confirmPassword: z.string().min(1, "Confirm password is required"),
 		})
 		.refine((data) => data.newPassword === data.confirmPassword, {
 			message: "Passwords do not match",
-			path: ["confirmPassword"]
+			path: ["confirmPassword"],
 		});
 
 	const form = superForm(
 		{
 			currentPassword: "",
 			newPassword: "",
-			confirmPassword: ""
+			confirmPassword: "",
 		},
 		{
 			SPA: true,
@@ -38,7 +38,7 @@
 					try {
 						await putAccountApiMePassword({
 							currentPassword: form.data.currentPassword,
-							newPassword: form.data.newPassword
+							newPassword: form.data.newPassword,
 						});
 						toast.success("Password updated successfully");
 						form.data.currentPassword = "";
@@ -46,11 +46,12 @@
 						form.data.confirmPassword = "";
 					} catch (error) {
 						console.error(error);
-						errorMessage = error instanceof Error ? error.message : "Failed to update password";
+						errorMessage =
+							error instanceof Error ? error.message : "Failed to update password";
 					}
 				}
-			}
-		}
+			},
+		},
 	);
 
 	const { form: formData, enhance, submitting } = form;

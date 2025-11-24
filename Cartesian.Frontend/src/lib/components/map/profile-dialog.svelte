@@ -16,15 +16,15 @@
 		LockKeyIcon,
 		Mail01Icon,
 		Cancel01Icon,
-		CheckmarkCircle02Icon
+		CheckmarkCircle02Icon,
 	} from "@hugeicons/core-free-icons";
 	import {
 		postMediaApiUploadAvatar,
 		putAccountApiMeAvatar,
 		deleteAccountApiMeAvatar,
-		getAccountApiMe
+		getAccountApiMe,
 	} from "$lib/api";
-  import { baseUrl } from "$lib/api/client";
+	import { baseUrl } from "$lib/api/client";
 	import ChangePasswordForm from "$lib/components/auth/change-password-form.svelte";
 
 	let { open = $bindable(false) } = $props();
@@ -133,10 +133,12 @@
 
 <Dialog.Root bind:open>
 	<Dialog.Content
-		class="max-w-[500px] h-[600px] gap-0 overflow-hidden rounded-3xl border border-border/40 bg-background/95 p-0 shadow-2xl backdrop-blur-xl md:max-w-[600px] flex flex-col"
+		class="flex h-[600px] max-w-[500px] flex-col gap-0 overflow-hidden rounded-3xl border border-border/40 bg-background/95 p-0 shadow-2xl backdrop-blur-xl md:max-w-[600px]"
 		showCloseButton={false}
 	>
-		<div class="flex items-center justify-between border-b border-border/10 px-6 py-4 flex-none">
+		<div
+			class="flex flex-none items-center justify-between border-b border-border/10 px-6 py-4"
+		>
 			<div>
 				<Dialog.Title class="text-xl font-semibold tracking-tight">Settings</Dialog.Title>
 				<Dialog.Description class="text-xs font-medium text-muted-foreground">
@@ -153,8 +155,8 @@
 			</Button>
 		</div>
 
-		<Tabs.Root value="profile" class="flex flex-col flex-1 overflow-hidden">
-			<div class="px-6 pt-4 flex-none">
+		<Tabs.Root value="profile" class="flex flex-1 flex-col overflow-hidden">
+			<div class="flex-none px-6 pt-4">
 				<Tabs.List class="flex w-full items-center rounded-xl bg-muted/30 p-1">
 					<Tabs.Trigger
 						value="profile"
@@ -174,30 +176,37 @@
 			</div>
 
 			<div class="flex-1 overflow-y-auto">
-				<Tabs.Content value="profile" class="mt-0 space-y-6 p-6 h-full">
+				<Tabs.Content value="profile" class="mt-0 h-full space-y-6 p-6">
 					<!-- Avatar Section -->
 					<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
-						<div class="relative group">
+						<div class="group relative">
 							<Avatar.Root class="size-24 border-4 border-muted/30 shadow-sm">
 								<Avatar.Image
 									src={previewUrl ?? getAvatarUrl(auth.user?.avatar ?? null)}
 									alt={auth.user?.name}
 									class="object-cover"
 								/>
-								<Avatar.Fallback class="bg-muted text-2xl font-medium text-muted-foreground">
+								<Avatar.Fallback
+									class="bg-muted text-2xl font-medium text-muted-foreground"
+								>
 									{auth.user ? getInitials(auth.user.name) : "?"}
 								</Avatar.Fallback>
 							</Avatar.Root>
 							{#if previewUrl}
-								<div class="absolute -right-1 -top-1 rounded-full bg-primary p-1 shadow-md">
-									<HugeiconsIcon icon={CheckmarkCircle02Icon} className="size-3 text-primary-foreground" />
+								<div
+									class="absolute -top-1 -right-1 rounded-full bg-primary p-1 shadow-md"
+								>
+									<HugeiconsIcon
+										icon={CheckmarkCircle02Icon}
+										className="size-3 text-primary-foreground"
+									/>
 								</div>
 							{/if}
 						</div>
 
 						<div class="flex flex-1 flex-col gap-2">
 							<div class="flex flex-col gap-1">
-								<h3 class="font-medium leading-none">Profile Picture</h3>
+								<h3 class="leading-none font-medium">Profile Picture</h3>
 								<p class="text-xs text-muted-foreground">
 									JPG, GIF or PNG. Max size of 5MB.
 								</p>
@@ -221,7 +230,10 @@
 										onclick={handleRemoveAvatar}
 										disabled={isSavingProfile}
 									>
-										<HugeiconsIcon icon={Delete02Icon} className="mr-2 size-3.5" />
+										<HugeiconsIcon
+											icon={Delete02Icon}
+											className="mr-2 size-3.5"
+										/>
 										Remove
 									</Button>
 								{/if}
@@ -241,7 +253,9 @@
 					<!-- Personal Info Section -->
 					<div class="space-y-4">
 						<div class="space-y-3">
-							<Label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+							<Label
+								class="text-xs font-semibold tracking-wider text-muted-foreground uppercase"
+							>
 								Display Name
 							</Label>
 							<Input
@@ -252,11 +266,16 @@
 						</div>
 
 						<div class="space-y-3">
-							<Label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+							<Label
+								class="text-xs font-semibold tracking-wider text-muted-foreground uppercase"
+							>
 								Email Address
 							</Label>
 							<div class="relative">
-								<HugeiconsIcon icon={Mail01Icon} className="absolute left-3 top-2.5 size-4 text-muted-foreground/70" />
+								<HugeiconsIcon
+									icon={Mail01Icon}
+									className="absolute left-3 top-2.5 size-4 text-muted-foreground/70"
+								/>
 								<Input
 									value={auth.user?.email}
 									disabled
@@ -276,26 +295,37 @@
 							class="rounded-xl bg-primary font-medium shadow-lg shadow-primary/20 transition-all hover:shadow-primary/30 active:scale-[0.98] disabled:opacity-50"
 						>
 							{#if isSavingProfile}
-								<HugeiconsIcon icon={Loading03Icon} className="mr-2 size-4 animate-spin" />
+								<HugeiconsIcon
+									icon={Loading03Icon}
+									className="mr-2 size-4 animate-spin"
+								/>
 								Saving...
 							{:else}
-								<HugeiconsIcon icon={CheckmarkCircle02Icon} className="mr-2 size-4" />
+								<HugeiconsIcon
+									icon={CheckmarkCircle02Icon}
+									className="mr-2 size-4"
+								/>
 								Save Changes
 							{/if}
 						</Button>
 					</div>
 				</Tabs.Content>
 
-				<Tabs.Content value="security" class="mt-0 space-y-6 p-6 h-full">
+				<Tabs.Content value="security" class="mt-0 h-full space-y-6 p-6">
 					<div class="rounded-xl border border-amber-500/20 bg-amber-500/10 p-4">
 						<div class="flex items-start gap-3">
-							<div class="rounded-full bg-amber-500/20 p-1.5 text-amber-600 dark:text-amber-500">
+							<div
+								class="rounded-full bg-amber-500/20 p-1.5 text-amber-600 dark:text-amber-500"
+							>
 								<HugeiconsIcon icon={LockKeyIcon} className="size-4" />
 							</div>
 							<div class="space-y-1">
-								<h4 class="text-sm font-medium text-amber-900 dark:text-amber-100">Password Security</h4>
+								<h4 class="text-sm font-medium text-amber-900 dark:text-amber-100">
+									Password Security
+								</h4>
 								<p class="text-xs text-amber-800/80 dark:text-amber-200/70">
-									Ensure your account stays secure by using a strong, unique password.
+									Ensure your account stays secure by using a strong, unique
+									password.
 								</p>
 							</div>
 						</div>
