@@ -86,6 +86,19 @@ public class CreateEventEndpoint : IEndpoint
             Visibility = EventVisibility.Public
         };
 
+        if (body.Windows is { Count: > 0 } windows)
+        {
+            newEvent.Windows = windows.Select(w => new EventWindow
+            {
+                Id = Guid.NewGuid(),
+                EventId = newEvent.Id,
+                Title = w.Title,
+                Description = w.Description,
+                StartTime = w.StartTime,
+                EndTime = w.EndTime
+            }).ToList();
+        }
+
         await dbContext.AddAsync(newEvent);
         await dbContext.SaveChangesAsync();
 
@@ -115,12 +128,12 @@ public class CreateEventEndpoint : IEndpoint
                 return Results.Json(error, statusCode: 403);
         }
 
-        if (body.Name is {} name) existingEvent.Name = name;
-        if (body.Description is {} description) existingEvent.Description = description;
-        if (body.Location is {} location) existingEvent.Location = location;
-        if (body.Tags is {} tags) existingEvent.Tags = tags;
-        if (body.Timing is {} timing) existingEvent.Timing = timing;
-        if (body.Visibility is {} visibility) existingEvent.Visibility = visibility;
+        if (body.Name is { } name) existingEvent.Name = name;
+        if (body.Description is { } description) existingEvent.Description = description;
+        if (body.Location is { } location) existingEvent.Location = location;
+        if (body.Tags is { } tags) existingEvent.Tags = tags;
+        if (body.Timing is { } timing) existingEvent.Timing = timing;
+        if (body.Visibility is { } visibility) existingEvent.Visibility = visibility;
 
         await dbContext.SaveChangesAsync();
 
@@ -199,10 +212,10 @@ public class CreateEventEndpoint : IEndpoint
                 return Results.Json(error, statusCode: 403);
         }
 
-        if (body.Title is {} title) existingWindow.Title = title;
-        if (body.Description is {} description) existingWindow.Description = description;
-        if (body.StartTime is {} startTime) existingWindow.StartTime = startTime;
-        if (body.EndTime is {} endTime) existingWindow.EndTime = endTime;
+        if (body.Title is { } title) existingWindow.Title = title;
+        if (body.Description is { } description) existingWindow.Description = description;
+        if (body.StartTime is { } startTime) existingWindow.StartTime = startTime;
+        if (body.EndTime is { } endTime) existingWindow.EndTime = endTime;
 
         await dbContext.SaveChangesAsync();
 
@@ -246,7 +259,7 @@ public class CreateEventEndpoint : IEndpoint
         return Results.Ok();
     }
 
-    public record CreateEventBody(string Name, string Description, Point Location, Guid? CommunityId, List<EventTag> Tags);
+    public record CreateEventBody(string Name, string Description, Point Location, Guid? CommunityId, List<EventTag> Tags, List<CreateEventWindowBody>? Windows);
     record PutEditEventBody(string? Name, string? Description, Point? Location, List<EventTag>? Tags, EventTiming? Timing, EventVisibility? Visibility);
     public record CreateEventWindowBody(string Title, string Description, DateTime? StartTime, DateTime? EndTime);
     record PutEditEventWindowBody(string? Title, string? Description, DateTime? StartTime, DateTime? EndTime);

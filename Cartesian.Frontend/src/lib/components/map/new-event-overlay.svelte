@@ -213,7 +213,41 @@
 						throw new Error("Location is required");
 					}
 
-					const eventBody: CreateEventBody = {
+					let windowsToCreate: (CreateEventWindowBody & { tempId?: string })[] = [];
+
+					if (eventWindows.length > 0) {
+						for (const w of eventWindows) {
+							if (!w.startTime || !w.endTime) {
+								toast.error("All event windows must have a start and end time.");
+								return;
+							}
+						}
+						windowsToCreate = eventWindows.map((w) => ({
+							tempId: w.id,
+							title: w.title,
+							description: w.description,
+							startTime: new Date(w.startTime).toISOString(),
+							endTime: new Date(w.endTime).toISOString()
+						}));
+					} else if (showSimpleMode) {
+						if (!simpleStartTime || !simpleEndTime) {
+							toast.error("Please select a start and end time.");
+							return;
+						}
+						windowsToCreate = [
+							{
+								title: f.data.name,
+								description: f.data.description,
+								startTime: new Date(simpleStartTime).toISOString(),
+								endTime: new Date(simpleEndTime).toISOString()
+							}
+						];
+					} else {
+						toast.error("Please add at least one event window.");
+						return;
+					}
+
+					const eventBody: CreateEventBody & { windows: CreateEventWindowBody[] } = {
 						name: f.data.name,
 						description: f.data.description,
 						communityId: f.data.communityId,
@@ -224,7 +258,8 @@
 								newEventOverlayState.location.lng,
 								newEventOverlayState.location.lat
 							]
-						} as any
+						} as any,
+						windows: windowsToCreate.map(({ tempId, ...rest }) => rest)
 					};
 
 					const event = await createEventMutation.mutateAsync({ data: eventBody });
@@ -243,48 +278,18 @@
 						await Effect.runPromise(Effect.all(uploadEffects, { concurrency: 3 }));
 					}
 
-					let windowsToCreate: (CreateEventWindowBody & { tempId?: string })[] = [];
+					if (event.windows && event.windows.length > 0) {
+						const imageEffects: Effect.Effect<any, unknown, never>[] = [];
 
-					if (eventWindows.length > 0) {
-						windowsToCreate = eventWindows.map((w) => ({
-							tempId: w.id,
-							title: w.title,
-							description: w.description,
-							startTime: new Date(w.startTime).toISOString(),
-							endTime: new Date(w.endTime).toISOString()
-						}));
-					} else if (simpleStartTime && simpleEndTime) {
-						windowsToCreate = [
-							{
-								title: f.data.name,
-								description: f.data.description,
-								startTime: new Date(simpleStartTime).toISOString(),
-								endTime: new Date(simpleEndTime).toISOString()
-							}
-						];
-					}
+						event.windows.forEach((window, index) => {
+							const originalWindow = windowsToCreate[index];
+							const images = originalWindow.tempId
+								? windowImages[originalWindow.tempId] || []
+								: simpleWindowImages;
 
-					if (windowsToCreate.length > 0) {
-						const createWindowEffect = (
-							windowBody: CreateEventWindowBody & { tempId?: string }
-						) =>
-							Effect.gen(function* (_) {
-								const { tempId, ...body } = windowBody;
-								const window = yield* _(
-									Effect.tryPromise({
-										try: () =>
-											createEventWindowMutation.mutateAsync({
-												eventId: event.id,
-												data: body
-											}),
-										catch: (error) => new Error(`Failed to create window: ${error}`)
-									})
-								);
-
-								const images = tempId ? windowImages[tempId] || [] : simpleWindowImages;
-
-								if (images.length > 0) {
-									const imageEffects = images.map((file) =>
+							if (images.length > 0) {
+								images.forEach((file) => {
+									imageEffects.push(
 										Effect.tryPromise({
 											try: () =>
 												createWindowImagesMutation.mutateAsync({
@@ -294,15 +299,13 @@
 											catch: (error) => error
 										})
 									);
-									yield* _(Effect.all(imageEffects, { concurrency: 3 }));
-								}
-							});
-
-						const allWindowsEffect = Effect.all(windowsToCreate.map(createWindowEffect), {
-							concurrency: 3
+								});
+							}
 						});
 
-						await Effect.runPromise(allWindowsEffect);
+						if (imageEffects.length > 0) {
+							await Effect.runPromise(Effect.all(imageEffects, { concurrency: 3 }));
+						}
 					}
 
 					toast.success("Event published successfully");
