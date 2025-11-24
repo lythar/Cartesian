@@ -63,7 +63,7 @@
 				<MembersList
 					{members}
 					{currentUser}
-					isAdmin={hasAdminPermissions}
+					userPermissions={currentMembership?.permissions ?? 0}
 					communityId={communityId ? communityId : ""}
 				/>
 			</div>

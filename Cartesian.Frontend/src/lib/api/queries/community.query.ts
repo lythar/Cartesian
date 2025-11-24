@@ -18,6 +18,7 @@ import {
 	getGetCommunityApiPublicCommunityIdQueryKey,
 	getGetCommunityApiPublicListQueryKey,
 	postCommunityApiCommunityIdMembersJoin,
+	putCommunityApiCommunityIdMembersTargetUserIdPermissions,
 } from "$lib/api/cartesian-client";
 import type { CreateQueryOptions, CreateQueryResult, QueryClient } from "@tanstack/svelte-query";
 import { createMutation, createQuery } from "@tanstack/svelte-query";
@@ -139,6 +140,28 @@ export function createRemoveMemberMutation(queryClient?: QueryClient) {
 	return createMutation(() => ({
 		mutationFn: ({ communityId, userId }: { communityId: string; userId: string }) =>
 			deleteCommunityApiCommunityIdMembersTargetUserId(communityId, userId),
+		onSuccess: (_, { communityId }) => {
+			queryClient?.invalidateQueries({
+				queryKey: getGetCommunityApiCommunityIdMembersQueryKey(communityId),
+			});
+		},
+	}));
+}
+
+export function createUpdateMemberPermissionsMutation(queryClient?: QueryClient) {
+	return createMutation(() => ({
+		mutationFn: ({
+			communityId,
+			userId,
+			permissions,
+		}: {
+			communityId: string;
+			userId: string;
+			permissions: number;
+		}) =>
+			putCommunityApiCommunityIdMembersTargetUserIdPermissions(communityId, userId, {
+				permissions,
+			}),
 		onSuccess: (_, { communityId }) => {
 			queryClient?.invalidateQueries({
 				queryKey: getGetCommunityApiCommunityIdMembersQueryKey(communityId),

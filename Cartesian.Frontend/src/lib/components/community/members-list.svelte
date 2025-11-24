@@ -1,23 +1,36 @@
 <script lang="ts">
 	import type { MembershipDto, MyUserDto } from "$lib/api/cartesian-client";
-	import { createRemoveMemberMutation } from "$lib/api/queries/community.query";
+	import {
+		createRemoveMemberMutation,
+		createUpdateMemberPermissionsMutation
+	} from "$lib/api/queries/community.query";
 	import * as Avatar from "$lib/components/ui/avatar";
 	import { Badge } from "$lib/components/ui/badge";
 	import { Button } from "$lib/components/ui/button";
+	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 	import { ScrollArea } from "$lib/components/ui/scroll-area";
-	import { Delete01Icon } from "@hugeicons/core-free-icons";
+	import { Permissions } from "$lib/constants/permissions";
+	import { Delete01Icon, MoreHorizontalIcon } from "@hugeicons/core-free-icons";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import { useQueryClient } from "@tanstack/svelte-query";
 
-	let { members, currentUser, isAdmin, communityId } = $props<{
+	let {
+		members,
+		currentUser,
+		userPermissions = 0,
+		communityId
+	} = $props<{
 		members: MembershipDto[];
 		currentUser: MyUserDto | undefined;
-		isAdmin: boolean;
+		userPermissions?: number;
 		communityId: string;
 	}>();
 
 	const queryClient = useQueryClient();
 	const removeMemberMutation = createRemoveMemberMutation(queryClient);
+	const updateMemberPermissionsMutation = createUpdateMemberPermissionsMutation(queryClient);
+
+	const canManagePeople = $derived((userPermissions & Permissions.ManagePeople) === Permissions.ManagePeople);
 
 	async function handleRemoveMember(userId: string) {
 		if (!confirm("Are you sure you want to remove this member?")) return;
@@ -25,6 +38,18 @@
 			await removeMemberMutation.mutateAsync({ communityId, userId });
 		} catch (error) {
 			console.error("Failed to remove member", error);
+		}
+	}
+
+	async function handleUpdatePermissions(userId: string, newPermissions: number) {
+		try {
+			await updateMemberPermissionsMutation.mutateAsync({
+				communityId,
+				userId,
+				permissions: newPermissions
+			});
+		} catch (error) {
+			console.error("Failed to update member permissions", error);
 		}
 	}
 </script>
@@ -53,9 +78,9 @@
 						<div>
 							<div class="flex items-center gap-2">
 								<p class="font-medium leading-none">{membership.user.name}</p>
-								{#if (membership.permissions ?? 0) >= 2}
+								{#if (membership.permissions & Permissions.Admin) === Permissions.Admin}
 									<Badge variant="default" class="h-5 px-1.5 text-[10px]">Admin</Badge>
-								{:else} 
+								{:else}
 									<Badge variant="secondary" class="h-5 px-1.5 text-[10px]">Member</Badge>
 								{/if}
 							</div>
@@ -63,17 +88,38 @@
 						</div>
 					</div>
 
-					{#if isAdmin && membership.userId !== currentUser?.id}
-						<Button
-							variant="ghost"
-							size="icon"
-							class="h-8 w-8 text-muted-foreground hover:text-destructive"
-							onclick={() => handleRemoveMember(membership.userId)}
-							disabled={removeMemberMutation.isPending}
-						>
-							<HugeiconsIcon icon={Delete01Icon} size={16} strokeWidth={2} />
-							<span class="sr-only">Remove member</span>
-						</Button>
+					{#if canManagePeople && membership.userId !== currentUser?.id}
+						<DropdownMenu.Root>
+							<DropdownMenu.Trigger>
+								<Button variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground">
+									<HugeiconsIcon icon={MoreHorizontalIcon} size={16} strokeWidth={2} />
+									<span class="sr-only">Open menu</span>
+								</Button>
+							</DropdownMenu.Trigger>
+							<DropdownMenu.Content align="end">
+								<DropdownMenu.Label>Actions</DropdownMenu.Label>
+								{#if (membership.permissions & Permissions.Admin) === Permissions.Admin}
+									<DropdownMenu.Item
+										onclick={() => handleUpdatePermissions(membership.userId, Permissions.Member)}
+									>
+										Make Member
+									</DropdownMenu.Item>
+								{:else}
+									<DropdownMenu.Item
+										onclick={() => handleUpdatePermissions(membership.userId, Permissions.Admin)}
+									>
+										Make Admin
+									</DropdownMenu.Item>
+								{/if}
+								<DropdownMenu.Separator />
+								<DropdownMenu.Item
+									class="text-destructive focus:text-destructive"
+									onclick={() => handleRemoveMember(membership.userId)}
+								>
+									Remove Member
+								</DropdownMenu.Item>
+							</DropdownMenu.Content>
+						</DropdownMenu.Root>
 					{/if}
 				</div>
 			{/each}
