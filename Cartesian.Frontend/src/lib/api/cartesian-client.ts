@@ -1996,6 +1996,324 @@ export function createGetEventApiFavorites<
 	return query;
 }
 
+export const postEventApiEventIdParticipate = (eventId: string, signal?: AbortSignal) => {
+	return customInstance<void>({
+		url: `/event/api/${eventId}/participate`,
+		method: "POST",
+		signal,
+	});
+};
+
+export const getPostEventApiEventIdParticipateMutationOptions = <
+	TError = ErrorType<
+		| AccountNotFoundError
+		| AuthorizationFailedError
+		| void
+		| EventNotFoundError
+		| InternalServerError
+	>,
+	TContext = unknown,
+>(options?: {
+	mutation?: CreateMutationOptions<
+		Awaited<ReturnType<typeof postEventApiEventIdParticipate>>,
+		TError,
+		{ eventId: string },
+		TContext
+	>;
+}): CreateMutationOptions<
+	Awaited<ReturnType<typeof postEventApiEventIdParticipate>>,
+	TError,
+	{ eventId: string },
+	TContext
+> => {
+	const mutationKey = ["postEventApiEventIdParticipate"];
+	const { mutation: mutationOptions } = options
+		? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey } };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof postEventApiEventIdParticipate>>,
+		{ eventId: string }
+	> = (props) => {
+		const { eventId } = props ?? {};
+
+		return postEventApiEventIdParticipate(eventId);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PostEventApiEventIdParticipateMutationResult = NonNullable<
+	Awaited<ReturnType<typeof postEventApiEventIdParticipate>>
+>;
+
+export type PostEventApiEventIdParticipateMutationError = ErrorType<
+	| AccountNotFoundError
+	| AuthorizationFailedError
+	| void
+	| EventNotFoundError
+	| InternalServerError
+>;
+
+export const createPostEventApiEventIdParticipate = <
+	TError = ErrorType<
+		| AccountNotFoundError
+		| AuthorizationFailedError
+		| void
+		| EventNotFoundError
+		| InternalServerError
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: CreateMutationOptions<
+			Awaited<ReturnType<typeof postEventApiEventIdParticipate>>,
+			TError,
+			{ eventId: string },
+			TContext
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateMutationResult<
+	Awaited<ReturnType<typeof postEventApiEventIdParticipate>>,
+	TError,
+	{ eventId: string },
+	TContext
+> => {
+	const mutationOptions = getPostEventApiEventIdParticipateMutationOptions(options);
+
+	return createMutation(() => ({ ...mutationOptions, queryClient }));
+};
+
+export const deleteEventApiEventIdParticipate = (eventId: string) => {
+	return customInstance<void>({ url: `/event/api/${eventId}/participate`, method: "DELETE" });
+};
+
+export const getDeleteEventApiEventIdParticipateMutationOptions = <
+	TError = ErrorType<
+		| AccountNotFoundError
+		| AuthorizationFailedError
+		| void
+		| EventNotFoundError
+		| InternalServerError
+	>,
+	TContext = unknown,
+>(options?: {
+	mutation?: CreateMutationOptions<
+		Awaited<ReturnType<typeof deleteEventApiEventIdParticipate>>,
+		TError,
+		{ eventId: string },
+		TContext
+	>;
+}): CreateMutationOptions<
+	Awaited<ReturnType<typeof deleteEventApiEventIdParticipate>>,
+	TError,
+	{ eventId: string },
+	TContext
+> => {
+	const mutationKey = ["deleteEventApiEventIdParticipate"];
+	const { mutation: mutationOptions } = options
+		? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey } };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof deleteEventApiEventIdParticipate>>,
+		{ eventId: string }
+	> = (props) => {
+		const { eventId } = props ?? {};
+
+		return deleteEventApiEventIdParticipate(eventId);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteEventApiEventIdParticipateMutationResult = NonNullable<
+	Awaited<ReturnType<typeof deleteEventApiEventIdParticipate>>
+>;
+
+export type DeleteEventApiEventIdParticipateMutationError = ErrorType<
+	| AccountNotFoundError
+	| AuthorizationFailedError
+	| void
+	| EventNotFoundError
+	| InternalServerError
+>;
+
+export const createDeleteEventApiEventIdParticipate = <
+	TError = ErrorType<
+		| AccountNotFoundError
+		| AuthorizationFailedError
+		| void
+		| EventNotFoundError
+		| InternalServerError
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: CreateMutationOptions<
+			Awaited<ReturnType<typeof deleteEventApiEventIdParticipate>>,
+			TError,
+			{ eventId: string },
+			TContext
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateMutationResult<
+	Awaited<ReturnType<typeof deleteEventApiEventIdParticipate>>,
+	TError,
+	{ eventId: string },
+	TContext
+> => {
+	const mutationOptions = getDeleteEventApiEventIdParticipateMutationOptions(options);
+
+	return createMutation(() => ({ ...mutationOptions, queryClient }));
+};
+
+export const getEventApiEventIdParticipants = (eventId: string, signal?: AbortSignal) => {
+	return customInstance<CartesianUserDto[]>({
+		url: `/event/api/${eventId}/participants`,
+		method: "GET",
+		signal,
+	});
+};
+
+export const getGetEventApiEventIdParticipantsQueryKey = (eventId?: string) => {
+	return [`/event/api/${eventId}/participants`] as const;
+};
+
+export const getGetEventApiEventIdParticipantsQueryOptions = <
+	TData = Awaited<ReturnType<typeof getEventApiEventIdParticipants>>,
+	TError = ErrorType<EventNotFoundError>,
+>(
+	eventId: string,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<
+				Awaited<ReturnType<typeof getEventApiEventIdParticipants>>,
+				TError,
+				TData
+			>
+		>;
+	},
+) => {
+	const { query: queryOptions } = options ?? {};
+
+	const queryKey = queryOptions?.queryKey ?? getGetEventApiEventIdParticipantsQueryKey(eventId);
+
+	const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventApiEventIdParticipants>>> = ({
+		signal,
+	}) => getEventApiEventIdParticipants(eventId, signal);
+
+	return { queryKey, queryFn, enabled: !!eventId, ...queryOptions } as CreateQueryOptions<
+		Awaited<ReturnType<typeof getEventApiEventIdParticipants>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetEventApiEventIdParticipantsQueryResult = NonNullable<
+	Awaited<ReturnType<typeof getEventApiEventIdParticipants>>
+>;
+export type GetEventApiEventIdParticipantsQueryError = ErrorType<EventNotFoundError>;
+
+export function createGetEventApiEventIdParticipants<
+	TData = Awaited<ReturnType<typeof getEventApiEventIdParticipants>>,
+	TError = ErrorType<EventNotFoundError>,
+>(
+	eventId: string,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<
+				Awaited<ReturnType<typeof getEventApiEventIdParticipants>>,
+				TError,
+				TData
+			>
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+	const queryOptions = getGetEventApiEventIdParticipantsQueryOptions(eventId, options);
+
+	const query = createQuery(() => ({ ...queryOptions, queryClient })) as CreateQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+	query.queryKey = queryOptions.queryKey;
+
+	return query;
+}
+
+export const getEventApiParticipating = (signal?: AbortSignal) => {
+	return customInstance<EventDto[]>({ url: `/event/api/participating`, method: "GET", signal });
+};
+
+export const getGetEventApiParticipatingQueryKey = () => {
+	return [`/event/api/participating`] as const;
+};
+
+export const getGetEventApiParticipatingQueryOptions = <
+	TData = Awaited<ReturnType<typeof getEventApiParticipating>>,
+	TError = ErrorType<
+		AccountNotFoundError | AuthorizationFailedError | void | InternalServerError
+	>,
+>(options?: {
+	query?: Partial<
+		CreateQueryOptions<Awaited<ReturnType<typeof getEventApiParticipating>>, TError, TData>
+	>;
+}) => {
+	const { query: queryOptions } = options ?? {};
+
+	const queryKey = queryOptions?.queryKey ?? getGetEventApiParticipatingQueryKey();
+
+	const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventApiParticipating>>> = ({
+		signal,
+	}) => getEventApiParticipating(signal);
+
+	return { queryKey, queryFn, ...queryOptions } as CreateQueryOptions<
+		Awaited<ReturnType<typeof getEventApiParticipating>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetEventApiParticipatingQueryResult = NonNullable<
+	Awaited<ReturnType<typeof getEventApiParticipating>>
+>;
+export type GetEventApiParticipatingQueryError = ErrorType<
+	AccountNotFoundError | AuthorizationFailedError | void | InternalServerError
+>;
+
+export function createGetEventApiParticipating<
+	TData = Awaited<ReturnType<typeof getEventApiParticipating>>,
+	TError = ErrorType<
+		AccountNotFoundError | AuthorizationFailedError | void | InternalServerError
+	>,
+>(
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<Awaited<ReturnType<typeof getEventApiParticipating>>, TError, TData>
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+	const queryOptions = getGetEventApiParticipatingQueryOptions(options);
+
+	const query = createQuery(() => ({ ...queryOptions, queryClient })) as CreateQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+	query.queryKey = queryOptions.queryKey;
+
+	return query;
+}
+
 export const postCommunityApiCommunityIdImages = (
 	communityId: string,
 	postCommunityApiCommunityIdImagesBody: PostCommunityApiCommunityIdImagesBody,
