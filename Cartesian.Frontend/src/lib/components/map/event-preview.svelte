@@ -7,16 +7,17 @@
 		newEventOverlayState,
 	} from "./map-state.svelte";
 	import { cn, getAvatarUrl, getInitials, getMediaUrl } from "$lib/utils";
-	import { Calendar03Icon, Clock01Icon } from "@hugeicons/core-free-icons";
+	import { Calendar03Icon, Cancel01Icon, Clock01Icon } from "@hugeicons/core-free-icons";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import { format } from "date-fns";
 	import { createGetEventApiEventIdImages } from "$lib/api";
 
 	interface Props {
 		event: MapEventProperties;
+		onclose?: () => void;
 	}
 
-	let { event }: Props = $props();
+	let { event, onclose }: Props = $props();
 
 	function openDetails() {
 		mapInteractionState.selectedEvent = event;
@@ -33,7 +34,17 @@
 	let remainingTags = $derived(tags.length - 3);
 </script>
 
-<div class="w-[300px] overflow-hidden rounded-2xl bg-background">
+<div class="relative w-[300px] overflow-hidden rounded-2xl bg-background">
+	<Button
+		variant="ghost"
+		size="icon"
+		class="absolute right-2 top-2 z-10 h-8 w-8 rounded-full bg-black/40 text-white hover:bg-black/60"
+		onclick={() => {
+			onclose?.();
+		}}
+	>
+		<HugeiconsIcon icon={Cancel01Icon} size={16} />
+	</Button>
 	<div class="flex h-32 w-full items-center justify-center bg-muted">
 		{#if images.length > 0}
 			<div

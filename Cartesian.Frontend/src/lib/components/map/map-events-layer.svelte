@@ -121,17 +121,23 @@
 			}
 
 			const popupNode = document.createElement("div");
-			const component = mount(EventPreview, {
-				target: popupNode,
-				props: { event: properties },
-				context: componentContexts,
-			});
 
 			const popup = new mapboxgl.Popup({
 				closeButton: false,
 				maxWidth: "300px",
 				className: "p-0 bg-transparent shadow-none border-none",
-			})
+			});
+
+			const component = mount(EventPreview, {
+				target: popupNode,
+				props: {
+					event: properties,
+					onclose: () => popup.remove(),
+				},
+				context: componentContexts,
+			});
+
+			popup
 				.setLngLat(coordinates as [number, number])
 				.setDOMContent(popupNode)
 				.addTo(map);
