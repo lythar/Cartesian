@@ -4,17 +4,19 @@
 	import * as Avatar from "$lib/components/ui/avatar";
 	import { LogOut } from "@lucide/svelte";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
-	import { Bookmark02Icon, Settings01Icon, UserIcon } from "@hugeicons/core-free-icons";
+	import { Bookmark02Icon, Settings01Icon, UserIcon, Calendar03Icon } from "@hugeicons/core-free-icons";
 	import { cn, getAvatarUrl, getInitials } from "$lib/utils";
 	import { authStore } from "$lib/stores/auth.svelte";
 	import { goto } from "$app/navigation";
 	import ProfileDialog from "./profile-dialog.svelte";
+	import EventsDialog from "./events-dialog.svelte";
 	import { baseUrl } from "$lib/api/client";
 
 	const { class: className } = $props();
 
 	const auth = $derived($authStore);
 	let openProfile = $state(false);
+	let openEvents = $state(false);
 
 	async function handleLogout() {
 		authStore.clearUser();
@@ -74,9 +76,9 @@
 					<HugeiconsIcon icon={UserIcon} className="size-5 duotone-fill" />
 					<span class="font-medium">Profile</span>
 				</DropdownMenu.Item>
-				<DropdownMenu.Item class="gap-3 cursor-pointer">
-					<HugeiconsIcon icon={Bookmark02Icon} className="size-5 duotone-fill" />
-					<span class="font-medium">Saved Events</span>
+				<DropdownMenu.Item class="gap-3 cursor-pointer" onclick={() => (openEvents = true)}>
+					<HugeiconsIcon icon={Calendar03Icon} className="size-5 duotone-fill" />
+					<span class="font-medium">Events</span>
 				</DropdownMenu.Item>
 				<DropdownMenu.Item class="gap-3 cursor-pointer">
 					<HugeiconsIcon icon={Settings01Icon} className="size-5 duotone-fill" />
@@ -96,4 +98,5 @@
 	</DropdownMenu.Root>
 
 	<ProfileDialog bind:open={openProfile} />
+	<EventsDialog bind:open={openEvents} />
 {/if}
