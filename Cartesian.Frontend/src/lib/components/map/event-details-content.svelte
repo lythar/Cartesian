@@ -69,7 +69,7 @@
         const url = new URL($page.url);
         url.searchParams.set("event", event.eventId.toString());
         navigator.clipboard.writeText(url.toString());
-        toast.success("Link copied to clipboard");
+        toast.success(m.toast_link_copied());
     }
 
     const favoriteQuery = createGetEventApiEventIdFavorite(event.eventId);
@@ -166,17 +166,17 @@
                 onclick={toggleParticipation}
                 disabled={participateMutation.isPending || unparticipateMutation.isPending}
             >
-                {isParticipating ? "Don't participate" : "Participate in event"}
+                {isParticipating ? m.event_dont_participate() : m.event_participate()}
             </Button>
 
-            <Button variant="outline" size="icon" onclick={shareEvent} title="Share event">
+            <Button variant="outline" size="icon" onclick={shareEvent} title={m.event_share()}>
                 <HugeiconsIcon icon={Share01Icon} size={20} strokeWidth={1.5} />
             </Button>
 
             <Button
                 variant="outline"
                 size="icon"
-                title={isFavorited ? "Unfavorite" : "Favorite"}
+                title={isFavorited ? m.event_unfavorite() : m.event_favorite()}
                 onclick={toggleFavorite}
                 disabled={favoriteMutation.isPending || unfavoriteMutation.isPending}
             >

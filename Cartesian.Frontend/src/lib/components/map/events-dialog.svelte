@@ -24,6 +24,7 @@
 	import { mapInteractionState } from "./map-state.svelte";
 	import { format, formatDistanceToNow, isBefore, addWeeks } from "date-fns";
 	import { getInitials, getAvatarUrl } from "$lib/utils";
+	import { m } from "$lib/paraglide/messages";
 
 	let { open = $bindable(false) } = $props();
 
@@ -228,9 +229,9 @@
 						<HugeiconsIcon icon={Calendar03Icon} className="size-5" />
 					</div>
 					<div>
-						<Dialog.Title class="text-xl font-semibold tracking-tight">Events</Dialog.Title>
+						<Dialog.Title class="text-xl font-semibold tracking-tight">{m.events_dialog_title()}</Dialog.Title>
 						<Dialog.Description class="text-xs font-medium text-muted-foreground">
-							Manage your events and schedule
+							{m.events_dialog_subtitle()}
 						</Dialog.Description>
 					</div>
 				</div>
@@ -250,42 +251,42 @@
 					className="absolute left-3 top-2.5 size-4 text-muted-foreground"
 				/>
 				<Input
-					placeholder="Search events..."
+					placeholder={m.events_search_placeholder()}
 					class="pl-9 bg-muted/20 border-border/40"
 					bind:value={searchQuery}
 				/>
 			</div>
 		</div>
 
-		<Tabs.Root value="favorites" class="flex flex-col flex-1 overflow-hidden">
+		<Tabs.Root value="favorited" class="flex flex-col flex-1 overflow-hidden">
 			<div class="px-6 pt-4 flex-none">
 				<Tabs.List class="flex w-full items-center rounded-xl bg-muted/30 p-1">
 					<Tabs.Trigger
-						value="favorites"
+						value="favorited"
 						class="flex-1 gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
 					>
 						<HugeiconsIcon icon={Bookmark02Icon} className="size-4" />
-						Favorited
+						{m.events_tab_favorited()}
 					</Tabs.Trigger>
 					<Tabs.Trigger
 						value="created"
 						class="flex-1 gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
 					>
 						<HugeiconsIcon icon={UserIcon} className="size-4" />
-						Created
+						{m.events_tab_created()}
 					</Tabs.Trigger>
 					<Tabs.Trigger
 						value="attending"
 						class="flex-1 gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
 					>
 						<HugeiconsIcon icon={CheckmarkCircle02Icon} className="size-4" />
-						Attending
+						{m.events_tab_attending()}
 					</Tabs.Trigger>
 				</Tabs.List>
 			</div>
 
 			<div class="flex-1 overflow-y-auto p-6">
-				<Tabs.Content value="favorites" class="mt-0 h-full">
+				<Tabs.Content value="favorited" class="mt-0 h-full">
 					{#if favoritesQuery.isLoading}
 						<div class="flex h-full items-center justify-center">
 							<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -296,11 +297,11 @@
 								<HugeiconsIcon icon={Bookmark02Icon} className="size-10 text-muted-foreground/50" />
 							</Empty.Media>
 							<div class="space-y-1">
-								<Empty.Title>No favorited events</Empty.Title>
+								<Empty.Title>{m.events_no_favorited()}</Empty.Title>
 								<Empty.Description>
 									{searchQuery
-										? "No events match your search query"
-										: "Events you favorite will appear here"}
+										? m.events_no_search_results()
+										: m.events_favorited_empty()}
 								</Empty.Description>
 							</div>
 						</Empty.Root>
@@ -324,11 +325,11 @@
 								<HugeiconsIcon icon={UserIcon} className="size-10 text-muted-foreground/50" />
 							</Empty.Media>
 							<div class="space-y-1">
-								<Empty.Title>No created events</Empty.Title>
+								<Empty.Title>{m.events_no_created()}</Empty.Title>
 								<Empty.Description>
 									{searchQuery
-										? "No events match your search query"
-										: "Events you create will appear here"}
+										? m.events_no_search_results()
+										: m.events_created_empty()}
 								</Empty.Description>
 							</div>
 						</Empty.Root>
@@ -352,11 +353,11 @@
 								<HugeiconsIcon icon={CheckmarkCircle02Icon} className="size-10 text-muted-foreground/50" />
 							</Empty.Media>
 							<div class="space-y-1">
-								<Empty.Title>No attending events</Empty.Title>
+								<Empty.Title>{m.events_no_attending()}</Empty.Title>
 								<Empty.Description>
 									{searchQuery
-										? "No events match your search query"
-										: "Events you attend will appear here"}
+										? m.events_no_search_results()
+										: m.events_attending_empty()}
 								</Empty.Description>
 							</div>
 						</Empty.Root>

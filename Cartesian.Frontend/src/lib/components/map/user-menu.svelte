@@ -11,6 +11,7 @@
 	import ProfileDialog from "./profile-dialog.svelte";
 	import EventsDialog from "./events-dialog.svelte";
 	import { baseUrl } from "$lib/api/client";
+	import { m } from "$lib/paraglide/messages";
 
 	const { class: className } = $props();
 
@@ -29,8 +30,8 @@
 {#if !auth.isAuthenticated}
 	<div class={cn("z-20", className)}>
 		<div class="flex gap-2">
-			<Button variant="ghost" size="sm" href="/login">Sign in</Button>
-			<Button size="sm" href="/register">Sign up</Button>
+			<Button variant="ghost" size="sm" href="/login">{m.user_menu_sign_in()}</Button>
+			<Button size="sm" href="/register">{m.user_menu_sign_up()}</Button>
 		</div>
 	</div>
 {:else if auth.user}

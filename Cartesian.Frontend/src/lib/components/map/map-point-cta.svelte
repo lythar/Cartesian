@@ -9,6 +9,7 @@
 	import Button from "../ui/button/button.svelte";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import { Add01Icon } from "@hugeicons/core-free-icons";
+	import { m } from "$lib/paraglide/messages";
 
   interface Props {
     map: mapboxgl.Map;
@@ -147,7 +148,7 @@
           }}
         >
           <HugeiconsIcon icon={Add01Icon} strokeWidth={2} className="size-5" />
-          <span>Add event here</span>
+          <span>{m.event_add_here()}</span>
         </Button>
         <Button
           variant="destructive"

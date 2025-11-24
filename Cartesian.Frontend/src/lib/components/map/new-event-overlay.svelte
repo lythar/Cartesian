@@ -301,7 +301,7 @@
 						await Effect.runPromise(allWindowsEffect);
 					}
 
-					toast.success("Event published successfully");
+					toast.success(m.toast_event_published());
 					newEventOverlayState.open = false;
 					newEventOverlayState.location = null;
 					f.data = initialData;
@@ -426,8 +426,8 @@
 		<!-- Header -->
 		<div class="relative flex items-center justify-between px-6 py-5">
 			<div class="space-y-0.5">
-				<h2 class="text-xl font-semibold tracking-tight">New Event</h2>
-				<p class="text-xs font-medium text-muted-foreground">Create a public gathering</p>
+				<h2 class="text-xl font-semibold tracking-tight">{m.event_new_title()}</h2>
+				<p class="text-xs font-medium text-muted-foreground">{m.event_new_subtitle()}</p>
 			</div>
 			<Button
 				variant="ghost"
@@ -438,7 +438,7 @@
 				}}
 			>
 				<HugeiconsIcon icon={Cancel01Icon} size={16} strokeWidth={2} />
-				<span class="sr-only">Close</span>
+				<span class="sr-only">{m.common_close()}</span>
 			</Button>
 		</div>
 
@@ -450,18 +450,18 @@
 				<!-- Basic Info -->
 				<div class="space-y-3">
 					<Label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-						Details
+						{m.event_details_section()}
 					</Label>
 
 					<Form.Field {form} name="name" class="space-y-1.5">
 						<Form.Control>
 							{#snippet children({ props })}
-								<Form.Label class="text-xs text-muted-foreground ml-1">Event Title</Form.Label>
+								<Form.Label class="text-xs text-muted-foreground ml-1">{m.event_title_label()}</Form.Label>
 								<div class="relative">
 									<Input
 										{...props}
 										bind:value={$formData.name}
-										placeholder="What are you planning?"
+										placeholder={m.event_title_placeholder()}
 										class="h-10 border-border/50 bg-muted/30 px-3 font-medium shadow-none transition-all focus-visible:bg-background focus-visible:ring-1"
 									/>
 								</div>
@@ -478,7 +478,7 @@
 									<Textarea
 										{...props}
 										bind:value={$formData.description}
-										placeholder="Add details about your event..."
+										placeholder={m.event_description_placeholder()}
 										rows={4}
 										class="resize-none border-border/50 bg-muted/30 px-3 py-2 shadow-none transition-all focus-visible:bg-background focus-visible:ring-1"
 									/>
@@ -521,7 +521,7 @@
 					</div>
 
 					<div class="space-y-1.5">
-						<Label class="ml-1 text-xs text-muted-foreground">Images</Label>
+						<Label class="ml-1 text-xs text-muted-foreground">{m.event_images_label()}</Label>
 						{@render imagePicker(eventImages, (f) => (eventImages = f), "event-images")}
 					</div>
 				</div>
@@ -530,12 +530,12 @@
 				<div class="space-y-3">
 					<div class="flex items-center justify-between">
 						<Label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-							Location
+							{m.event_location_section()}
 						</Label>
 						{#if !newEventOverlayState.location}
 							<span class="flex items-center gap-1 text-[10px] font-medium text-destructive">
 								<HugeiconsIcon icon={Location01Icon} size={12} strokeWidth={2} />
-								Required
+								{m.event_location_required()}
 							</span>
 						{/if}
 					</div>
@@ -586,7 +586,7 @@
 							<div class="relative">
 								<HugeiconsIcon icon={Search01Icon} size={16} strokeWidth={2} className="absolute left-3 top-3 text-muted-foreground" />
 								<Input
-									placeholder="Search location..."
+									placeholder={m.event_location_placeholder()}
 									class="h-10 border-border/50 bg-muted/30 pl-9 shadow-none focus-visible:bg-background focus-visible:ring-1"
 									bind:value={searchQuery}
 									onfocus={() => (isSearching = true)}
@@ -668,7 +668,7 @@
 				<div class="space-y-3">
 					<div class="flex items-center justify-between">
 						<Label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-							Schedule
+							{m.event_schedule_section()}
 						</Label>
 						{#if eventWindows.length > 0}
 							<Button
@@ -678,7 +678,7 @@
 								onclick={addEventWindow}
 							>
 								<HugeiconsIcon icon={Add01Icon} size={12} strokeWidth={2} className="mr-1" />
-								Add Window
+								{m.event_add_window()}
 							</Button>
 						{/if}
 					</div>
@@ -695,7 +695,7 @@
 									</Label>
 									<DateTimePicker
 										bind:value={simpleStartTime}
-										placeholder="Pick start time"
+										placeholder={m.event_start_time_placeholder()}
 										class="w-full"
 									/>
 								</div>
@@ -705,7 +705,7 @@
 									</Label>
 									<DateTimePicker
 										bind:value={simpleEndTime}
-										placeholder="Pick end time"
+										placeholder={m.event_end_time_placeholder()}
 										class="w-full"
 									/>
 								</div>
@@ -758,14 +758,14 @@
 											<div class="relative">
 												<Input
 													bind:value={window.title}
-													placeholder="Session Title"
+													placeholder={m.event_window_title_placeholder()}
 													class="h-10 border-border/50 bg-muted/30 px-3 font-medium shadow-none focus-visible:bg-background focus-visible:ring-1"
 												/>
 											</div>
 											<div class="relative">
 												<Input
 													bind:value={window.description}
-													placeholder="Optional description"
+													placeholder={m.event_window_description_placeholder()}
 													class="h-10 border-border/50 bg-muted/30 px-3 text-sm text-muted-foreground shadow-none focus-visible:bg-background focus-visible:ring-1"
 												/>
 											</div>
@@ -776,14 +776,14 @@
 												<Label class="text-[10px] text-muted-foreground">Start Time</Label>
 												<DateTimePicker
 													bind:value={window.startTime}
-													placeholder="Pick start time"
+													placeholder={m.event_start_time_placeholder()}
 												/>
 											</div>
 											<div class="space-y-1">
 												<Label class="text-[10px] text-muted-foreground">End Time</Label>
 												<DateTimePicker
 													bind:value={window.endTime}
-													placeholder="Pick end time"
+													placeholder={m.event_end_time_placeholder()}
 												/>
 											</div>
 										</div>
@@ -814,7 +814,7 @@
 				<div class="space-y-3">
 					<div class="flex items-center justify-between">
 						<Label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-							Category
+							{m.event_categories_section()}
 						</Label>
 					</div>
 					<Form.Field {form} name="tags">
@@ -824,7 +824,7 @@
 									<div class="relative">
 										<HugeiconsIcon icon={Search01Icon} size={14} strokeWidth={2} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
 										<Input
-											placeholder="Filter categories..."
+											placeholder={m.event_categories_placeholder()}
 											bind:value={tagSearchQuery}
 											class="h-10 border-border/50 bg-muted/30 pl-9 shadow-none focus-visible:bg-background focus-visible:ring-1"
 										/>
@@ -896,9 +896,9 @@
 				>
 					{#if createEventMutation.isPending || createEventWindowMutation.isPending || createEventImagesMutation.isPending || createWindowImagesMutation.isPending}
 						<HugeiconsIcon icon={Loading03Icon} size={16} strokeWidth={2} className="mr-2 animate-spin" />
-						Creating...
+						{m.event_publishing()}
 					{:else}
-						<span class="mr-2">Publish Event</span>
+						<span class="mr-2">{m.event_publish()}</span>
 						<HugeiconsIcon icon={ArrowRight01Icon} size={16} strokeWidth={2} className="opacity-50" />
 					{/if}
 				</Button>
@@ -910,13 +910,13 @@
 <AlertDialog.Root bind:open={cancelDialogOpen}>
 	<AlertDialog.Content>
 		<AlertDialog.Header>
-			<AlertDialog.Title>Discard changes?</AlertDialog.Title>
+			<AlertDialog.Title>{m.dialog_discard_title()}</AlertDialog.Title>
 			<AlertDialog.Description>
-				Are you sure you want to discard your changes? This action cannot be undone.
+				{m.dialog_discard_description()}
 			</AlertDialog.Description>
 		</AlertDialog.Header>
 		<AlertDialog.Footer>
-			<AlertDialog.Cancel>Keep Editing</AlertDialog.Cancel>
+			<AlertDialog.Cancel>{m.dialog_discard_keep()}</AlertDialog.Cancel>
 			<AlertDialog.Action
 				class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 				onclick={() => {
@@ -928,7 +928,7 @@
 					simpleStartTime = "";
 					simpleEndTime = "";
 					cancelDialogOpen = false;
-				}}>Discard</AlertDialog.Action
+				}}>{m.common_discard()}</AlertDialog.Action
 			>
 		</AlertDialog.Footer>
 	</AlertDialog.Content>

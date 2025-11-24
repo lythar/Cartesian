@@ -18,6 +18,7 @@
 		Cancel01Icon,
 		CheckmarkCircle02Icon
 	} from "@hugeicons/core-free-icons";
+	import { m } from "$lib/paraglide/messages";
 	import {
 		postMediaApiUploadAvatar,
 		putAccountApiMeAvatar,
@@ -84,7 +85,7 @@
 
 		// 5MB limit check (aligned with backend)
 		if (file.size > 5 * 1024 * 1024) {
-			toast.error("Image must be smaller than 5MB");
+			toast.error(m.toast_image_too_large());
 			if (fileInput) fileInput.value = "";
 			return;
 		}
@@ -121,7 +122,7 @@
 				authStore.setUser(userData);
 			}
 
-			toast.success("Profile updated successfully");
+			toast.success(m.toast_profile_updated());
 
 			// Clean up
 			if (previewUrl) {
@@ -132,7 +133,7 @@
 			if (fileInput) fileInput.value = "";
 		} catch (error) {
 			console.error(error);
-			toast.error("Failed to update profile");
+			toast.error(m.toast_profile_update_failed());
 		} finally {
 			isSavingProfile = false;
 		}
@@ -140,14 +141,14 @@
 
 	function handleUpdatePassword() {
 		if (newPassword !== confirmPassword) {
-			toast.error("Passwords do not match");
+			toast.error(m.toast_passwords_dont_match());
 			return;
 		}
 
 		isSavingPassword = true;
 		// Mock API call
 		setTimeout(() => {
-			toast.info("Password update not implemented yet", {
+			toast.info(m.toast_password_update_not_implemented(), {
 				description: "This feature requires backend support."
 			});
 			isSavingPassword = false;
@@ -270,7 +271,7 @@
 							</Label>
 							<Input
 								bind:value={username}
-								placeholder="Your display name"
+								placeholder={m.profile_display_name_placeholder()}
 								class="h-10 border-border/50 bg-muted/30 px-3 font-medium shadow-none transition-all focus-visible:bg-background focus-visible:ring-1"
 							/>
 						</div>
