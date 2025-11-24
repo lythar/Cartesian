@@ -6,6 +6,7 @@
 		createGetMyMembershipsQuery
 	} from "$lib/api/queries/community.query";
 	import { createGetMeQuery } from "$lib/api/queries/user.query";
+	import CommunityChat from "$lib/components/chat/community-chat.svelte";
 	import CommunityHeader from "$lib/components/community/community-header.svelte";
 	import MembersList from "$lib/components/community/members-list.svelte";
 	import { Skeleton } from "$lib/components/ui/skeleton";
@@ -54,9 +55,11 @@
 
 		<div class="grid gap-8 md:grid-cols-3">
 			<div class="md:col-span-2 space-y-8">
-        <div class="rounded-3xl border border-border/40 bg-card p-8 text-center shadow-sm">
-          <p class="text-muted-foreground">Chat activity will appear here.</p>
-        </div>
+				<CommunityChat
+					communityId={communityId ?? ""}
+					{members}
+					{currentUser}
+				/>
 			</div>
 
 			<div class="space-y-8">
