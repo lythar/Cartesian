@@ -67,7 +67,6 @@ public class ChatPinningEndpoints : IEndpoint
         var message = await db.ChatMessages
             .Include(m => m.Author)
             .ThenInclude(a => a!.Avatar)
-            .Include(m => m.Mentions)
             .Include(m => m.Attachments)
             .Include(m => m.Reactions)
             .FirstOrDefaultAsync(m => m.Id == messageId && m.ChannelId == channelId);
@@ -112,7 +111,6 @@ public class ChatPinningEndpoints : IEndpoint
                 CreatedAt = message.CreatedAt,
                 EditedAt = message.EditedAt,
                 IsDeleted = message.IsDeleted,
-                MentionedUserIds = message.Mentions.Select(m => m.UserId).ToList(),
                 AttachmentIds = message.Attachments.Select(a => a.Id).ToList(),
                 ReactionSummary = message.Reactions
                     .GroupBy(r => r.Emoji)
@@ -225,8 +223,6 @@ public class ChatPinningEndpoints : IEndpoint
             .ThenInclude(m => m!.Author)
             .ThenInclude(a => a!.Avatar)
             .Include(p => p.Message)
-            .ThenInclude(m => m!.Mentions)
-            .Include(p => p.Message)
             .ThenInclude(m => m!.Attachments)
             .Include(p => p.Message)
             .ThenInclude(m => m!.Reactions)
@@ -253,7 +249,6 @@ public class ChatPinningEndpoints : IEndpoint
                 CreatedAt = p.Message.CreatedAt,
                 EditedAt = p.Message.EditedAt,
                 IsDeleted = p.Message.IsDeleted,
-                MentionedUserIds = p.Message.Mentions.Select(m => m.UserId).ToList(),
                 AttachmentIds = p.Message.Attachments.Select(a => a.Id).ToList(),
                 ReactionSummary = p.Message.Reactions
                     .GroupBy(r => r.Emoji)

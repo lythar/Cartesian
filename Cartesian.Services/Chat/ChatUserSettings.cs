@@ -8,4 +8,5 @@ public sealed class ChatUserSettings
     public required string UserId { get; init; }
     public CartesianUser? User { get; init; }
     public required bool DirectMessagesEnabled { get; set; }
+    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
 }

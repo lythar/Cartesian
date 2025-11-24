@@ -17,7 +17,6 @@ public class CartesianDbContext : IdentityDbContext<CartesianUser>
     public DbSet<Membership> Memberships { get; set; } = null!;
     public DbSet<ChatChannel> ChatChannels { get; set; } = null!;
     public DbSet<ChatMessage> ChatMessages { get; set; } = null!;
-    public DbSet<ChatMention> ChatMentions { get; set; } = null!;
     public DbSet<ChatMute> ChatMutes { get; set; } = null!;
     public DbSet<ChatUserSettings> ChatUserSettings { get; set; } = null!;
     public DbSet<ChatPinnedMessage> ChatPinnedMessages { get; set; } = null!;
@@ -150,17 +149,7 @@ public class CartesianDbContext : IdentityDbContext<CartesianUser>
                 .WithMany(e => e.Messages);
             entity.HasOne(e => e.Author)
                 .WithMany();
-            entity.HasMany(e => e.Mentions)
-                .WithOne(e => e.Message);
             entity.HasMany(e => e.Attachments)
-                .WithMany();
-        });
-
-        builder.Entity<ChatMention>(entity =>
-        {
-            entity.HasOne(e => e.Message)
-                .WithMany(e => e.Mentions);
-            entity.HasOne(e => e.User)
                 .WithMany();
         });
 

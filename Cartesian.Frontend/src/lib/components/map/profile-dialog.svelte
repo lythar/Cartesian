@@ -25,13 +25,13 @@
 		getAccountApiMe
 	} from "$lib/api";
   import { baseUrl } from "$lib/api/client";
+	import ChangePasswordForm from "$lib/components/auth/change-password-form.svelte";
 
 	let { open = $bindable(false) } = $props();
 
 	const auth = $derived($authStore);
 	let isLoadingAvatar = $state(false);
 	let isSavingProfile = $state(false);
-	let isSavingPassword = $state(false);
 	let fileInput = $state<HTMLInputElement | null>(null);
 
 	// Profile Form State
@@ -39,19 +39,11 @@
 	let selectedFile = $state<File | null>(null);
 	let previewUrl = $state<string | null>(null);
 
-	// Password Form State
-	let currentPassword = $state("");
-	let newPassword = $state("");
-	let confirmPassword = $state("");
-
 	$effect(() => {
 		if (open && auth.user) {
 			username = auth.user.name;
 			selectedFile = null;
 			previewUrl = null;
-			currentPassword = "";
-			newPassword = "";
-			confirmPassword = "";
 		}
 	});
 
@@ -136,22 +128,6 @@
 		} finally {
 			isSavingProfile = false;
 		}
-	}
-
-	function handleUpdatePassword() {
-		if (newPassword !== confirmPassword) {
-			toast.error("Passwords do not match");
-			return;
-		}
-
-		isSavingPassword = true;
-		// Mock API call
-		setTimeout(() => {
-			toast.info("Password update not implemented yet", {
-				description: "This feature requires backend support."
-			});
-			isSavingPassword = false;
-		}, 800);
 	}
 </script>
 
@@ -325,58 +301,7 @@
 						</div>
 					</div>
 
-					<div class="space-y-4">
-						<div class="space-y-3">
-							<Label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-								Current Password
-							</Label>
-							<Input
-								type="password"
-								bind:value={currentPassword}
-								class="h-10 border-border/50 bg-muted/30 px-3 shadow-none transition-all focus-visible:bg-background focus-visible:ring-1"
-							/>
-						</div>
-
-						<div class="grid gap-4 sm:grid-cols-2">
-							<div class="space-y-3">
-								<Label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-									New Password
-								</Label>
-								<Input
-									type="password"
-									bind:value={newPassword}
-									class="h-10 border-border/50 bg-muted/30 px-3 shadow-none transition-all focus-visible:bg-background focus-visible:ring-1"
-								/>
-							</div>
-
-							<div class="space-y-3">
-								<Label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-									Confirm Password
-								</Label>
-								<Input
-									type="password"
-									bind:value={confirmPassword}
-									class="h-10 border-border/50 bg-muted/30 px-3 shadow-none transition-all focus-visible:bg-background focus-visible:ring-1"
-								/>
-							</div>
-						</div>
-					</div>
-
-					<div class="flex justify-end pt-2">
-						<Button
-							onclick={handleUpdatePassword}
-							disabled={isSavingPassword}
-							class="rounded-xl bg-primary font-medium shadow-lg shadow-primary/20 transition-all hover:shadow-primary/30 active:scale-[0.98]"
-						>
-							{#if isSavingPassword}
-								<HugeiconsIcon icon={Loading03Icon} className="mr-2 size-4 animate-spin" />
-								Updating...
-							{:else}
-								<HugeiconsIcon icon={CheckmarkCircle02Icon} className="mr-2 size-4" />
-								Update Password
-							{/if}
-						</Button>
-					</div>
+					<ChangePasswordForm />
 				</Tabs.Content>
 			</div>
 		</Tabs.Root>
