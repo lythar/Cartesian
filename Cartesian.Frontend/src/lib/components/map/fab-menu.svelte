@@ -12,21 +12,26 @@
 
 <LoginAlertDialog bind:open={loginAlertOpen} />
 
-<div class="absolute bottom-8 right-8 z-20 flex flex-col items-end gap-3">
+<div class="absolute right-8 bottom-8 z-20 flex flex-col items-end gap-3">
 	<Button
 		variant="default"
 		size="lg"
-    onclick={() => {
+		onclick={() => {
 			if (!$authStore.isAuthenticated) {
 				loginAlertOpen = true;
 				return;
 			}
-      newEventOverlayState.open = true;
-      newEventOverlayState.source = "create";
-    }}
-		class={cn("shadow-2xl transition-all duration-200", newEventOverlayState.open ? "scale-0 opacity-0 pointer-events-none" : "scale-100 opacity-100")}
+			newEventOverlayState.open = true;
+			newEventOverlayState.source = "create";
+		}}
+		class={cn(
+			"shadow-2xl transition-all duration-200",
+			newEventOverlayState.open
+				? "pointer-events-none scale-0 opacity-0"
+				: "scale-100 opacity-100",
+		)}
 	>
-    <HugeiconsIcon icon={PlusSignIcon} size={24} strokeWidth={2} />
-    <span class="font-bold">Create an Event</span>
-  </Button>
+		<HugeiconsIcon icon={PlusSignIcon} size={24} strokeWidth={2} />
+		<span class="font-bold">Create an Event</span>
+	</Button>
 </div>

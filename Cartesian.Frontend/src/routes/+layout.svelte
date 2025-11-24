@@ -9,11 +9,10 @@
 	import { authStore } from "$lib/stores/auth.svelte";
 	import { getAccountApiMe } from "$lib/api";
 
-
 	let { children } = $props();
 
 	onNavigate((navigation) => {
-		if(!document.startViewTransition) return;
+		if (!document.startViewTransition) return;
 
 		return new Promise((resolve) => {
 			document.startViewTransition(async () => {
@@ -21,7 +20,7 @@
 				await navigation.complete;
 			});
 		});
-	})
+	});
 
 	onMount(async () => {
 		try {

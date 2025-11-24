@@ -13,12 +13,12 @@
 		Bookmark02Icon,
 		UserIcon,
 		CheckmarkCircle02Icon,
-		Search01Icon
+		Search01Icon,
 	} from "@hugeicons/core-free-icons";
 	import {
 		createGetEventApiFavorites,
 		createGetEventApiMy,
-		createGetEventApiParticipating
+		createGetEventApiParticipating,
 	} from "$lib/api";
 	import type { EventDto, EventWindowDto } from "$lib/api";
 	import { mapInteractionState } from "./map-state.svelte";
@@ -57,7 +57,7 @@
 			processed = processed.filter(
 				(e) =>
 					e.name.toLowerCase().includes(lowerQuery) ||
-					e.description.toLowerCase().includes(lowerQuery)
+					e.description.toLowerCase().includes(lowerQuery),
 			);
 		}
 
@@ -129,7 +129,7 @@
 			tags: event.tags,
 			startTime: (window?.startTime as string) ?? "",
 			endTime: (window?.endTime as string) ?? "",
-			createdAt: ""
+			createdAt: "",
 		};
 
 		mapInteractionState.eventDetailsOpen = true;
@@ -139,29 +139,29 @@
 
 {#snippet eventCard(event: EventDto)}
 	<button
-		class="flex w-full gap-4 rounded-2xl border border-border/40 bg-muted/20 p-4 text-left transition-all hover:bg-muted/40 hover:border-primary/20 group items-start"
+		class="group flex w-full items-start gap-4 rounded-2xl border border-border/40 bg-muted/20 p-4 text-left transition-all hover:border-primary/20 hover:bg-muted/40"
 		onclick={() => handleEventClick(event)}
 	>
 		<!-- Avatar Image -->
-		<Avatar.Root class="size-12 rounded-xl border border-border/50 shadow-sm shrink-0">
+		<Avatar.Root class="size-12 shrink-0 rounded-xl border border-border/50 shadow-sm">
 			<Avatar.Image
 				src={getAvatarUrl(event.community?.avatar ?? event.author.avatar)}
 				alt={event.community?.name ?? event.author.name}
 				class="object-cover"
 			/>
-			<Avatar.Fallback class="rounded-xl bg-background text-primary/80 font-semibold text-sm">
+			<Avatar.Fallback class="rounded-xl bg-background text-sm font-semibold text-primary/80">
 				{getInitials(event.community?.name ?? event.author.name)}
 			</Avatar.Fallback>
 		</Avatar.Root>
 
-		<div class="flex-1 min-w-0 flex flex-col gap-1">
+		<div class="flex min-w-0 flex-1 flex-col gap-1">
 			<!-- Title & Time Badge -->
-			<div class="flex justify-between items-start gap-2">
-				<h4 class="font-semibold text-base leading-tight truncate pr-2">{event.name}</h4>
+			<div class="flex items-start justify-between gap-2">
+				<h4 class="truncate pr-2 text-base leading-tight font-semibold">{event.name}</h4>
 				{#if isUpcomingSoon(event)}
 					<Badge
 						variant="secondary"
-						class="h-5 px-1.5 text-[10px] font-medium bg-primary/10 text-primary hover:bg-primary/20 border-primary/20 shrink-0 whitespace-nowrap"
+						class="h-5 shrink-0 border-primary/20 bg-primary/10 px-1.5 text-[10px] font-medium whitespace-nowrap text-primary hover:bg-primary/20"
 					>
 						{formatEventTimeRelative(event)}
 					</Badge>
@@ -170,7 +170,7 @@
 
 			<!-- Meta Info -->
 			<div
-				class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground/80 mt-0.5"
+				class="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground/80"
 			>
 				<!-- Date -->
 				<div class="flex items-center gap-1">
@@ -178,8 +178,11 @@
 					<span>{formatEventTimeAbsolute(event)}</span>
 				</div>
 				<!-- Host -->
-				<div class="flex items-center gap-1 truncate max-w-[150px]">
-					<HugeiconsIcon icon={event.community ? UserIcon : UserIcon} className="size-3.5" />
+				<div class="flex max-w-[150px] items-center gap-1 truncate">
+					<HugeiconsIcon
+						icon={event.community ? UserIcon : UserIcon}
+						className="size-3.5"
+					/>
 					<span class="truncate">
 						{event.community ? event.community.name : event.author.name}
 					</span>
@@ -188,24 +191,24 @@
 
 			<!-- Description -->
 			{#if event.description}
-				<p class="text-sm text-muted-foreground line-clamp-2 mt-1.5 leading-relaxed">
+				<p class="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
 					{event.description}
 				</p>
 			{/if}
 
 			<!-- Tags -->
 			{#if event.tags && event.tags.length > 0}
-				<div class="flex gap-1.5 mt-2 flex-wrap">
+				<div class="mt-2 flex flex-wrap gap-1.5">
 					{#each event.tags.slice(0, 3) as tag}
 						<span
-							class="inline-flex items-center rounded-md bg-muted/50 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground ring-1 ring-inset ring-border/50"
+							class="inline-flex items-center rounded-md bg-muted/50 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground ring-1 ring-border/50 ring-inset"
 						>
 							{tag}
 						</span>
 					{/each}
 					{#if event.tags.length > 3}
 						<span
-							class="inline-flex items-center rounded-md bg-muted/50 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground ring-1 ring-inset ring-border/50"
+							class="inline-flex items-center rounded-md bg-muted/50 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground ring-1 ring-border/50 ring-inset"
 						>
 							+{event.tags.length - 3}
 						</span>
@@ -218,17 +221,19 @@
 
 <Dialog.Root bind:open>
 	<Dialog.Content
-		class="max-w-[500px] h-[600px] gap-0 overflow-hidden rounded-3xl border border-border/40 bg-background/95 p-0 shadow-2xl backdrop-blur-xl md:max-w-[600px] flex flex-col"
+		class="flex h-[600px] max-w-[500px] flex-col gap-0 overflow-hidden rounded-3xl border border-border/40 bg-background/95 p-0 shadow-2xl backdrop-blur-xl md:max-w-[600px]"
 		showCloseButton={false}
 	>
-		<div class="flex flex-col border-b border-border/10 px-6 py-4 flex-none gap-4">
+		<div class="flex flex-none flex-col gap-4 border-b border-border/10 px-6 py-4">
 			<div class="flex items-center justify-between">
 				<div class="flex items-center gap-3">
 					<div class="rounded-full bg-primary/10 p-2 text-primary">
 						<HugeiconsIcon icon={Calendar03Icon} className="size-5" />
 					</div>
 					<div>
-						<Dialog.Title class="text-xl font-semibold tracking-tight">Events</Dialog.Title>
+						<Dialog.Title class="text-xl font-semibold tracking-tight"
+							>Events</Dialog.Title
+						>
 						<Dialog.Description class="text-xs font-medium text-muted-foreground">
 							Manage your events and schedule
 						</Dialog.Description>
@@ -251,14 +256,14 @@
 				/>
 				<Input
 					placeholder="Search events..."
-					class="pl-9 bg-muted/20 border-border/40"
+					class="border-border/40 bg-muted/20 pl-9"
 					bind:value={searchQuery}
 				/>
 			</div>
 		</div>
 
-		<Tabs.Root value="favorites" class="flex flex-col flex-1 overflow-hidden">
-			<div class="px-6 pt-4 flex-none">
+		<Tabs.Root value="favorites" class="flex flex-1 flex-col overflow-hidden">
+			<div class="flex-none px-6 pt-4">
 				<Tabs.List class="flex w-full items-center rounded-xl bg-muted/30 p-1">
 					<Tabs.Trigger
 						value="favorites"
@@ -288,12 +293,17 @@
 				<Tabs.Content value="favorites" class="mt-0 h-full">
 					{#if favoritesQuery.isLoading}
 						<div class="flex h-full items-center justify-center">
-							<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+							<div
+								class="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"
+							></div>
 						</div>
 					{:else if processedFavorites.length === 0}
 						<Empty.Root class="h-full border-0">
 							<Empty.Media>
-								<HugeiconsIcon icon={Bookmark02Icon} className="size-10 text-muted-foreground/50" />
+								<HugeiconsIcon
+									icon={Bookmark02Icon}
+									className="size-10 text-muted-foreground/50"
+								/>
 							</Empty.Media>
 							<div class="space-y-1">
 								<Empty.Title>No favorited events</Empty.Title>
@@ -316,12 +326,17 @@
 				<Tabs.Content value="created" class="mt-0 h-full">
 					{#if myEventsQuery.isLoading}
 						<div class="flex h-full items-center justify-center">
-							<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+							<div
+								class="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"
+							></div>
 						</div>
 					{:else if processedMyEvents.length === 0}
 						<Empty.Root class="h-full border-0">
 							<Empty.Media>
-								<HugeiconsIcon icon={UserIcon} className="size-10 text-muted-foreground/50" />
+								<HugeiconsIcon
+									icon={UserIcon}
+									className="size-10 text-muted-foreground/50"
+								/>
 							</Empty.Media>
 							<div class="space-y-1">
 								<Empty.Title>No created events</Empty.Title>
@@ -344,12 +359,17 @@
 				<Tabs.Content value="attending" class="mt-0 h-full">
 					{#if participatingQuery.isLoading}
 						<div class="flex h-full items-center justify-center">
-							<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+							<div
+								class="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"
+							></div>
 						</div>
 					{:else if processedParticipating.length === 0}
 						<Empty.Root class="h-full border-0">
 							<Empty.Media>
-								<HugeiconsIcon icon={CheckmarkCircle02Icon} className="size-10 text-muted-foreground/50" />
+								<HugeiconsIcon
+									icon={CheckmarkCircle02Icon}
+									className="size-10 text-muted-foreground/50"
+								/>
 							</Empty.Media>
 							<div class="space-y-1">
 								<Empty.Title>No attending events</Empty.Title>

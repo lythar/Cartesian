@@ -34,13 +34,13 @@
 		children,
 		...restProps
 	}: {
-        ref?: HTMLElement | null;
-        href?: string;
-        class?: string;
-        variant?: BadgeVariant;
-        children?: import("svelte").Snippet;
-        [key: string]: any;
-    } = $props();
+		ref?: HTMLElement | null;
+		href?: string;
+		class?: string;
+		variant?: BadgeVariant;
+		children?: import("svelte").Snippet;
+		[key: string]: any;
+	} = $props();
 </script>
 
 <svelte:element

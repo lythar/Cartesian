@@ -1,7 +1,11 @@
 <script lang="ts">
 	import mapboxgl from "mapbox-gl";
 	import { onMount } from "svelte";
-	import { Navigation03Icon, Navigation04Icon, Navigation06Icon } from "@hugeicons/core-free-icons";
+	import {
+		Navigation03Icon,
+		Navigation04Icon,
+		Navigation06Icon,
+	} from "@hugeicons/core-free-icons";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import { Button } from "$lib/components/ui/button";
 	import { geolocateControl, geolocateState, navigationMode } from "./map-state.svelte";
@@ -12,23 +16,21 @@
 
 	let { map }: Props = $props();
 
-
 	onMount(() => {
 		geolocateControl.on("geolocate", (e) => {
-      if(navigationMode.enabled && geolocateState.state === "active") {
-
-      }
-      console.log('Geolocation event triggered');
+			if (navigationMode.enabled && geolocateState.state === "active") {
+			}
+			console.log("Geolocation event triggered");
 		});
 
 		geolocateControl.on("trackuserlocationstart", () => {
 			geolocateState.state = "active";
-      console.log('User location tracking started');
+			console.log("User location tracking started");
 		});
 
 		geolocateControl.on("trackuserlocationend", () => {
 			geolocateState.state = "passive";
-      console.log('User location tracking ended');
+			console.log("User location tracking ended");
 		});
 
 		geolocateControl.on("error", () => {
@@ -47,7 +49,6 @@
 			}
 		};
 	});
-
 </script>
 
 <!-- {#if geolocateState.state === "passive"}

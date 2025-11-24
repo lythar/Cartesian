@@ -5949,3 +5949,88 @@ export function createGetAccountApiVerify<
 
 	return query;
 }
+
+export interface ChangePasswordRequest {
+	oldPassword: string;
+	newPassword: string;
+}
+
+export const postAccountApiChangePassword = (
+	changePasswordRequest: ChangePasswordRequest,
+	signal?: AbortSignal,
+) => {
+	return customInstance<void>({
+		url: `/account/api/change-password`,
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		data: changePasswordRequest,
+		signal,
+	});
+};
+
+export const getPostAccountApiChangePasswordMutationOptions = <
+	TError = ErrorType<ValidationError | CartesianIdentityError | InvalidCredentialsError>,
+	TContext = unknown,
+>(options?: {
+	mutation?: CreateMutationOptions<
+		Awaited<ReturnType<typeof postAccountApiChangePassword>>,
+		TError,
+		{ data: ChangePasswordRequest },
+		TContext
+	>;
+}): CreateMutationOptions<
+	Awaited<ReturnType<typeof postAccountApiChangePassword>>,
+	TError,
+	{ data: ChangePasswordRequest },
+	TContext
+> => {
+	const mutationKey = ["postAccountApiChangePassword"];
+	const { mutation: mutationOptions } = options
+		? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey } };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof postAccountApiChangePassword>>,
+		{ data: ChangePasswordRequest }
+	> = (props) => {
+		const { data } = props ?? {};
+
+		return postAccountApiChangePassword(data);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PostAccountApiChangePasswordMutationResult = NonNullable<
+	Awaited<ReturnType<typeof postAccountApiChangePassword>>
+>;
+export type PostAccountApiChangePasswordMutationBody = ChangePasswordRequest;
+export type PostAccountApiChangePasswordMutationError = ErrorType<
+	ValidationError | CartesianIdentityError | InvalidCredentialsError
+>;
+
+export const createPostAccountApiChangePassword = <
+	TError = ErrorType<ValidationError | CartesianIdentityError | InvalidCredentialsError>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: CreateMutationOptions<
+			Awaited<ReturnType<typeof postAccountApiChangePassword>>,
+			TError,
+			{ data: ChangePasswordRequest },
+			TContext
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateMutationResult<
+	Awaited<ReturnType<typeof postAccountApiChangePassword>>,
+	TError,
+	{ data: ChangePasswordRequest },
+	TContext
+> => {
+	const mutationOptions = getPostAccountApiChangePasswordMutationOptions(options);
+
+	return createMutation(() => ({ ...mutationOptions, queryClient }));
+};
