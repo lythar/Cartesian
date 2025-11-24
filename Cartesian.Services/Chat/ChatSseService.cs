@@ -33,7 +33,6 @@ public sealed class ChatSseService
             CreatedAt = message.CreatedAt,
             EditedAt = message.EditedAt,
             IsDeleted = message.IsDeleted,
-            MentionedUserIds = message.Mentions.Select(m => m.UserId).ToList(),
             AttachmentIds = message.Attachments.Select(a => a.Id).ToList()
         });
 
@@ -115,7 +114,6 @@ public sealed record ChatMessageDto
     public required DateTime CreatedAt { get; init; }
     public DateTime? EditedAt { get; init; }
     public required bool IsDeleted { get; init; }
-    public required List<string> MentionedUserIds { get; init; }
     public required List<Guid> AttachmentIds { get; init; }
     public List<ReactionSummaryDto>? ReactionSummary { get; init; }
 }

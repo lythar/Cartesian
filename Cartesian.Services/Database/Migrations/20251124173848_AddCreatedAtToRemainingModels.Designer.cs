@@ -3,6 +3,7 @@ using System;
 using Cartesian.Services.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Cartesian.Services.Database.Migrations
 {
     [DbContext(typeof(CartesianDbContext))]
-    partial class CartesianDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251124173848_AddCreatedAtToRemainingModels")]
+    partial class AddCreatedAtToRemainingModels
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -132,6 +135,31 @@ namespace Cartesian.Services.Database.Migrations
                     b.HasIndex("Participant2Id");
 
                     b.ToTable("ChatChannels");
+                });
+
+            modelBuilder.Entity("Cartesian.Services.Chat.ChatMention", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("MessageId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MessageId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ChatMentions");
                 });
 
             modelBuilder.Entity("Cartesian.Services.Chat.ChatMessage", b =>
@@ -720,6 +748,25 @@ namespace Cartesian.Services.Database.Migrations
                     b.Navigation("Participant2");
                 });
 
+            modelBuilder.Entity("Cartesian.Services.Chat.ChatMention", b =>
+                {
+                    b.HasOne("Cartesian.Services.Chat.ChatMessage", "Message")
+                        .WithMany("Mentions")
+                        .HasForeignKey("MessageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Cartesian.Services.Account.CartesianUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Message");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Cartesian.Services.Chat.ChatMessage", b =>
                 {
                     b.HasOne("Cartesian.Services.Account.CartesianUser", "Author")
@@ -1029,6 +1076,8 @@ namespace Cartesian.Services.Database.Migrations
 
             modelBuilder.Entity("Cartesian.Services.Chat.ChatMessage", b =>
                 {
+                    b.Navigation("Mentions");
+
                     b.Navigation("PinnedIn");
 
                     b.Navigation("Reactions");

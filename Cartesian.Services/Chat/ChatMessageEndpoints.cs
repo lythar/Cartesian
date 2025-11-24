@@ -98,19 +98,6 @@ public class ChatMessageEndpoints : IEndpoint
             CreatedAt = DateTime.UtcNow
         };
 
-        if (req.MentionedUserIds?.Count > 0)
-        {
-            foreach (var mentionedUserId in req.MentionedUserIds.Distinct())
-            {
-                message.Mentions.Add(new ChatMention
-                {
-                    Id = Guid.NewGuid(),
-                    MessageId = message.Id,
-                    UserId = mentionedUserId
-                });
-            }
-        }
-
         if (req.AttachmentIds?.Count > 0)
         {
             var attachments = await db.Media
@@ -136,7 +123,6 @@ public class ChatMessageEndpoints : IEndpoint
             CreatedAt = message.CreatedAt,
             EditedAt = message.EditedAt,
             IsDeleted = message.IsDeleted,
-            MentionedUserIds = message.Mentions.Select(m => m.UserId).ToList(),
             AttachmentIds = message.Attachments.Select(a => a.Id).ToList(),
             ReactionSummary = []
         });
@@ -206,7 +192,6 @@ public class ChatMessageEndpoints : IEndpoint
 
         var query = db.ChatMessages
             .Where(m => m.ChannelId == channelId && !m.IsDeleted)
-            .Include(m => m.Mentions)
             .Include(m => m.Attachments)
             .Include(m => m.Reactions)
             .ThenInclude(r => r.User)
@@ -237,7 +222,6 @@ public class ChatMessageEndpoints : IEndpoint
             CreatedAt = m.CreatedAt,
             EditedAt = m.EditedAt,
             IsDeleted = m.IsDeleted,
-            MentionedUserIds = m.Mentions.Select(x => x.UserId).ToList(),
             AttachmentIds = m.Attachments.Select(a => a.Id).ToList(),
             ReactionSummary = m.Reactions
                 .GroupBy(r => r.Emoji)
@@ -439,7 +423,7 @@ public class ChatMessageEndpoints : IEndpoint
         return Results.Ok(new GetChannelsResponse(allChannels));
     }
 
-    public record SendMessageRequest(string Content, List<string>? MentionedUserIds, List<Guid>? AttachmentIds);
+    public record SendMessageRequest(string Content, List<Guid>? AttachmentIds);
     public record GetMessagesResponse(List<ChatMessageDto> Messages, bool HasMore);
     public record ChatChannelDto(Guid Id, ChatChannelType Type, bool IsEnabled, string? Participant1Id, string? Participant2Id, Guid? CommunityId, Guid? EventId);
     public record GetChannelsResponse(List<ChannelListItemDto> Channels);
