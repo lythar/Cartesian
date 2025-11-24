@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { createGetEventApiEventIdImages, createGetEventApiEventId, createGetEventApiEventIdFavorite, createPostEventApiEventIdFavorite, createDeleteEventApiEventIdFavorite } from "$lib/api/cartesian-client";
+    import { createGetEventApiEventIdImages, createGetEventApiEventId, createGetEventApiEventIdFavorite, createPostEventApiEventIdFavorite, createDeleteEventApiEventIdFavorite, createGetAccountApiMe, createPostEventApiEventIdParticipate, createDeleteEventApiEventIdParticipate } from "$lib/api/cartesian-client";
     import { createReverseGeocodeQuery } from "$lib/api/queries/forward-geocode.query";
     import type { MapEventProperties } from "./map-state.svelte";
     import * as Carousel from "$lib/components/ui/carousel";
@@ -50,7 +50,20 @@
     let remainingTags = $derived(tags.length - 6);
     let showAllTags = $state(false);
 
-    let isParticipating = $state(false);
+    const meQuery = createGetAccountApiMe();
+    let isParticipating = $derived(eventDetails?.participants?.some(p => p.id === meQuery.data?.id) ?? false);
+
+    const participateMutation = createPostEventApiEventIdParticipate();
+    const unparticipateMutation = createDeleteEventApiEventIdParticipate();
+
+    async function toggleParticipation() {
+        if (isParticipating) {
+            await unparticipateMutation.mutateAsync({ eventId: event.eventId });
+        } else {
+            await participateMutation.mutateAsync({ eventId: event.eventId });
+        }
+        await eventDetailsQuery.refetch();
+    }
 
     function shareEvent() {
         const url = new URL($page.url);
@@ -150,7 +163,8 @@
             <Button
                 variant={isParticipating ? "outline" : "default"}
                 class="flex-1"
-                onclick={() => (isParticipating = !isParticipating)}
+                onclick={toggleParticipation}
+                disabled={participateMutation.isPending || unparticipateMutation.isPending}
             >
                 {isParticipating ? "Don't participate" : "Participate in event"}
             </Button>
