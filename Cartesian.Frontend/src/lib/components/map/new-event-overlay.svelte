@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { cn } from "$lib/utils";
+	import { toast } from "svelte-sonner";
 	import { animate } from "motion";
 	import { newEventOverlayState } from "./map-state.svelte";
 	import { Effect } from "effect";
@@ -300,6 +301,7 @@
 						await Effect.runPromise(allWindowsEffect);
 					}
 
+					toast.success("Event published successfully");
 					newEventOverlayState.open = false;
 					newEventOverlayState.location = null;
 					f.data = initialData;

@@ -3,6 +3,7 @@
 	import { queryClient } from "$lib/api";
 	import "../app.css";
 	import { ModeWatcher } from "mode-watcher";
+	import { Toaster } from "$lib/components/ui/sonner";
 	import { onMount } from "svelte";
 	import { onNavigate } from "$app/navigation";
 	import { authStore } from "$lib/stores/auth.svelte";
@@ -35,6 +36,7 @@
 
 <QueryClientProvider client={queryClient}>
 	<ModeWatcher />
+	<Toaster />
 
 	<div
 		class="dark min-h-screen overflow-x-hidden bg-background font-sans text-foreground antialiased selection:bg-white/20 selection:text-white"
