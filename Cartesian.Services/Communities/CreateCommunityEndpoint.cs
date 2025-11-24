@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Cartesian.Services.Account;
+using Cartesian.Services.Chat;
 using Cartesian.Services.Database;
 using Cartesian.Services.Endpoints;
 using Microsoft.AspNetCore.Identity;
@@ -37,8 +38,18 @@ public class CreateCommunityEndpoint : IEndpoint
             Permissions = Permissions.Owner
         };
 
+        var channel = new ChatChannel
+        {
+            Id = Guid.NewGuid(),
+            Type = ChatChannelType.Community,
+            CommunityId = community.Id,
+            CreatedAt = DateTime.UtcNow,
+            IsEnabled = true
+        };
+
         await dbContext.AddAsync(community);
         await dbContext.AddAsync(membership);
+        await dbContext.AddAsync(channel);
         await dbContext.SaveChangesAsync();
 
         return Results.Ok(community.ToDto());

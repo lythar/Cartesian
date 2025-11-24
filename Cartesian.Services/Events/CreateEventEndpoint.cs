@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Cartesian.Services.Account;
+using Cartesian.Services.Chat;
 using Cartesian.Services.Communities;
 using Cartesian.Services.Database;
 using Cartesian.Services.Endpoints;
@@ -99,7 +100,17 @@ public class CreateEventEndpoint : IEndpoint
             }).ToList();
         }
 
+        var channel = new ChatChannel
+        {
+            Id = Guid.NewGuid(),
+            Type = ChatChannelType.Event,
+            EventId = newEvent.Id,
+            CreatedAt = DateTime.UtcNow,
+            IsEnabled = true
+        };
+
         await dbContext.AddAsync(newEvent);
+        await dbContext.AddAsync(channel);
         await dbContext.SaveChangesAsync();
 
         return Results.Ok(newEvent.ToDto());

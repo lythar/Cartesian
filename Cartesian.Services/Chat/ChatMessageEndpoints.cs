@@ -396,6 +396,7 @@ public class ChatMessageEndpoints : IEndpoint
         // Get community channels where user is a member
         var communityChannels = await db.ChatChannels
             .Include(c => c.Community)
+            .ThenInclude(comm => comm!.Memberships)
             .Where(c => c.Type == ChatChannelType.Community &&
                         c.Community != null &&
                         c.Community.Memberships.Any(m => m.UserId == userId))
@@ -406,7 +407,7 @@ public class ChatMessageEndpoints : IEndpoint
                 c.Community!.Name,
                 c.Community.Id,
                 null,
-                null,
+                c.Community.CreatedAt,
                 c.CreatedAt
             ))
             .ToListAsync();
