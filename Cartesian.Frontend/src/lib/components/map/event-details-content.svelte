@@ -15,6 +15,7 @@
 	import { editEventOverlayState } from "./map-state.svelte";
 	import * as Carousel from "$lib/components/ui/carousel";
 	import * as AlertDialog from "$lib/components/ui/alert-dialog";
+	import LoginAlertDialog from "$lib/components/auth/login-alert-dialog.svelte";
 	import * as Tooltip from "$lib/components/ui/tooltip";
 	import { Button } from "$lib/components/ui/button";
 	import {
@@ -92,6 +93,11 @@
 	const unparticipateMutation = createDeleteEventApiEventIdParticipate();
 
 	async function toggleParticipation() {
+		if (!meQuery.data) {
+			loginAlertDescription = "You need to sign up or log in to participate in an event.";
+			loginAlertOpen = true;
+			return;
+		}
 		if (isParticipating) {
 			await unparticipateMutation.mutateAsync({ eventId: event.eventId });
 		} else {
@@ -114,6 +120,11 @@
 	const unfavoriteMutation = createDeleteEventApiEventIdFavorite();
 
 	async function toggleFavorite() {
+		if (!meQuery.data) {
+			loginAlertDescription = "You need to sign up or log in to favorite an event.";
+			loginAlertOpen = true;
+			return;
+		}
 		if (isFavorited) {
 			await unfavoriteMutation.mutateAsync({ eventId: event.eventId });
 		} else {
@@ -123,6 +134,8 @@
 	}
 
 	let deleteDialogOpen = $state(false);
+	let loginAlertOpen = $state(false);
+	let loginAlertDescription = $state("");
 	const deleteEventMutation = createDeleteEventApiEventId();
 
 	async function handleDeleteEvent() {
@@ -465,6 +478,8 @@
 		</div>
 	{/if}
 </div>
+
+<LoginAlertDialog bind:open={loginAlertOpen} description={loginAlertDescription} />
 
 <AlertDialog.Root bind:open={deleteDialogOpen}>
 	<AlertDialog.Content>

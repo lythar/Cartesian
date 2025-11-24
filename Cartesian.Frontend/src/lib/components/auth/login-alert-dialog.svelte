@@ -3,15 +3,19 @@
 	import { Button } from "$lib/components/ui/button";
 	import { goto } from "$app/navigation";
 
-	let { open = $bindable(false) }: { open: boolean } = $props();
+	let {
+		open = $bindable(false),
+		title = "Account Required",
+		description = "You need to sign up before you can create an event."
+	}: { open: boolean; title?: string; description?: string } = $props();
 </script>
 
 <AlertDialog.Root bind:open>
 	<AlertDialog.Content>
 		<AlertDialog.Header>
-			<AlertDialog.Title>Account Required</AlertDialog.Title>
+			<AlertDialog.Title>{title}</AlertDialog.Title>
 			<AlertDialog.Description>
-				You need to sign up before you can create an event.
+				{description}
 			</AlertDialog.Description>
 		</AlertDialog.Header>
 		<AlertDialog.Footer>
