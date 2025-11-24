@@ -90,7 +90,7 @@
 
 			<div class="hero-text z-40 pt-4 opacity-0">
 				<Button
-					href="/app/map"
+					href="/app"
 					size="lg"
 					class="group relative h-14 overflow-hidden rounded-full border-none bg-white px-8 text-zinc-950 shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] transition-all duration-500 hover:bg-zinc-200"
 				>

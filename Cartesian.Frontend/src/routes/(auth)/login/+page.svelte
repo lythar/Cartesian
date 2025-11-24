@@ -21,7 +21,7 @@
 					const userData = await getAccountApiMe();
 					authStore.setUser(userData);
 					errorMessage = null;
-					goto("/app/map");
+					goto("/app");
 				} catch (error) {
 					console.error("Failed to fetch user data:", error);
 					errorMessage = "Login successful but failed to fetch user data";
