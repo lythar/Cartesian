@@ -2,6 +2,9 @@ using Cartesian.Services.Database;
 using Cartesian.Services.Endpoints;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+using Cartesian.Services.Account;
+using Microsoft.AspNetCore.Identity;
 
 namespace Cartesian.Services.Events;
 
@@ -10,6 +13,12 @@ public class EventQueryEndpoints : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("/event/api/list", GetEventList)
+            .AddEndpointFilter<ValidationFilter>()
+            .Produces(200, typeof(IEnumerable<EventDto>))
+            .Produces(400, typeof(ValidationError));
+
+        app.MapGet("/event/api/my", GetMyEvents)
+            .RequireAuthorization()
             .AddEndpointFilter<ValidationFilter>()
             .Produces(200, typeof(IEnumerable<EventDto>))
             .Produces(400, typeof(ValidationError));
@@ -37,6 +46,29 @@ public class EventQueryEndpoints : IEndpoint
         }
 
         return Results.Ok(@event.ToDto());
+    }
+
+    async Task<IResult> GetMyEvents(CartesianDbContext dbContext, UserManager<CartesianUser> userManager, ClaimsPrincipal principal, [AsParameters] GetMyEventsRequest req)
+    {
+        var userId = userManager.GetUserId(principal);
+        if (userId == null) return Results.Unauthorized();
+
+        var events = await dbContext.Events
+            .Include(e => e.Windows)
+            .Include(e => e.Participants)
+            .ThenInclude(p => p.Avatar)
+            .Include(e => e.Author)
+            .ThenInclude(u => u.Avatar)
+            .Include(e => e.Community)
+            .ThenInclude(c => c!.Avatar)
+            .Where(e => e.AuthorId == userId)
+            .OrderByDescending(c => c.CreatedAt)
+            .Skip(req.Skip)
+            .Take(req.Limit)
+            .Select(e => e.ToDto())
+            .ToArrayAsync();
+
+        return Results.Ok(events);
     }
 
     async Task<IResult> GetEventList(CartesianDbContext dbContext, [AsParameters] GetEventListRequest req)
@@ -107,6 +139,10 @@ public class EventQueryEndpoints : IEndpoint
         [FromQuery(Name = "timing")] EventTiming? Timing,
         [FromQuery(Name = "startDate")] DateTime? StartDate,
         [FromQuery(Name = "endDate")] DateTime? EndDate,
+        [FromQuery(Name = "limit")] int Limit = 50,
+        [FromQuery(Name = "skip")] int Skip = 0);
+
+    public record GetMyEventsRequest(
         [FromQuery(Name = "limit")] int Limit = 50,
         [FromQuery(Name = "skip")] int Skip = 0);
 }

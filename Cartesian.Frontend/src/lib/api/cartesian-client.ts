@@ -622,6 +622,17 @@ export type GetEventApiListParams = {
 	skip?: number | string;
 };
 
+export type GetEventApiMyParams = {
+	/**
+	 * @pattern ^-?(?:0|[1-9]\d*)$
+	 */
+	limit?: number | string;
+	/**
+	 * @pattern ^-?(?:0|[1-9]\d*)$
+	 */
+	skip?: number | string;
+};
+
 export type PostCommunityApiCommunityIdImagesBody = {
 	file: IFormFile;
 };
@@ -1592,6 +1603,68 @@ export function createGetEventApiList<
 	queryClient?: QueryClient,
 ): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 	const queryOptions = getGetEventApiListQueryOptions(params, options);
+
+	const query = createQuery(() => ({ ...queryOptions, queryClient })) as CreateQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+	query.queryKey = queryOptions.queryKey;
+
+	return query;
+}
+
+export const getEventApiMy = (params?: GetEventApiMyParams, signal?: AbortSignal) => {
+	return customInstance<EventDto[]>({ url: `/event/api/my`, method: "GET", params, signal });
+};
+
+export const getGetEventApiMyQueryKey = (params?: GetEventApiMyParams) => {
+	return [`/event/api/my`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetEventApiMyQueryOptions = <
+	TData = Awaited<ReturnType<typeof getEventApiMy>>,
+	TError = ErrorType<ValidationError | AuthorizationFailedError | void | InternalServerError>,
+>(
+	params?: GetEventApiMyParams,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<Awaited<ReturnType<typeof getEventApiMy>>, TError, TData>
+		>;
+	},
+) => {
+	const { query: queryOptions } = options ?? {};
+
+	const queryKey = queryOptions?.queryKey ?? getGetEventApiMyQueryKey(params);
+
+	const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventApiMy>>> = ({ signal }) =>
+		getEventApiMy(params, signal);
+
+	return { queryKey, queryFn, ...queryOptions } as CreateQueryOptions<
+		Awaited<ReturnType<typeof getEventApiMy>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetEventApiMyQueryResult = NonNullable<Awaited<ReturnType<typeof getEventApiMy>>>;
+export type GetEventApiMyQueryError = ErrorType<
+	ValidationError | AuthorizationFailedError | void | InternalServerError
+>;
+
+export function createGetEventApiMy<
+	TData = Awaited<ReturnType<typeof getEventApiMy>>,
+	TError = ErrorType<ValidationError | AuthorizationFailedError | void | InternalServerError>,
+>(
+	params?: GetEventApiMyParams,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<Awaited<ReturnType<typeof getEventApiMy>>, TError, TData>
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+	const queryOptions = getGetEventApiMyQueryOptions(params, options);
 
 	const query = createQuery(() => ({ ...queryOptions, queryClient })) as CreateQueryResult<
 		TData,
