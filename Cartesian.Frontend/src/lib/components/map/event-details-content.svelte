@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { createGetEventApiEventIdImages, createGetEventApiEventId } from "$lib/api/cartesian-client";
+    import { createGetEventApiEventIdImages, createGetEventApiEventId, createGetEventApiEventIdFavorite, createPostEventApiEventIdFavorite, createDeleteEventApiEventIdFavorite } from "$lib/api/cartesian-client";
     import { createReverseGeocodeQuery } from "$lib/api/queries/forward-geocode.query";
     import type { MapEventProperties } from "./map-state.svelte";
     import * as Carousel from "$lib/components/ui/carousel";
@@ -57,6 +57,21 @@
         url.searchParams.set("event", event.eventId.toString());
         navigator.clipboard.writeText(url.toString());
         toast.success("Link copied to clipboard");
+    }
+
+    const favoriteQuery = createGetEventApiEventIdFavorite(event.eventId);
+    let isFavorited = $derived(favoriteQuery.data ?? false);
+
+    const favoriteMutation = createPostEventApiEventIdFavorite();
+    const unfavoriteMutation = createDeleteEventApiEventIdFavorite();
+
+    async function toggleFavorite() {
+        if (isFavorited) {
+            await unfavoriteMutation.mutateAsync({ eventId: event.eventId });
+        } else {
+            await favoriteMutation.mutateAsync({ eventId: event.eventId });
+        }
+        await favoriteQuery.refetch();
     }
 </script>
 
@@ -144,8 +159,19 @@
                 <HugeiconsIcon icon={Share01Icon} size={20} strokeWidth={1.5} />
             </Button>
 
-            <Button variant="outline" size="icon" title="Favourite">
-                <HugeiconsIcon icon={FavouriteIcon} size={20} strokeWidth={1.5} />
+            <Button
+                variant="outline"
+                size="icon"
+                title={isFavorited ? "Unfavorite" : "Favorite"}
+                onclick={toggleFavorite}
+                disabled={favoriteMutation.isPending || unfavoriteMutation.isPending}
+            >
+                <HugeiconsIcon
+                    icon={FavouriteIcon}
+                    size={20}
+                    strokeWidth={1.5}
+                    className={isFavorited ? "fill-red-500 text-red-500" : ""}
+                />
             </Button>
         </div>
     </div>

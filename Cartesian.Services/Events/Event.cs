@@ -22,6 +22,7 @@ public class Event
     public List<EventWindow> Windows { get; set; } = [];
     public List<CartesianUser> Subscribers { get; set; } = [];
     public List<CartesianUser> Participants { get; set; } = [];
+    public List<CartesianUser> FavoritedBy { get; set; } = [];
     public List<Media> Images { get; set; } = [];
 
     public EventDto ToDto() =>

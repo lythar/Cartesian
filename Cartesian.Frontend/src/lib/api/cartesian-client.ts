@@ -1665,6 +1665,273 @@ export function createGetEventApiEventId<
 	return query;
 }
 
+export const postEventApiEventIdFavorite = (eventId: string, signal?: AbortSignal) => {
+	return customInstance<void>({ url: `/event/api/${eventId}/favorite`, method: "POST", signal });
+};
+
+export const getPostEventApiEventIdFavoriteMutationOptions = <
+	TError = ErrorType<
+		| AccountNotFoundError
+		| AuthorizationFailedError
+		| void
+		| EventNotFoundError
+		| InternalServerError
+	>,
+	TContext = unknown,
+>(options?: {
+	mutation?: CreateMutationOptions<
+		Awaited<ReturnType<typeof postEventApiEventIdFavorite>>,
+		TError,
+		{ eventId: string },
+		TContext
+	>;
+}): CreateMutationOptions<
+	Awaited<ReturnType<typeof postEventApiEventIdFavorite>>,
+	TError,
+	{ eventId: string },
+	TContext
+> => {
+	const mutationKey = ["postEventApiEventIdFavorite"];
+	const { mutation: mutationOptions } = options
+		? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey } };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof postEventApiEventIdFavorite>>,
+		{ eventId: string }
+	> = (props) => {
+		const { eventId } = props ?? {};
+
+		return postEventApiEventIdFavorite(eventId);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PostEventApiEventIdFavoriteMutationResult = NonNullable<
+	Awaited<ReturnType<typeof postEventApiEventIdFavorite>>
+>;
+
+export type PostEventApiEventIdFavoriteMutationError = ErrorType<
+	| AccountNotFoundError
+	| AuthorizationFailedError
+	| void
+	| EventNotFoundError
+	| InternalServerError
+>;
+
+export const createPostEventApiEventIdFavorite = <
+	TError = ErrorType<
+		| AccountNotFoundError
+		| AuthorizationFailedError
+		| void
+		| EventNotFoundError
+		| InternalServerError
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: CreateMutationOptions<
+			Awaited<ReturnType<typeof postEventApiEventIdFavorite>>,
+			TError,
+			{ eventId: string },
+			TContext
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateMutationResult<
+	Awaited<ReturnType<typeof postEventApiEventIdFavorite>>,
+	TError,
+	{ eventId: string },
+	TContext
+> => {
+	const mutationOptions = getPostEventApiEventIdFavoriteMutationOptions(options);
+
+	return createMutation(() => ({ ...mutationOptions, queryClient }));
+};
+
+export const deleteEventApiEventIdFavorite = (eventId: string) => {
+	return customInstance<void>({ url: `/event/api/${eventId}/favorite`, method: "DELETE" });
+};
+
+export const getDeleteEventApiEventIdFavoriteMutationOptions = <
+	TError = ErrorType<
+		| AccountNotFoundError
+		| AuthorizationFailedError
+		| void
+		| EventNotFoundError
+		| InternalServerError
+	>,
+	TContext = unknown,
+>(options?: {
+	mutation?: CreateMutationOptions<
+		Awaited<ReturnType<typeof deleteEventApiEventIdFavorite>>,
+		TError,
+		{ eventId: string },
+		TContext
+	>;
+}): CreateMutationOptions<
+	Awaited<ReturnType<typeof deleteEventApiEventIdFavorite>>,
+	TError,
+	{ eventId: string },
+	TContext
+> => {
+	const mutationKey = ["deleteEventApiEventIdFavorite"];
+	const { mutation: mutationOptions } = options
+		? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey } };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof deleteEventApiEventIdFavorite>>,
+		{ eventId: string }
+	> = (props) => {
+		const { eventId } = props ?? {};
+
+		return deleteEventApiEventIdFavorite(eventId);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteEventApiEventIdFavoriteMutationResult = NonNullable<
+	Awaited<ReturnType<typeof deleteEventApiEventIdFavorite>>
+>;
+
+export type DeleteEventApiEventIdFavoriteMutationError = ErrorType<
+	| AccountNotFoundError
+	| AuthorizationFailedError
+	| void
+	| EventNotFoundError
+	| InternalServerError
+>;
+
+export const createDeleteEventApiEventIdFavorite = <
+	TError = ErrorType<
+		| AccountNotFoundError
+		| AuthorizationFailedError
+		| void
+		| EventNotFoundError
+		| InternalServerError
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: CreateMutationOptions<
+			Awaited<ReturnType<typeof deleteEventApiEventIdFavorite>>,
+			TError,
+			{ eventId: string },
+			TContext
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateMutationResult<
+	Awaited<ReturnType<typeof deleteEventApiEventIdFavorite>>,
+	TError,
+	{ eventId: string },
+	TContext
+> => {
+	const mutationOptions = getDeleteEventApiEventIdFavoriteMutationOptions(options);
+
+	return createMutation(() => ({ ...mutationOptions, queryClient }));
+};
+
+export const getEventApiEventIdFavorite = (eventId: string, signal?: AbortSignal) => {
+	return customInstance<boolean>({
+		url: `/event/api/${eventId}/favorite`,
+		method: "GET",
+		signal,
+	});
+};
+
+export const getGetEventApiEventIdFavoriteQueryKey = (eventId?: string) => {
+	return [`/event/api/${eventId}/favorite`] as const;
+};
+
+export const getGetEventApiEventIdFavoriteQueryOptions = <
+	TData = Awaited<ReturnType<typeof getEventApiEventIdFavorite>>,
+	TError = ErrorType<
+		| AccountNotFoundError
+		| AuthorizationFailedError
+		| void
+		| EventNotFoundError
+		| InternalServerError
+	>,
+>(
+	eventId: string,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<
+				Awaited<ReturnType<typeof getEventApiEventIdFavorite>>,
+				TError,
+				TData
+			>
+		>;
+	},
+) => {
+	const { query: queryOptions } = options ?? {};
+
+	const queryKey = queryOptions?.queryKey ?? getGetEventApiEventIdFavoriteQueryKey(eventId);
+
+	const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventApiEventIdFavorite>>> = ({
+		signal,
+	}) => getEventApiEventIdFavorite(eventId, signal);
+
+	return { queryKey, queryFn, enabled: !!eventId, ...queryOptions } as CreateQueryOptions<
+		Awaited<ReturnType<typeof getEventApiEventIdFavorite>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetEventApiEventIdFavoriteQueryResult = NonNullable<
+	Awaited<ReturnType<typeof getEventApiEventIdFavorite>>
+>;
+export type GetEventApiEventIdFavoriteQueryError = ErrorType<
+	| AccountNotFoundError
+	| AuthorizationFailedError
+	| void
+	| EventNotFoundError
+	| InternalServerError
+>;
+
+export function createGetEventApiEventIdFavorite<
+	TData = Awaited<ReturnType<typeof getEventApiEventIdFavorite>>,
+	TError = ErrorType<
+		| AccountNotFoundError
+		| AuthorizationFailedError
+		| void
+		| EventNotFoundError
+		| InternalServerError
+	>,
+>(
+	eventId: string,
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<
+				Awaited<ReturnType<typeof getEventApiEventIdFavorite>>,
+				TError,
+				TData
+			>
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+	const queryOptions = getGetEventApiEventIdFavoriteQueryOptions(eventId, options);
+
+	const query = createQuery(() => ({ ...queryOptions, queryClient })) as CreateQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+	query.queryKey = queryOptions.queryKey;
+
+	return query;
+}
+
 export const postCommunityApiCommunityIdImages = (
 	communityId: string,
 	postCommunityApiCommunityIdImagesBody: PostCommunityApiCommunityIdImagesBody,

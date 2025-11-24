@@ -89,6 +89,9 @@ public class CartesianDbContext : IdentityDbContext<CartesianUser>
                 .WithOne(e => e.Event);
             entity.HasMany(e => e.Subscribers)
                 .WithMany(e => e.SubscribedEvents);
+            entity.HasMany(e => e.FavoritedBy)
+                .WithMany(e => e.FavoritedEvents)
+                .UsingEntity(j => j.ToTable("EventFavorites"));
             entity.HasMany(e => e.Participants)
                 .WithMany(e => e.ParticipatedEvents);
             entity.HasMany(e => e.Images)

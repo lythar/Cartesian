@@ -14,6 +14,7 @@ public class CartesianUser : IdentityUser
     public List<Membership> Memberships { get; set; } = [];
     public List<Event> SubscribedEvents { get; set; } = [];
     public List<Event> ParticipatedEvents { get; set; } = [];
+    public List<Event> FavoritedEvents { get; set; } = [];
 
     public CartesianUserDto ToDto() => new(Id, UserName!, Avatar?.ToDto());
     public MyUserDto ToMyUserDto() => new(Id, UserName!, Email!, EmailConfirmed, Avatar?.ToDto());
