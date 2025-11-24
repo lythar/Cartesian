@@ -1,9 +1,9 @@
-<script>
-	import Navigation from "$lib/components/layout/navigation.svelte";
-	import { createLayoutContext } from "$lib/context/layout.svelte";
+<script lang="ts">
+	import Navigation from '$lib/components/layout/navigation.svelte';
+	import { createLayoutContext } from '$lib/context/layout.svelte';
+  import 'mapbox-gl/dist/mapbox-gl.css'
 
-  let { children } = $props();
-
+  const { children } = $props();
   createLayoutContext();
 </script>
 
