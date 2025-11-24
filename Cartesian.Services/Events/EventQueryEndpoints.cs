@@ -23,7 +23,7 @@ public class EventQueryEndpoints : IEndpoint
             .Produces(200, typeof(IEnumerable<EventDto>))
             .Produces(400, typeof(ValidationError));
 
-        app.MapGet("/event/api/{eventId}", GetEvent)
+        app.MapGet("/event/api/{eventId:guid}", GetEvent)
             .Produces(200, typeof(EventDto))
             .Produces(404, typeof(EventNotFoundError));
     }

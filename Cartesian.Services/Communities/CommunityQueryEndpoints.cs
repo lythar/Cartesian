@@ -12,7 +12,7 @@ public class CommunityQueryEndpoints : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/community/api/public/{communityId}", GetCommunityById)
+        app.MapGet("/community/api/public/{communityId:guid}", GetCommunityById)
             .Produces(200, typeof(CommunityDto))
             .Produces(404, typeof(CommunityNotFoundError));
 

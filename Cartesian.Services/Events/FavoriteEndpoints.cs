@@ -11,19 +11,19 @@ public class FavoriteEndpoints : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/event/api/{eventId}/favorite", PostFavoriteEvent)
+        app.MapPost("/event/api/{eventId:guid}/favorite", PostFavoriteEvent)
             .RequireAuthorization()
             .Produces(200)
             .Produces(400, typeof(AccountNotFoundError))
             .Produces(404, typeof(EventNotFoundError));
 
-        app.MapDelete("/event/api/{eventId}/favorite", DeleteFavoriteEvent)
+        app.MapDelete("/event/api/{eventId:guid}/favorite", DeleteFavoriteEvent)
             .RequireAuthorization()
             .Produces(200)
             .Produces(400, typeof(AccountNotFoundError))
             .Produces(404, typeof(EventNotFoundError));
 
-        app.MapGet("/event/api/{eventId}/favorite", GetFavoriteStatus)
+        app.MapGet("/event/api/{eventId:guid}/favorite", GetFavoriteStatus)
             .RequireAuthorization()
             .Produces(200, typeof(bool))
             .Produces(400, typeof(AccountNotFoundError))

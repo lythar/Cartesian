@@ -11,19 +11,19 @@ public class ParticipationEndpoints : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/event/api/{eventId}/participate", PostParticipateEvent)
+        app.MapPost("/event/api/{eventId:guid}/participate", PostParticipateEvent)
             .RequireAuthorization()
             .Produces(200)
             .Produces(400, typeof(AccountNotFoundError))
             .Produces(404, typeof(EventNotFoundError));
 
-        app.MapDelete("/event/api/{eventId}/participate", DeleteParticipateEvent)
+        app.MapDelete("/event/api/{eventId:guid}/participate", DeleteParticipateEvent)
             .RequireAuthorization()
             .Produces(200)
             .Produces(400, typeof(AccountNotFoundError))
             .Produces(404, typeof(EventNotFoundError));
 
-        app.MapGet("/event/api/{eventId}/participants", GetEventParticipants)
+        app.MapGet("/event/api/{eventId:guid}/participants", GetEventParticipants)
             .Produces(200, typeof(IEnumerable<CartesianUserDto>))
             .Produces(404, typeof(EventNotFoundError));
 
