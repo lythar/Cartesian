@@ -24,42 +24,52 @@
 	let overlayContainer = $state<HTMLDivElement | null>(null);
 	let open = $state<boolean>(newCommunityOverlayState.open);
 	let isGlowing = $state(false);
+	let previousOpen = $state<boolean | null>(null);
 
 	$effect(() => {
 		open = newCommunityOverlayState.open;
 	});
 
 	$effect(() => {
-		if (open) {
-			if (overlayContainer) {
-				animate(
-					overlayContainer,
-					{
-						opacity: [0, 1],
-						x: [20, 0],
-						scale: [0.95, 1],
-						filter: ["blur(8px)", "blur(0px)"]
-					},
-					{
-						duration: 0.5,
-						ease: [0.16, 1, 0.3, 1] // Spring-like ease
-					}
-				);
-			}
-		} else {
-			if (overlayContainer) {
-				animate(
-					overlayContainer,
-					{
-						opacity: [1, 0],
-						scale: [1, 0.95],
-						filter: ["blur(0px)", "blur(8px)"]
-					},
-					{
-						duration: 0.3,
-						ease: [0.16, 1, 0.3, 1]
-					}
-				);
+		if (previousOpen === null) {
+			previousOpen = open;
+			return;
+		}
+
+		if (open !== previousOpen) {
+			previousOpen = open;
+
+			if (open) {
+				if (overlayContainer) {
+					animate(
+						overlayContainer,
+						{
+							opacity: [0, 1],
+							x: [20, 0],
+							scale: [0.95, 1],
+							filter: ["blur(8px)", "blur(0px)"]
+						},
+						{
+							duration: 0.5,
+							ease: [0.16, 1, 0.3, 1] // Spring-like ease
+						}
+					);
+				}
+			} else {
+				if (overlayContainer) {
+					animate(
+						overlayContainer,
+						{
+							opacity: [1, 0],
+							scale: [1, 0.95],
+							filter: ["blur(0px)", "blur(8px)"]
+						},
+						{
+							duration: 0.3,
+							ease: [0.16, 1, 0.3, 1]
+						}
+					);
+				}
 			}
 		}
 	});
@@ -109,7 +119,7 @@
 	bind:this={overlayContainer}
 	class={cn(
 		"pointer-events-none absolute right-4 top-4 bottom-4 z-50 flex w-full max-w-lg origin-top-right flex-col",
-		open ? "" : ""
+		open ? "" : "opacity-0"
 	)}
 >
 	<div
@@ -221,7 +231,7 @@
 					<Label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
 						Privacy
 					</Label>
-					
+
 					<Form.Field {form} name="inviteOnly" class="space-y-1.5">
 						<Form.Control>
 							{#snippet children({ props })}
@@ -239,8 +249,8 @@
 												{$formData.inviteOnly ? "Private Community" : "Public Community"}
 											</Label>
 											<p class="text-xs text-muted-foreground">
-												{$formData.inviteOnly 
-													? "Only people with an invite link can join this community." 
+												{$formData.inviteOnly
+													? "Only people with an invite link can join this community."
 													: "Anyone can find and join this community."}
 											</p>
 										</div>
