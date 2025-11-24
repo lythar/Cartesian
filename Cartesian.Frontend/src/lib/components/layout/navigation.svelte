@@ -62,7 +62,7 @@
 								<Sidebar.MenuItem>
 									<Sidebar.MenuButton>
 										{#snippet child({ props })}
-											<a href="/app/community/{membership.communityId}" {...props}>
+											<a href="/community/{membership.communityId}" {...props}>
 												{#if getAvatarUrl(membership.user.avatar)}
 													<img
 														src={getAvatarUrl(membership.user.avatar)}
@@ -115,7 +115,7 @@
 								<Sidebar.MenuItem>
 									<Sidebar.MenuButton>
 										{#snippet child({ props })}
-											<a href="/app/community/{community.id}" {...props}>
+											<a href="/community/{community.id}" {...props}>
 												{#if getAvatarUrl(community.avatar)}
 													<img
 														src={getAvatarUrl(community.avatar)}

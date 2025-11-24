@@ -49,7 +49,7 @@
 		if (!confirm("Are you sure you want to delete this community? This action cannot be undone.")) return;
 		try {
 			await deleteMutation.mutateAsync({ communityId: community.id });
-			goto("/app/map");
+			goto("/map");
 		} catch (error) {
 			console.error("Failed to delete community", error);
 		}
