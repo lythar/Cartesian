@@ -1932,6 +1932,70 @@ export function createGetEventApiEventIdFavorite<
 	return query;
 }
 
+export const getEventApiFavorites = (signal?: AbortSignal) => {
+	return customInstance<EventDto[]>({ url: `/event/api/favorites`, method: "GET", signal });
+};
+
+export const getGetEventApiFavoritesQueryKey = () => {
+	return [`/event/api/favorites`] as const;
+};
+
+export const getGetEventApiFavoritesQueryOptions = <
+	TData = Awaited<ReturnType<typeof getEventApiFavorites>>,
+	TError = ErrorType<
+		AccountNotFoundError | AuthorizationFailedError | void | InternalServerError
+	>,
+>(options?: {
+	query?: Partial<
+		CreateQueryOptions<Awaited<ReturnType<typeof getEventApiFavorites>>, TError, TData>
+	>;
+}) => {
+	const { query: queryOptions } = options ?? {};
+
+	const queryKey = queryOptions?.queryKey ?? getGetEventApiFavoritesQueryKey();
+
+	const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventApiFavorites>>> = ({ signal }) =>
+		getEventApiFavorites(signal);
+
+	return { queryKey, queryFn, ...queryOptions } as CreateQueryOptions<
+		Awaited<ReturnType<typeof getEventApiFavorites>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetEventApiFavoritesQueryResult = NonNullable<
+	Awaited<ReturnType<typeof getEventApiFavorites>>
+>;
+export type GetEventApiFavoritesQueryError = ErrorType<
+	AccountNotFoundError | AuthorizationFailedError | void | InternalServerError
+>;
+
+export function createGetEventApiFavorites<
+	TData = Awaited<ReturnType<typeof getEventApiFavorites>>,
+	TError = ErrorType<
+		AccountNotFoundError | AuthorizationFailedError | void | InternalServerError
+	>,
+>(
+	options?: {
+		query?: Partial<
+			CreateQueryOptions<Awaited<ReturnType<typeof getEventApiFavorites>>, TError, TData>
+		>;
+	},
+	queryClient?: QueryClient,
+): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+	const queryOptions = getGetEventApiFavoritesQueryOptions(options);
+
+	const query = createQuery(() => ({ ...queryOptions, queryClient })) as CreateQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+	query.queryKey = queryOptions.queryKey;
+
+	return query;
+}
+
 export const postCommunityApiCommunityIdImages = (
 	communityId: string,
 	postCommunityApiCommunityIdImagesBody: PostCommunityApiCommunityIdImagesBody,

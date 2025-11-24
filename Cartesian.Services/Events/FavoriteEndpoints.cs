@@ -28,6 +28,32 @@ public class FavoriteEndpoints : IEndpoint
             .Produces(200, typeof(bool))
             .Produces(400, typeof(AccountNotFoundError))
             .Produces(404, typeof(EventNotFoundError));
+
+        app.MapGet("/event/api/favorites", GetMyFavorites)
+            .RequireAuthorization()
+            .Produces(200, typeof(IEnumerable<EventDto>))
+            .Produces(400, typeof(AccountNotFoundError));
+    }
+
+    async Task<IResult> GetMyFavorites(CartesianDbContext dbContext, UserManager<CartesianUser> userManager, ClaimsPrincipal principal)
+    {
+        var userId = userManager.GetUserId(principal);
+        if (userId == null) return Results.Unauthorized();
+
+        var events = await dbContext.Events
+            .Include(e => e.Windows)
+            .Include(e => e.Participants)
+            .ThenInclude(p => p.Avatar)
+            .Include(e => e.Author)
+            .ThenInclude(u => u.Avatar)
+            .Include(e => e.Community)
+            .ThenInclude(c => c!.Avatar)
+            .Where(e => e.FavoritedBy.Any(u => u.Id == userId))
+            .OrderByDescending(e => e.CreatedAt)
+            .Select(e => e.ToDto())
+            .ToListAsync();
+
+        return Results.Ok(events);
     }
 
     async Task<IResult> PostFavoriteEvent(CartesianDbContext dbContext, UserManager<CartesianUser> userManager, ClaimsPrincipal principal, Guid eventId)
