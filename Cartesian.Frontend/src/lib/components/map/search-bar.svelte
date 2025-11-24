@@ -19,6 +19,7 @@
 	import { animate, stagger } from "motion";
 	import { Debounced } from "runed";
 	import mapboxgl from "mapbox-gl";
+	import { m } from "$lib/paraglide/messages";
 
 	const layout = getLayoutContext();
 
@@ -168,8 +169,8 @@
 					<Input
 						bind:value={searchValue}
 						placeholder={isAIMode
-							? "Ask AI to find events..."
-							: "Search events, locations..."}
+							? m.search_bar_ai_placeholder()
+							: m.search_bar_placeholder()}
 						class="h-10 border-0 bg-transparent dark:bg-transparent px-0 text-base shadow-none placeholder:text-muted-foreground/70 focus-visible:ring-0"
 						onfocus={() => (isFocused = true)}
 						onblur={() => {
@@ -321,7 +322,7 @@
 							<div
 								class="size-4 animate-spin rounded-full border-2 border-primary border-t-transparent"
 							></div>
-							<span>Searching...</span>
+							<span>{m.common_searching()}</span>
 						</div>
 					</div>
 				{/if}
@@ -341,7 +342,7 @@
 								<div
 									class="size-4 animate-spin rounded-full border-2 border-primary border-t-transparent"
 								></div>
-								<span>Searching locations...</span>
+								<span>{m.search_bar_searching_locations()}</span>
 							</div>
 						{:else if geoQuery.data?.features?.length === 0}
 							<div class="rounded-xl p-3 text-sm text-muted-foreground">
