@@ -19,6 +19,8 @@
 	"devDependencies": {
 		"@inlang/cli": "^3.0.0",
 		"@inlang/paraglide-js": "2.4.0",
+		"@inlang/plugin-m-function-matcher": "^2.1.0",
+		"@inlang/plugin-message-format": "^4.0.0",
 		"@internationalized/date": "^3.10.0",
 		"@lucide/svelte": "^0.544.0",
 		"@material/material-color-utilities": "^0.3.0",
