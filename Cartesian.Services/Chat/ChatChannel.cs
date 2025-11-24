@@ -27,4 +27,5 @@ public sealed class ChatChannel
 
     public ICollection<ChatMessage> Messages { get; init; } = [];
     public ICollection<ChatMute> Mutes { get; init; } = [];
+    public ICollection<ChatPinnedMessage> PinnedMessages { get; init; } = [];
 }

@@ -11,26 +11,13 @@ public class ChatMessageEndpoints : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/chat/api/dm/send", PostSendDirectMessage)
+        app.MapPost("/chat/api/channel/{channelId}/send", PostSendMessage)
             .RequireAuthorization()
             .AddEndpointFilter<ValidationFilter>()
             .Produces(200, typeof(ChatMessageDto))
             .Produces(400, typeof(ValidationError))
-            .Produces(403);
-
-        app.MapPost("/chat/api/community/send", PostSendCommunityMessage)
-            .RequireAuthorization()
-            .AddEndpointFilter<ValidationFilter>()
-            .Produces(200, typeof(ChatMessageDto))
-            .Produces(400, typeof(ValidationError))
-            .Produces(403);
-
-        app.MapPost("/chat/api/event/send", PostSendEventMessage)
-            .RequireAuthorization()
-            .AddEndpointFilter<ValidationFilter>()
-            .Produces(200, typeof(ChatMessageDto))
-            .Produces(400, typeof(ValidationError))
-            .Produces(403);
+            .Produces(403, typeof(ChatAccessDeniedError))
+            .Produces(404, typeof(ChatChannelNotFoundError));
 
         app.MapGet("/chat/api/messages", GetMessages)
             .RequireAuthorization()
@@ -55,131 +42,47 @@ public class ChatMessageEndpoints : IEndpoint
 
         app.MapGet("/chat/api/subscribe", SubscribeToChat)
             .RequireAuthorization();
+
+        app.MapGet("/chat/api/channels", GetChannels)
+            .RequireAuthorization()
+            .Produces(200, typeof(GetChannelsResponse));
     }
 
-    private async Task<IResult> PostSendDirectMessage(CartesianDbContext db, UserManager<CartesianUser> userManager,
-        ClaimsPrincipal principal, ChatSseService sseService, SendDirectMessageRequest req)
+    private async Task<IResult> PostSendMessage(
+        CartesianDbContext db,
+        UserManager<CartesianUser> userManager,
+        ClaimsPrincipal principal,
+        ChatSseService sseService,
+        Guid channelId,
+        SendMessageRequest req)
     {
         var userId = userManager.GetUserId(principal);
         if (userId == null) return Results.Unauthorized();
 
-        var senderSettings = await db.ChatUserSettings.FirstOrDefaultAsync(s => s.UserId == userId);
-        if (senderSettings?.DirectMessagesEnabled == false)
-            return Results.Json(new ChatDisabledError(), statusCode: 403);
-
-        var recipientSettings = await db.ChatUserSettings.FirstOrDefaultAsync(s => s.UserId == req.RecipientId);
-        if (recipientSettings?.DirectMessagesEnabled == false)
-            return Results.Json(new ChatDisabledError(), statusCode: 403);
-
         var channel = await db.ChatChannels
-            .FirstOrDefaultAsync(c =>
-                c.Type == ChatChannelType.DirectMessage &&
-                ((c.Participant1Id == userId && c.Participant2Id == req.RecipientId) ||
-                 (c.Participant1Id == req.RecipientId && c.Participant2Id == userId)));
+            .Include(c => c.Community)
+            .ThenInclude(c => c!.Memberships)
+            .Include(c => c.Event)
+            .ThenInclude(e => e!.Subscribers)
+            .FirstOrDefaultAsync(c => c.Id == channelId);
 
         if (channel == null)
-        {
-            channel = new ChatChannel
-            {
-                Id = Guid.NewGuid(),
-                Type = ChatChannelType.DirectMessage,
-                CreatedAt = DateTime.UtcNow,
-                IsEnabled = true,
-                Participant1Id = userId,
-                Participant2Id = req.RecipientId
-            };
-            db.ChatChannels.Add(channel);
-        }
+            return Results.NotFound(new ChatChannelNotFoundError());
 
         if (!channel.IsEnabled)
             return Results.Json(new ChatDisabledError(), statusCode: 403);
 
-        var isMuted = await db.ChatMutes.AnyAsync(m =>
-            m.ChannelId == channel.Id && m.UserId == userId &&
-            (m.ExpiresAt == null || m.ExpiresAt > DateTime.UtcNow));
-        if (isMuted)
-            return Results.Json(new ChatUserMutedError(), statusCode: 403);
-
-        var message = new ChatMessage
+        var hasAccess = channel.Type switch
         {
-            Id = Guid.NewGuid(),
-            ChannelId = channel.Id,
-            AuthorId = userId,
-            Content = req.Content,
-            CreatedAt = DateTime.UtcNow
+            ChatChannelType.DirectMessage => await ValidateDirectMessageAccess(db, userId, channel),
+            ChatChannelType.Community => await db.Memberships.AnyAsync(m => m.CommunityId == channel.CommunityId && m.UserId == userId),
+            ChatChannelType.Event => channel.Event!.Subscribers.Any(s => s.Id == userId) || channel.Event.AuthorId == userId,
+            _ => false
         };
 
-        if (req.MentionedUserIds?.Count > 0)
-        {
-            foreach (var mentionedUserId in req.MentionedUserIds.Distinct())
-            {
-                message.Mentions.Add(new ChatMention
-                {
-                    Id = Guid.NewGuid(),
-                    MessageId = message.Id,
-                    UserId = mentionedUserId
-                });
-            }
-        }
-
-        if (req.AttachmentIds?.Count > 0)
-        {
-            var attachments = await db.Media
-                .Where(m => req.AttachmentIds.Contains(m.Id))
-                .ToListAsync();
-            foreach (var attachment in attachments)
-                message.Attachments.Add(attachment);
-        }
-
-        db.ChatMessages.Add(message);
-        await db.SaveChangesAsync();
-
-        await sseService.SendMessageAsync(req.RecipientId, message);
-
-        return Results.Ok(new ChatMessageDto
-        {
-            Id = message.Id,
-            ChannelId = message.ChannelId,
-            AuthorId = message.AuthorId,
-            Content = message.Content,
-            CreatedAt = message.CreatedAt,
-            EditedAt = message.EditedAt,
-            IsDeleted = message.IsDeleted,
-            MentionedUserIds = message.Mentions.Select(m => m.UserId).ToList(),
-            AttachmentIds = message.Attachments.Select(a => a.Id).ToList()
-        });
-    }
-
-    private async Task<IResult> PostSendCommunityMessage(CartesianDbContext db, UserManager<CartesianUser> userManager,
-        ClaimsPrincipal principal, ChatSseService sseService, SendCommunityMessageRequest req)
-    {
-        var userId = userManager.GetUserId(principal);
-        if (userId == null) return Results.Unauthorized();
-
-        var membership = await db.Memberships
-            .FirstOrDefaultAsync(m => m.CommunityId == req.CommunityId && m.UserId == userId);
-        if (membership == null)
+        if (!hasAccess)
             return Results.Json(new ChatAccessDeniedError(), statusCode: 403);
 
-        var channel = await db.ChatChannels
-            .FirstOrDefaultAsync(c => c.Type == ChatChannelType.Community && c.CommunityId == req.CommunityId);
-
-        if (channel == null)
-        {
-            channel = new ChatChannel
-            {
-                Id = Guid.NewGuid(),
-                Type = ChatChannelType.Community,
-                CreatedAt = DateTime.UtcNow,
-                IsEnabled = true,
-                CommunityId = req.CommunityId
-            };
-            db.ChatChannels.Add(channel);
-        }
-
-        if (!channel.IsEnabled)
-            return Results.Json(new ChatDisabledError(), statusCode: 403);
-
         var isMuted = await db.ChatMutes.AnyAsync(m =>
             m.ChannelId == channel.Id && m.UserId == userId &&
             (m.ExpiresAt == null || m.ExpiresAt > DateTime.UtcNow));
@@ -220,11 +123,7 @@ public class ChatMessageEndpoints : IEndpoint
         db.ChatMessages.Add(message);
         await db.SaveChangesAsync();
 
-        var memberIds = await db.Memberships
-            .Where(m => m.CommunityId == req.CommunityId && m.UserId != userId)
-            .Select(m => m.UserId)
-            .ToListAsync();
-
+        var memberIds = await GetChannelMemberIds(db, channel, userId);
         foreach (var memberId in memberIds)
             await sseService.SendMessageAsync(memberId, message);
 
@@ -238,106 +137,45 @@ public class ChatMessageEndpoints : IEndpoint
             EditedAt = message.EditedAt,
             IsDeleted = message.IsDeleted,
             MentionedUserIds = message.Mentions.Select(m => m.UserId).ToList(),
-            AttachmentIds = message.Attachments.Select(a => a.Id).ToList()
+            AttachmentIds = message.Attachments.Select(a => a.Id).ToList(),
+            ReactionSummary = []
         });
     }
 
-    private async Task<IResult> PostSendEventMessage(CartesianDbContext db, UserManager<CartesianUser> userManager,
-        ClaimsPrincipal principal, ChatSseService sseService, SendEventMessageRequest req)
+    private async Task<bool> ValidateDirectMessageAccess(CartesianDbContext db, string userId, ChatChannel channel)
     {
-        var userId = userManager.GetUserId(principal);
-        if (userId == null) return Results.Unauthorized();
+        if (channel.Participant1Id != userId && channel.Participant2Id != userId)
+            return false;
 
-        var eventEntity = await db.Events
-            .Include(e => e.Subscribers)
-            .FirstOrDefaultAsync(e => e.Id == req.EventId);
+        var senderSettings = await db.ChatUserSettings.FirstOrDefaultAsync(s => s.UserId == userId);
+        if (senderSettings?.DirectMessagesEnabled == false)
+            return false;
 
-        if (eventEntity == null)
-            return Results.NotFound();
+        var otherUserId = channel.Participant1Id == userId ? channel.Participant2Id : channel.Participant1Id;
+        var recipientSettings = await db.ChatUserSettings.FirstOrDefaultAsync(s => s.UserId == otherUserId);
+        if (recipientSettings?.DirectMessagesEnabled == false)
+            return false;
 
-        var isSubscribed = eventEntity.Subscribers.Any(s => s.Id == userId);
-        if (!isSubscribed && eventEntity.AuthorId != userId)
-            return Results.Json(new ChatAccessDeniedError(), statusCode: 403);
+        return true;
+    }
 
-        var channel = await db.ChatChannels
-            .FirstOrDefaultAsync(c => c.Type == ChatChannelType.Event && c.EventId == req.EventId);
-
-        if (channel == null)
+    private async Task<List<string>> GetChannelMemberIds(CartesianDbContext db, ChatChannel channel, string excludeUserId)
+    {
+        var memberIds = channel.Type switch
         {
-            channel = new ChatChannel
-            {
-                Id = Guid.NewGuid(),
-                Type = ChatChannelType.Event,
-                CreatedAt = DateTime.UtcNow,
-                IsEnabled = true,
-                EventId = req.EventId
-            };
-            db.ChatChannels.Add(channel);
-        }
-
-        if (!channel.IsEnabled)
-            return Results.Json(new ChatDisabledError(), statusCode: 403);
-
-        var isMuted = await db.ChatMutes.AnyAsync(m =>
-            m.ChannelId == channel.Id && m.UserId == userId &&
-            (m.ExpiresAt == null || m.ExpiresAt > DateTime.UtcNow));
-        if (isMuted)
-            return Results.Json(new ChatUserMutedError(), statusCode: 403);
-
-        var message = new ChatMessage
-        {
-            Id = Guid.NewGuid(),
-            ChannelId = channel.Id,
-            AuthorId = userId,
-            Content = req.Content,
-            CreatedAt = DateTime.UtcNow
+            ChatChannelType.DirectMessage => new List<string> { channel.Participant1Id!, channel.Participant2Id! },
+            ChatChannelType.Community => await db.Memberships
+                .Where(m => m.CommunityId == channel.CommunityId)
+                .Select(m => m.UserId)
+                .ToListAsync(),
+            ChatChannelType.Event => await db.Users
+                .Where(u => u.SubscribedEvents.Any(e => e.Id == channel.EventId))
+                .Select(u => u.Id)
+                .ToListAsync(),
+            _ => new List<string>()
         };
 
-        if (req.MentionedUserIds?.Count > 0)
-        {
-            foreach (var mentionedUserId in req.MentionedUserIds.Distinct())
-            {
-                message.Mentions.Add(new ChatMention
-                {
-                    Id = Guid.NewGuid(),
-                    MessageId = message.Id,
-                    UserId = mentionedUserId
-                });
-            }
-        }
-
-        if (req.AttachmentIds?.Count > 0)
-        {
-            var attachments = await db.Media
-                .Where(m => req.AttachmentIds.Contains(m.Id))
-                .ToListAsync();
-            foreach (var attachment in attachments)
-                message.Attachments.Add(attachment);
-        }
-
-        db.ChatMessages.Add(message);
-        await db.SaveChangesAsync();
-
-        var subscriberIds = eventEntity.Subscribers
-            .Where(s => s.Id != userId)
-            .Select(s => s.Id)
-            .ToList();
-
-        foreach (var subscriberId in subscriberIds)
-            await sseService.SendMessageAsync(subscriberId, message);
-
-        return Results.Ok(new ChatMessageDto
-        {
-            Id = message.Id,
-            ChannelId = message.ChannelId,
-            AuthorId = message.AuthorId,
-            Content = message.Content,
-            CreatedAt = message.CreatedAt,
-            EditedAt = message.EditedAt,
-            IsDeleted = message.IsDeleted,
-            MentionedUserIds = message.Mentions.Select(m => m.UserId).ToList(),
-            AttachmentIds = message.Attachments.Select(a => a.Id).ToList()
-        });
+        return memberIds.Where(id => id != excludeUserId).ToList();
     }
 
     private async Task<IResult> GetMessages(CartesianDbContext db, UserManager<CartesianUser> userManager,
@@ -370,6 +208,8 @@ public class ChatMessageEndpoints : IEndpoint
             .Where(m => m.ChannelId == channelId && !m.IsDeleted)
             .Include(m => m.Mentions)
             .Include(m => m.Attachments)
+            .Include(m => m.Reactions)
+            .ThenInclude(r => r.User)
             .OrderByDescending(m => m.CreatedAt);
 
         if (before.HasValue)
@@ -398,7 +238,16 @@ public class ChatMessageEndpoints : IEndpoint
             EditedAt = m.EditedAt,
             IsDeleted = m.IsDeleted,
             MentionedUserIds = m.Mentions.Select(x => x.UserId).ToList(),
-            AttachmentIds = m.Attachments.Select(a => a.Id).ToList()
+            AttachmentIds = m.Attachments.Select(a => a.Id).ToList(),
+            ReactionSummary = m.Reactions
+                .GroupBy(r => r.Emoji)
+                .Select(g => new ReactionSummaryDto(
+                    g.Key,
+                    g.Count(),
+                    g.Select(r => r.UserId).ToList(),
+                    g.Any(r => r.UserId == userId)
+                ))
+                .ToList()
         }).ToList();
 
         return Results.Ok(new GetMessagesResponse(dtos, hasMore));
@@ -538,9 +387,60 @@ public class ChatMessageEndpoints : IEndpoint
         );
     }
 
-    public record SendDirectMessageRequest(string RecipientId, string Content, List<string>? MentionedUserIds, List<Guid>? AttachmentIds);
-    public record SendCommunityMessageRequest(Guid CommunityId, string Content, List<string>? MentionedUserIds, List<Guid>? AttachmentIds);
-    public record SendEventMessageRequest(Guid EventId, string Content, List<string>? MentionedUserIds, List<Guid>? AttachmentIds);
+    private async Task<IResult> GetChannels(CartesianDbContext db, UserManager<CartesianUser> userManager,
+        ClaimsPrincipal principal)
+    {
+        var userId = userManager.GetUserId(principal);
+        if (userId == null) return Results.Unauthorized();
+
+        // Get community channels where user is a member
+        var communityChannels = await db.ChatChannels
+            .Include(c => c.Community)
+            .Where(c => c.Type == ChatChannelType.Community &&
+                        c.Community != null &&
+                        c.Community.Memberships.Any(m => m.UserId == userId))
+            .Select(c => new ChannelListItemDto(
+                c.Id,
+                c.Type,
+                c.IsEnabled,
+                c.Community!.Name,
+                c.Community.Id,
+                null,
+                null,
+                c.CreatedAt
+            ))
+            .ToListAsync();
+
+        // Get event channels where user is subscribed or is the author
+        var eventChannels = await db.ChatChannels
+            .Include(c => c.Event)
+            .ThenInclude(e => e!.Subscribers)
+            .Where(c => c.Type == ChatChannelType.Event &&
+                        c.Event != null &&
+                        (c.Event.Subscribers.Any(s => s.Id == userId) || c.Event.AuthorId == userId))
+            .Select(c => new ChannelListItemDto(
+                c.Id,
+                c.Type,
+                c.IsEnabled,
+                c.Event!.Name,
+                null,
+                c.Event.Id,
+                c.Event.CreatedAt,
+                c.CreatedAt
+            ))
+            .ToListAsync();
+
+        // Combine and sort by event creation date (for events) or channel creation date (for communities)
+        var allChannels = communityChannels.Concat(eventChannels)
+            .OrderByDescending(c => c.EntityCreatedAt)
+            .ToList();
+
+        return Results.Ok(new GetChannelsResponse(allChannels));
+    }
+
+    public record SendMessageRequest(string Content, List<string>? MentionedUserIds, List<Guid>? AttachmentIds);
     public record GetMessagesResponse(List<ChatMessageDto> Messages, bool HasMore);
     public record ChatChannelDto(Guid Id, ChatChannelType Type, bool IsEnabled, string? Participant1Id, string? Participant2Id, Guid? CommunityId, Guid? EventId);
+    public record GetChannelsResponse(List<ChannelListItemDto> Channels);
+    public record ChannelListItemDto(Guid ChannelId, ChatChannelType Type, bool IsEnabled, string Name, Guid? CommunityId, Guid? EventId, DateTime? EntityCreatedAt, DateTime ChannelCreatedAt);
 }

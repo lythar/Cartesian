@@ -17,4 +17,6 @@ public sealed class ChatMessage
 
     public ICollection<ChatMention> Mentions { get; init; } = [];
     public ICollection<Media> Attachments { get; init; } = [];
+    public ICollection<ChatPinnedMessage> PinnedIn { get; init; } = [];
+    public ICollection<ChatReaction> Reactions { get; init; } = [];
 }

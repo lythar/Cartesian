@@ -20,6 +20,8 @@ public class CartesianDbContext : IdentityDbContext<CartesianUser>
     public DbSet<ChatMention> ChatMentions { get; set; } = null!;
     public DbSet<ChatMute> ChatMutes { get; set; } = null!;
     public DbSet<ChatUserSettings> ChatUserSettings { get; set; } = null!;
+    public DbSet<ChatPinnedMessage> ChatPinnedMessages { get; set; } = null!;
+    public DbSet<ChatReaction> ChatReactions { get; set; } = null!;
 
     public CartesianDbContext()
     {
@@ -180,6 +182,36 @@ public class CartesianDbContext : IdentityDbContext<CartesianUser>
         {
             entity.HasOne(e => e.User)
                 .WithMany();
+        });
+
+        builder.Entity<ChatPinnedMessage>(entity =>
+        {
+            entity.HasOne(e => e.Channel)
+                .WithMany(c => c.PinnedMessages)
+                .HasForeignKey(e => e.ChannelId);
+            entity.HasOne(e => e.Message)
+                .WithMany(m => m.PinnedIn)
+                .HasForeignKey(e => e.MessageId);
+            entity.HasOne(e => e.PinnedBy)
+                .WithMany()
+                .HasForeignKey(e => e.PinnedById);
+            entity.HasIndex(e => new { e.ChannelId, e.MessageId }).IsUnique();
+        });
+
+        builder.Entity<ChatReaction>(entity =>
+        {
+            entity.HasOne(e => e.Message)
+                .WithMany(m => m.Reactions)
+                .HasForeignKey(e => e.MessageId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.Property(e => e.Emoji)
+                .HasMaxLength(20)
+                .IsUnicode(true);
+            entity.HasIndex(e => new { e.MessageId, e.UserId, e.Emoji }).IsUnique();
         });
     }
 }
