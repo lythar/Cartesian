@@ -26,7 +26,8 @@ builder.AddNodeApp("frontend", "../Cartesian.Frontend", "dev")
     .WithRunScript("dev")
     .WithReference(services)
     .WithHttpEndpoint(env: "PORT", targetPort: 5173, isProxied: false)
-    .WithEnvironment("VITE_MAPBOX_ACCESS_TOKEN", mapboxPublicToken)
+    .WithEnvironment("PUBLIC_SERVICES_URL", services.GetEndpoint("http"))
+    .WithEnvironment("PUBLIC_MAPBOX_ACCESS_TOKEN", mapboxPublicToken)
     .WithExternalHttpEndpoints();
 
 builder.Build().Run();
