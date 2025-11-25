@@ -412,6 +412,8 @@ export interface MembershipDto {
 	userId: string;
 	user: CartesianUserDto;
 	communityId: string;
+	community?: CommunityDto | null;
+	channelId?: string | null;
 	permissions: Permissions;
 	createdAt: unknown;
 }

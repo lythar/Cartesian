@@ -54,14 +54,19 @@
 		"@hugeicons/core-free-icons": "^1.2.1",
 		"@hugeicons/svelte": "^1.0.2",
 		"@tanstack/svelte-query": "^6.0.5",
+		"@types/dompurify": "^3.2.0",
+		"@types/twemoji": "^13.1.2",
 		"date-fns": "^4.1.0",
+		"dompurify": "^3.3.0",
 		"effect": "^3.19.3",
 		"mapbox-gl": "^3.16.0",
+		"marked": "^17.0.1",
 		"mode-watcher": "^1.1.0",
 		"motion": "^12.23.24",
 		"orval": "^7.16.0",
 		"runed": "^0.36.0",
 		"three": "^0.181.2",
+		"twemoji": "^14.0.2",
 		"zod": "^4.1.12"
 	}
 }

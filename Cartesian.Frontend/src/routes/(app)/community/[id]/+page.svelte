@@ -37,8 +37,8 @@
 	const isMember = $derived(myMemberships.some((m) => m.communityId === communityId));
 	const currentMembership = $derived(myMemberships.find((m) => m.communityId === communityId));
 	const hasAdminPermissions = $derived((currentMembership?.permissions ?? 0) >= 2);
+	const isOwner = $derived(((currentMembership?.permissions ?? 0) & (1 << 31)) !== 0);
 
-	// Chat State Management
 	let chatState = $state<ChatState | null>(null);
 	let membersSheetOpen = $state(false);
 
@@ -73,22 +73,19 @@
 			</div>
 		</div>
 	{:else if community && chatState}
-		<!-- Main Content Area -->
 		<div class="flex flex-1 flex-col min-w-0">
-			<!-- Header -->
 			<CommunityHeader
 				{community}
 				{currentUser}
 				isMember={!!currentMembership}
 				isAdmin={hasAdminPermissions}
+				{isOwner}
 				onToggleMembers={() => (membersSheetOpen = !membersSheetOpen)}
 			/>
 
-			<!-- Chat -->
 			<CommunityChat {chatState} {members} {currentUser} />
 		</div>
 
-		<!-- Right Sidebar (Members) -->
 		<aside class="hidden w-64 border-l border-border/40 bg-muted/10 lg:block">
 			<MembersList
 				{members}
@@ -98,7 +95,6 @@
 			/>
 		</aside>
 
-		<!-- Mobile Members Sheet -->
 		<Sheet.Root bind:open={membersSheetOpen}>
 			<Sheet.Content side="right" class="w-72 p-0 sm:w-80">
 				<Sheet.Header class="sr-only">

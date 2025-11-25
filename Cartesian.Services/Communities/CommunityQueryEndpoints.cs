@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Cartesian.Services.Account;
+using Cartesian.Services.Chat;
 using Cartesian.Services.Database;
 using Cartesian.Services.Endpoints;
 using Microsoft.AspNetCore.Identity;
@@ -71,7 +72,12 @@ public class CommunityQueryEndpoints : IEndpoint
             .Take(req.Limit)
             .ToArrayAsync();
 
-        return Results.Ok(memberships.Select(m => m.ToDto()));
+        var communityIds = memberships.Select(m => m.CommunityId).ToList();
+        var channels = await dbContext.ChatChannels
+            .Where(c => c.Type == ChatChannelType.Community && c.CommunityId != null && communityIds.Contains(c.CommunityId.Value))
+            .ToDictionaryAsync(c => c.CommunityId!.Value);
+
+        return Results.Ok(memberships.Select(m => m.ToDto(channels.GetValueOrDefault(m.CommunityId))));
     }
 
     public record GetMyMembershipsRequest(

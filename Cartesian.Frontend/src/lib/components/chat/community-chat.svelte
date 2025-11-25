@@ -16,7 +16,6 @@
 		currentUser: MyUserDto | undefined;
 	}>();
 
-	// Helpers
 	function getAuthor(userId: string): CartesianUserDto | undefined {
 		const member = members.find((m: MembershipDto) => m.userId === userId);
 		if (member) return member.user;
@@ -25,6 +24,8 @@
 	}
 
 	let scrollViewport = $state<HTMLElement | null>(null);
+	let isLoadingMore = $state(false);
+	let isInitialLoad = $state(true);
 
 	function scrollToBottom() {
 		if (scrollViewport) {
@@ -36,10 +37,41 @@
 		}
 	}
 
-	// Initial scroll and auto-scroll on new messages
+	async function handleScroll() {
+		if (!scrollViewport || isLoadingMore) return;
+
+		if (scrollViewport.scrollTop < 100 && chatState.hasMore && !chatState.isFetchingMore) {
+			isLoadingMore = true;
+			const prevScrollHeight = scrollViewport.scrollHeight;
+			const prevScrollTop = scrollViewport.scrollTop;
+
+			await chatState.loadMore();
+
+			requestAnimationFrame(() => {
+				requestAnimationFrame(() => {
+					if (scrollViewport) {
+						const newScrollHeight = scrollViewport.scrollHeight;
+						const heightDiff = newScrollHeight - prevScrollHeight;
+						scrollViewport.scrollTop = prevScrollTop + heightDiff;
+					}
+					isLoadingMore = false;
+				});
+			});
+		}
+	}
+
 	$effect(() => {
-		if (chatState.messages.length > 0) {
-			scrollToBottom();
+		const msgCount = chatState.messages.length;
+		if (msgCount > 0 && isInitialLoad && !chatState.isLoading) {
+			setTimeout(() => scrollToBottom(), 100);
+			isInitialLoad = false;
+		}
+	});
+
+	$effect(() => {
+		if (scrollViewport) {
+			scrollViewport.addEventListener("scroll", handleScroll);
+			return () => scrollViewport?.removeEventListener("scroll", handleScroll);
 		}
 	});
 
@@ -49,9 +81,9 @@
 	}
 </script>
 
-<div class="flex flex-1 flex-col overflow-hidden">
+<div class="flex flex-1 flex-col overflow-hidden relative">
 	<!-- Messages Area -->
-	<div class="flex-1 overflow-hidden relative">
+	<div class="absolute inset-0 bottom-[73px] overflow-hidden">
 		{#if chatState.isLoading}
 			<div class="absolute inset-0 p-4 space-y-4">
 				{#each Array(3) as _}
@@ -66,7 +98,12 @@
 			</div>
 		{:else}
 			<ScrollArea class="h-full pr-4" bind:viewportRef={scrollViewport}>
-				<div class="flex flex-col justify-end min-h-full py-4 px-4 gap-2">
+				<div class="flex flex-col justify-end min-h-full py-4 px-4">
+					{#if chatState.isFetchingMore}
+						<div class="flex justify-center py-2">
+							<Skeleton class="h-4 w-24" />
+						</div>
+					{/if}
 					{#if chatState.messages.length === 0}
 						<div class="flex flex-1 flex-col items-center justify-center text-center text-muted-foreground p-8">
 							<div class="bg-muted/50 p-4 rounded-full mb-4">
@@ -107,7 +144,7 @@
 	</div>
 
 	<!-- Input Area -->
-	<div class="p-4 bg-background border-t border-border/50">
+	<div class="absolute bottom-0 left-0 right-0 p-4 bg-background border-t border-border/50">
 		<ChatInput
 			onSend={handleSend}
 			disabled={!chatState.channelId || chatState.error !== null}

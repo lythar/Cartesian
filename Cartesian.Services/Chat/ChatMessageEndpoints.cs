@@ -110,7 +110,7 @@ public class ChatMessageEndpoints : IEndpoint
         db.ChatMessages.Add(message);
         await db.SaveChangesAsync();
 
-        var memberIds = await GetChannelMemberIds(db, channel, userId);
+        var memberIds = await GetChannelMemberIds(db, channel);
         foreach (var memberId in memberIds)
             await sseService.SendMessageAsync(memberId, message);
 
@@ -145,7 +145,7 @@ public class ChatMessageEndpoints : IEndpoint
         return true;
     }
 
-    private async Task<List<string>> GetChannelMemberIds(CartesianDbContext db, ChatChannel channel, string excludeUserId)
+    private async Task<List<string>> GetChannelMemberIds(CartesianDbContext db, ChatChannel channel, string? excludeUserId = null)
     {
         var memberIds = channel.Type switch
         {
@@ -161,7 +161,10 @@ public class ChatMessageEndpoints : IEndpoint
             _ => new List<string>()
         };
 
-        return memberIds.Where(id => id != excludeUserId).ToList();
+        if (excludeUserId != null)
+            return memberIds.Where(id => id != excludeUserId).ToList();
+
+        return memberIds;
     }
 
     private async Task<IResult> GetMessages(CartesianDbContext db, UserManager<CartesianUser> userManager,

@@ -1,4 +1,5 @@
 using Cartesian.Services.Account;
+using Cartesian.Services.Chat;
 
 namespace Cartesian.Services.Communities;
 
@@ -12,5 +13,5 @@ public class Membership
     public required Guid CommunityId { get; set; }
     public Community Community { get; set; } = null!;
 
-    public MembershipDto ToDto() => new(Id, UserId, User.ToDto(), CommunityId, Permissions, CreatedAt);
+    public MembershipDto ToDto(ChatChannel? channel = null) => new(Id, UserId, User.ToDto(), CommunityId, Community?.ToDto(), channel?.Id, Permissions, CreatedAt);
 }

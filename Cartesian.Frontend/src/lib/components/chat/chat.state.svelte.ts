@@ -1,31 +1,43 @@
-import type { ChatMessageDto, MyUserDto } from "$lib/api/cartesian-client";
-import { baseUrl } from "$lib/api/client";
+import type { ChatMessageDto } from "$lib/api/cartesian-client";
 import {
 	createGetCommunityChannelQuery,
-	createGetMessagesQuery,
+	createGetMessagesInfiniteQuery,
 	createSendMessageMutation,
 } from "$lib/api/queries/chat.query";
+import { globalChatSse, type ChatEvent } from "$lib/stores/chat-sse.svelte";
+import { unreadMessagesStore } from "$lib/stores/unread-messages.svelte";
 import type { QueryClient } from "@tanstack/svelte-query";
-import { onDestroy } from "svelte";
 
 export class ChatState {
-	// State
 	#communityId: string;
 	#queryClient: QueryClient;
 
 	realtimeMessages = $state<ChatMessageDto[]>([]);
-	isConnected = $state(false);
-	error = $state<string | null>(null);
+	isConnected = $derived(globalChatSse.isConnected);
+	error = $derived(globalChatSse.error);
 
-	// Queries
 	#channelQuery;
 	#messagesQuery;
 	#sendMessageMutation;
+	#unsubscribe: (() => void) | null = null;
 
-	// Derived
+	// @ts-ignore
 	channelId = $derived(this.#channelQuery.data?.id);
+	// @ts-ignore
 	isLoading = $derived(this.#channelQuery.isLoading || this.#messagesQuery.isLoading);
-	historyMessages = $derived(this.#messagesQuery.data?.messages ?? []);
+	// @ts-ignore
+	isFetchingMore = $derived(this.#messagesQuery.isFetchingNextPage);
+	// @ts-ignore
+	hasMore = $derived(this.#messagesQuery.hasNextPage);
+
+	historyMessages = $derived.by(() => {
+		const pages = this.#messagesQuery.data?.pages ?? [];
+		const allMessages: ChatMessageDto[] = [];
+		for (const page of pages) {
+			allMessages.push(...page.messages);
+		}
+		return allMessages;
+	});
 
 	messages = $derived.by(() => {
 		const combined = [...this.historyMessages, ...this.realtimeMessages];
@@ -38,17 +50,13 @@ export class ChatState {
 		);
 	});
 
-	// SSE
-	#eventSource: EventSource | null = null;
-
 	constructor(communityId: string, queryClient: QueryClient) {
 		this.#communityId = communityId;
 		this.#queryClient = queryClient;
 
 		this.#channelQuery = createGetCommunityChannelQuery(() => this.#communityId, queryClient);
 
-		// We use a derived function for the channel ID to ensure reactivity
-		this.#messagesQuery = createGetMessagesQuery(
+		this.#messagesQuery = createGetMessagesInfiniteQuery(
 			() => this.channelId ?? "",
 			() => 50,
 			queryClient,
@@ -56,62 +64,55 @@ export class ChatState {
 
 		this.#sendMessageMutation = createSendMessageMutation(queryClient);
 
-		// Initialize SSE
-		this.connect();
+		this.#subscribeToChannel();
 	}
 
-	connect() {
-		if (typeof EventSource === "undefined") return;
-		if (this.#eventSource) this.#eventSource.close();
+	async loadMore() {
+		if (this.hasMore && !this.isFetchingMore) {
+			await this.#messagesQuery.fetchNextPage();
+		}
+	}
 
-		const sseUrl = `${baseUrl}/chat/api/subscribe`;
-		this.#eventSource = new EventSource(sseUrl, { withCredentials: true });
+	#subscribeToChannel() {
+		$effect(() => {
+			const channelId = this.channelId;
+			if (!channelId) return;
 
-		this.#eventSource.onopen = () => {
-			this.isConnected = true;
-			this.error = null;
-			console.log("✅ Chat Connected");
-		};
+			unreadMessagesStore.registerChannel(channelId, this.#communityId);
 
-		this.#eventSource.onerror = (err) => {
-			this.isConnected = false;
-			this.error = "Connection lost";
-			console.error("❌ Chat Connection Error:", err);
-		};
-
-		this.#eventSource.onmessage = (event) => {
-			try {
-				const data = JSON.parse(event.data);
-				this.handleEvent(data);
-			} catch (e) {
-				console.error("Failed to parse chat event", e);
+			if (this.#unsubscribe) {
+				this.#unsubscribe();
 			}
-		};
+
+			this.#unsubscribe = globalChatSse.subscribeToChannel(channelId, (event) => {
+				this.#handleEvent(event);
+			});
+		});
 	}
 
-	handleEvent(event: any) {
-		const eventType = event.$type;
-
-		if (eventType === "newMessage") {
-			const message = event.message || event.Message;
-			if (!message) return;
-
-			// Check channel match
+	#handleEvent(event: ChatEvent) {
+		if (event.message) {
+			const message = event.message;
 			const msgChannelId = String(message.channelId).toLowerCase();
-			const currentChannelId = String(this.channelId).toLowerCase();
+			const currentChannelId = String(this.channelId ?? "").toLowerCase();
 
 			if (msgChannelId === currentChannelId) {
-				this.realtimeMessages = [...this.realtimeMessages, message];
+				const exists = this.realtimeMessages.some((m) => m.id === message.id);
+				if (!exists) {
+					this.realtimeMessages = [...this.realtimeMessages, message];
+				}
+
+				unreadMessagesStore.markAsRead(currentChannelId, message.id);
 			}
-		} else if (eventType === "messageDeleted") {
-			const targetChannelId = String(event.channelId || event.ChannelId).toLowerCase();
+		} else if (event.messageId && event.channelId) {
+			const targetChannelId = String(event.channelId).toLowerCase();
 			const currentChannelId = String(this.channelId).toLowerCase();
 
 			if (targetChannelId === currentChannelId) {
-				const targetMsgId = event.messageId || event.MessageId;
-				this.realtimeMessages = this.realtimeMessages.filter((m) => m.id !== targetMsgId);
-				// Optionally invalidate history
-				this.#queryClient.invalidateQueries({ queryKey: this.#messagesQuery.queryKey });
+				this.realtimeMessages = this.realtimeMessages.filter(
+					(m) => m.id !== event.messageId,
+				);
+				this.#queryClient.invalidateQueries({ queryKey: ["chat", "messages"] });
 			}
 		}
 	}
@@ -131,9 +132,9 @@ export class ChatState {
 	}
 
 	dispose() {
-		if (this.#eventSource) {
-			this.#eventSource.close();
-			this.#eventSource = null;
+		if (this.#unsubscribe) {
+			this.#unsubscribe();
+			this.#unsubscribe = null;
 		}
 	}
 }

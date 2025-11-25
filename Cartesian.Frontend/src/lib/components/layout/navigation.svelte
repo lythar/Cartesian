@@ -9,6 +9,7 @@
 	import * as Sidebar from "$lib/components/ui/sidebar";
 	import { getLayoutContext } from "$lib/context/layout.svelte";
 	import { authStore } from "$lib/stores/auth.svelte";
+	import { unreadMessagesStore } from "$lib/stores/unread-messages.svelte";
 	import { PlusSignIcon } from "@hugeicons/core-free-icons";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import MobileNavigation from "./mobile-navigation.svelte";
@@ -30,6 +31,11 @@
 
 	function isActive(href: string) {
 		return $page.url.pathname === href;
+	}
+
+	function getUnreadCount(channelId: string | null | undefined): number {
+		if (!channelId) return 0;
+		return unreadMessagesStore.getUnreadCountForChannel(channelId);
 	}
 </script>
 
@@ -83,6 +89,7 @@
 									</Sidebar.MenuItem>
 								{:else if myMembershipsQuery.data}
 									{#each myMembershipsQuery.data as membership}
+										{@const unreadCount = getUnreadCount(membership.channelId)}
 										<Sidebar.MenuItem>
 											<Sidebar.MenuButton
 												isActive={isActive(
@@ -95,26 +102,29 @@
 														href="/community/{membership.communityId}"
 														{...props}
 													>
-														{#if getAvatarUrl(membership.user.avatar)}
+														{#if membership.community?.avatar && getAvatarUrl(membership.community.avatar)}
 															<img
-																src={getAvatarUrl(
-																	membership.user.avatar,
-																)}
-																alt={membership.communityId}
+																src={getAvatarUrl(membership.community.avatar)}
+																alt={membership.community?.name ?? membership.communityId}
 																class="h-5 w-5 rounded-md object-cover transition-transform group-hover:scale-105"
 															/>
 														{:else}
 															<div
 																class="flex h-5 w-5 items-center justify-center rounded-md bg-muted text-[9px] font-medium text-muted-foreground group-data-[active=true]:bg-primary/10 group-data-[active=true]:text-primary"
 															>
-																{membership.communityId
+																{(membership.community?.name ?? membership.communityId)
 																	.substring(0, 2)
 																	.toUpperCase()}
 															</div>
 														{/if}
-														<span class="truncate"
-															>{membership.communityId}</span
+														<span class="flex-1 truncate"
+															>{membership.community?.name ?? membership.communityId}</span
 														>
+														{#if unreadCount > 0}
+															<span class="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground">
+																{unreadCount > 99 ? "99+" : unreadCount}
+															</span>
+														{/if}
 													</a>
 												{/snippet}
 											</Sidebar.MenuButton>

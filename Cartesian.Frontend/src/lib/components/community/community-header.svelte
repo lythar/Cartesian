@@ -24,12 +24,14 @@
 		currentUser,
 		isMember,
 		isAdmin,
+		isOwner,
 		onToggleMembers,
 	} = $props<{
 		community: CommunityDto;
 		currentUser: MyUserDto | undefined;
 		isMember: boolean;
 		isAdmin: boolean;
+		isOwner: boolean;
 		onToggleMembers?: () => void;
 	}>();
 
@@ -119,7 +121,7 @@
 				<HugeiconsIcon icon={UserGroupIcon} size={16} strokeWidth={1.5} />
 			</Button>
 		</div>
-		{#if isMember}
+		{#if isMember && !isOwner}
 			<Tooltip.Root>
 				<Tooltip.Trigger>
 					<Button
@@ -134,7 +136,7 @@
 				</Tooltip.Trigger>
 				<Tooltip.Content>Leave Community</Tooltip.Content>
 			</Tooltip.Root>
-		{:else}
+		{:else if !isMember}
 			<Button
 				size="sm"
 				class="h-8 gap-2 rounded-md px-3 text-xs"
