@@ -241,7 +241,9 @@
 
 </div>
 
-<div class="flex-1 overflow-y-auto p-6">
+<div
+	class="scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent flex-1 overflow-y-auto p-6"
+>
 	<div class="mb-6">
 		<h2 class="mb-2 text-2xl font-bold tracking-tight">{event.eventName}</h2>
 

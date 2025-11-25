@@ -13,13 +13,13 @@
 
 <div
 	class={cn(
-		"pointer-events-none absolute top-4 bottom-4 left-4 z-50 flex w-full max-w-lg flex-col transition-all duration-300 ease-in-out",
+		"pointer-events-none overflow-hidden absolute inset-0 z-50 flex w-full max-w-full flex-col transition-all duration-300 ease-in-out lg:inset-auto lg:top-4 lg:bottom-4 lg:left-4 lg:max-w-lg",
 		open ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0",
 	)}
 >
 	<div
 		class={cn(
-			"flex h-full flex-col overflow-hidden rounded-3xl border border-border/40 bg-background shadow-2xl transition-all",
+			"flex h-full flex-col overflow-hidden border border-border/40 bg-background shadow-2xl transition-all lg:rounded-3xl",
 			open ? "pointer-events-auto" : "pointer-events-none",
 		)}
 	>
