@@ -28,14 +28,12 @@
 	onMount(() => {
 		const heroTexts = document.querySelectorAll(".hero-text");
 
-		// Entrance animation for Text
 		animate(
 			heroTexts,
 			{ opacity: [0, 1], y: [30, 0] },
 			{ duration: 1.2, delay: stagger(0.15), ease: [0.22, 1, 0.36, 1] },
 		);
 
-		// Entrance animation for Globe
 		if (globeContainer) {
 			animate(
 				globeContainer,
@@ -114,7 +112,6 @@
 			</div>
 		</div>
 
-		<!-- Bottom Globe Visual -->
 		<div
 			bind:this={globeContainer}
 			class="pointer-events-none absolute right-0 bottom-0 left-0 z-0 flex items-end justify-center opacity-0"
@@ -123,7 +120,6 @@
 				<Globe {events}>
 					{#snippet children({ event })}
 						<div class="flex -translate-y-full flex-col items-center gap-2 pb-2">
-							<!-- Bubble -->
 							<div
 								class="relative w-max max-w-[140px] rounded-xl border border-white/10 bg-black/60 p-2.5 shadow-2xl backdrop-blur-md transition-all hover:scale-105 hover:bg-black/80"
 							>

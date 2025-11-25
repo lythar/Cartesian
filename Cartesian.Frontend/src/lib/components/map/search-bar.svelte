@@ -12,6 +12,9 @@
 		UserIcon,
 		UserGroupIcon,
 		RefreshIcon,
+		SentIcon,
+		Cancel01Icon,
+		Loading03Icon,
 	} from "@hugeicons/core-free-icons";
 	import { getLayoutContext } from "$lib/context/layout.svelte";
 	import UserMenu from "./user-menu.svelte";
@@ -25,6 +28,36 @@
 	import { useQueryClient } from "@tanstack/svelte-query";
 	import { toast } from "svelte-sonner";
 	import { openUserProfile } from "$lib/components/profile/profile-state.svelte";
+	import { Chat } from "@ai-sdk/svelte";
+	import { DefaultChatTransport } from "ai";
+
+	interface MapboxSearchResult {
+		name: string;
+		fullAddress: string;
+		coordinates: number[];
+		type: string;
+	}
+
+	interface EventSearchResult {
+		id: string;
+		name: string;
+		description: string;
+		author: string;
+		community: string | null;
+		visibility: string;
+		timing: string;
+		tags: string[];
+		windows: Array<{
+			id: string;
+			title: string;
+			startTime: string;
+			endTime: string;
+			location: {
+				address: string;
+				coordinates: number[];
+			} | null;
+		}>;
+	}
 
 	const layout = getLayoutContext();
 	const queryClient = useQueryClient();
@@ -40,7 +73,16 @@
 	const geoQuery = createForwardGeocodeQuery(() => debouncedSearch.current);
 	const searchQuery = createSearchAllQuery(() => ({ query: debouncedSearch.current }));
 
-	const showExpanded = $derived(isFocused && searchValue.length > 0);
+	const chat = new Chat({
+		transport: new DefaultChatTransport({ api: "/api/ai/chat" }),
+		onError: (error) => {
+			toast.error("AI search failed: " + error.message);
+		},
+	});
+
+	const showExpanded = $derived(
+		(isFocused && searchValue.length > 0) || (isAIMode && chat.messages.length > 0),
+	);
 
 	async function handleRefreshEvents() {
 		if (isRefreshing) return;
@@ -168,6 +210,69 @@
 		isFocused = false;
 		openUserProfile(user.id);
 	}
+
+	function handleAISubmit(e: SubmitEvent) {
+		e.preventDefault();
+		if (!searchValue.trim()) return;
+		chat.sendMessage({ text: searchValue });
+		searchValue = "";
+	}
+
+	function clearAIChat() {
+		chat.messages = [];
+	}
+
+	function handleAIModeToggle() {
+		isAIMode = !isAIMode;
+		if (!isAIMode) {
+			clearAIChat();
+		}
+	}
+
+	function handleAILocationClick(coordinates: number[], name: string) {
+		if (coordinates.length < 2) return;
+		const [lng, lat] = coordinates;
+		mapState.instance?.flyTo({
+			center: [lng, lat],
+			zoom: 14,
+			essential: true,
+			duration: 2000,
+		});
+	}
+
+	function getToolInput<T>(part: any): T | undefined {
+		return part?.input as T | undefined;
+	}
+
+	function getToolOutput<T>(part: any): T | undefined {
+		return part?.output as T | undefined;
+	}
+
+	function handleAIEventClick(eventData: any) {
+		if (!eventData.windows || eventData.windows.length === 0) return;
+		const eventWindow = eventData.windows[0];
+		if (!eventWindow.location?.coordinates) return;
+
+		const [lng, lat] = eventWindow.location.coordinates;
+		mapState.instance?.flyTo({
+			center: [lng, lat],
+			zoom: 16,
+			essential: true,
+			duration: 2000,
+		});
+
+		setTimeout(() => {
+			new mapboxgl.Popup()
+				.setLngLat([lng, lat])
+				.setHTML(
+					`<div class="p-2">
+						<h3 class="font-semibold text-sm mb-1">${eventData.name}</h3>
+						<p class="text-xs text-muted-foreground">${eventData.description?.substring(0, 100) || ""}</p>
+					</div>`,
+				)
+				.addTo(mapState.instance!);
+		}, 2100);
+	}
 </script>
 
 <div
@@ -177,11 +282,17 @@
 		bind:this={searchBarRef}
 		class="relative w-full rounded-full bg-background/90 shadow-neu-highlight backdrop-blur-md"
 	>
-		<div class="flex h-16 w-full items-center gap-2 px-2 lg:h-14 group">
+		<form
+			class="flex h-16 w-full items-center gap-2 px-2 lg:h-14 group"
+			onsubmit={isAIMode ? handleAISubmit : (e) => e.preventDefault()}
+		>
 			<div
 				class="flex h-12 flex-1 items-center gap-2 rounded-full bg-secondary/30 px-3 transition-colors focus-within:bg-secondary/50 lg:h-10"
 			>
-				<HugeiconsIcon icon={Search01Icon} className="size-5 text-muted-foreground" />
+				<HugeiconsIcon
+					icon={isAIMode ? AiMagicIcon : Search01Icon}
+					className={cn("size-5", isAIMode ? "text-primary" : "text-muted-foreground")}
+				/>
 				<div class="flex-1">
 					<Input
 						bind:value={searchValue}
@@ -193,14 +304,29 @@
 						onblur={() => {
 							setTimeout(() => (isFocused = false), 200);
 						}}
+						disabled={chat.status === "streaming" || chat.status === "submitted"}
 					/>
 				</div>
 				{#if searchValue}
 					<button
+						type="button"
 						onclick={() => (searchValue = "")}
 						class="flex h-6 w-6 animate-in items-center justify-center rounded-full text-muted-foreground duration-200 fade-in zoom-in hover:bg-muted hover:text-foreground"
 					>
 						<span class="text-xs">✕</span>
+					</button>
+				{/if}
+				{#if isAIMode && searchValue.trim()}
+					<button
+						type="submit"
+						disabled={chat.status === "streaming" || chat.status === "submitted"}
+						class="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+					>
+						{#if chat.status === "streaming" || chat.status === "submitted"}
+							<HugeiconsIcon icon={Loading03Icon} className="size-4 animate-spin" />
+						{:else}
+							<HugeiconsIcon icon={SentIcon} className="size-4" />
+						{/if}
 					</button>
 				{/if}
 			</div>
@@ -208,6 +334,7 @@
 			<Tooltip.Root>
 				<Tooltip.Trigger>
 					<Button
+						type="button"
 						variant={isAIMode ? "default" : "ghost"}
 						size="icon"
 						class={cn(
@@ -216,7 +343,7 @@
 								? "bg-primary text-primary-foreground shadow-lg"
 								: "bg-secondary/30 text-foreground",
 						)}
-						onclick={() => (isAIMode = !isAIMode)}
+						onclick={handleAIModeToggle}
 					>
 						<HugeiconsIcon
 							icon={AiMagicIcon}
@@ -229,31 +356,34 @@
 				<Tooltip.Content>{isAIMode ? "Disable AI mode" : "Enable AI mode"}</Tooltip.Content>
 			</Tooltip.Root>
 
-			<Tooltip.Root>
-				<Tooltip.Trigger>
-					<Button
-						variant="ghost"
-						size="icon"
-						class={cn(
-							"h-12 w-12 shrink-0 rounded-full bg-secondary/30 text-foreground transition-all duration-200 lg:h-10 lg:w-10 group-has-focus:hidden",
-							isRefreshing && "animate-spin",
-						)}
-						onclick={handleRefreshEvents}
-						disabled={isRefreshing}
-					>
-						<HugeiconsIcon icon={RefreshIcon} size={20} />
-						<span class="sr-only">Refresh events</span>
-					</Button>
-				</Tooltip.Trigger>
-				<Tooltip.Content>Refresh events</Tooltip.Content>
-			</Tooltip.Root>
+			{#if !isAIMode}
+				<Tooltip.Root>
+					<Tooltip.Trigger>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							class={cn(
+								"h-12 w-12 shrink-0 rounded-full bg-secondary/30 text-foreground transition-all duration-200 lg:h-10 lg:w-10 group-has-focus:hidden",
+								isRefreshing && "animate-spin",
+							)}
+							onclick={handleRefreshEvents}
+							disabled={isRefreshing}
+						>
+							<HugeiconsIcon icon={RefreshIcon} size={20} />
+							<span class="sr-only">Refresh events</span>
+						</Button>
+					</Tooltip.Trigger>
+					<Tooltip.Content>Refresh events</Tooltip.Content>
+				</Tooltip.Root>
+			{/if}
 
 			{#if layout.isMobile && !showExpanded}
 				<div class="animate-in duration-300 fade-in slide-in-from-right-4">
 					<UserMenu class="flex h-12 w-12 items-center justify-center" />
 				</div>
 			{/if}
-		</div>
+		</form>
 	</div>
 
 	<div
@@ -263,8 +393,179 @@
 	>
 		<div class="flex flex-col px-4 py-4">
 			<div class="scrollbar-thin max-h-[60vh] overflow-y-auto">
-				<!-- Events Section -->
-				{#if searchQuery.data?.events && searchQuery.data.events.length > 0}
+				{#if isAIMode}
+					<!-- AI Chat Interface -->
+					<div class="animate-item flex flex-col gap-3">
+						{#if chat.messages.length === 0}
+							<div class="rounded-xl p-4 text-center text-sm text-muted-foreground">
+								<HugeiconsIcon
+									icon={AiMagicIcon}
+									className="mx-auto mb-2 size-8 text-primary/50"
+								/>
+								<p>Ask me to find events, locations, or get details about happenings.</p>
+								<p class="mt-1 text-xs">Try: "Find concerts near me" or "What events are happening this weekend?"</p>
+							</div>
+						{:else}
+							{#each chat.messages as message (message.id)}
+								<div
+									class={cn(
+										"rounded-xl p-3",
+										message.role === "user"
+											? "ml-8 bg-primary text-primary-foreground"
+											: "mr-8 bg-secondary/50",
+									)}
+								>
+									{#each message.parts as part, partIndex (partIndex)}
+										{#if part.type === "text"}
+											<p class="text-sm whitespace-pre-wrap">{part.text}</p>
+										{:else if part.type === "tool-mapboxsearch"}
+											{@const input = getToolInput<{ query: string }>(part)}
+											{@const output = getToolOutput<{ results: MapboxSearchResult[] }>(part)}
+											<div class="mt-2 rounded-lg bg-background/50 p-2">
+												<p class="text-xs font-medium text-emerald-600 dark:text-emerald-400 mb-1">
+													Searching locations: "{input?.query}"
+												</p>
+												{#if part.state === "output-available" && output?.results}
+													<div class="flex flex-col gap-1">
+														{#each output.results.slice(0, 3) as result}
+															<button
+																type="button"
+																onclick={() => handleAILocationClick(result.coordinates, result.name)}
+																class="flex items-center gap-2 rounded-lg p-2 text-left transition-colors hover:bg-secondary/50"
+															>
+																<HugeiconsIcon
+																	icon={Location01Icon}
+																	className="size-4 text-emerald-500"
+																/>
+																<div class="flex-1 overflow-hidden">
+																	<p class="truncate text-xs font-medium">{result.name}</p>
+																	<p class="truncate text-xs text-muted-foreground">
+																		{result.fullAddress}
+																	</p>
+																</div>
+															</button>
+														{/each}
+													</div>
+												{:else if part.state === "input-available" || part.state === "input-streaming"}
+													<div class="flex items-center gap-2 text-xs text-muted-foreground">
+														<HugeiconsIcon icon={Loading03Icon} className="size-3 animate-spin" />
+														<span>Searching...</span>
+													</div>
+												{/if}
+											</div>
+										{:else if part.type === "tool-eventsearch"}
+											{@const input = getToolInput<{ query: string }>(part)}
+											{@const output = getToolOutput<{ results: EventSearchResult[] }>(part)}
+											<div class="mt-2 rounded-lg bg-background/50 p-2">
+												<p class="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">
+													Searching events: "{input?.query}"
+												</p>
+												{#if part.state === "output-available" && output?.results}
+													<div class="flex flex-col gap-1">
+														{#each output.results.slice(0, 3) as result}
+															<button
+																type="button"
+																onclick={() => handleAIEventClick(result)}
+																class="flex items-center gap-2 rounded-lg p-2 text-left transition-colors hover:bg-secondary/50"
+															>
+																<HugeiconsIcon
+																	icon={Calendar01Icon}
+																	className="size-4 text-blue-500"
+																/>
+																<div class="flex-1 overflow-hidden">
+																	<p class="truncate text-xs font-medium">{result.name}</p>
+																	<p class="truncate text-xs text-muted-foreground">
+																		{result.description?.substring(0, 50) || "No description"}
+																	</p>
+																</div>
+															</button>
+														{/each}
+													</div>
+													{#if output.results.length === 0}
+														<p class="text-xs text-muted-foreground">No events found</p>
+													{/if}
+												{:else if part.state === "input-available" || part.state === "input-streaming"}
+													<div class="flex items-center gap-2 text-xs text-muted-foreground">
+														<HugeiconsIcon icon={Loading03Icon} className="size-3 animate-spin" />
+														<span>Searching...</span>
+													</div>
+												{/if}
+											</div>
+										{:else if part.type === "tool-geteventdetails"}
+											{@const output = getToolOutput<EventSearchResult & { error?: string }>(part)}
+											<div class="mt-2 rounded-lg bg-background/50 p-2">
+												<p class="text-xs font-medium text-purple-600 dark:text-purple-400 mb-1">
+													Getting event details
+												</p>
+												{#if part.state === "output-available" && output && !output.error}
+													<button
+														type="button"
+														onclick={() => handleAIEventClick(output)}
+														class="flex w-full items-center gap-2 rounded-lg p-2 text-left transition-colors hover:bg-secondary/50"
+													>
+														<HugeiconsIcon
+															icon={Calendar01Icon}
+															className="size-4 text-purple-500"
+														/>
+														<div class="flex-1 overflow-hidden">
+															<p class="truncate text-xs font-medium">{output.name}</p>
+															<p class="truncate text-xs text-muted-foreground">
+																{output.description?.substring(0, 50) || "No description"}
+															</p>
+														</div>
+													</button>
+												{:else if part.state === "output-error"}
+													<p class="text-xs text-destructive">{part.errorText || "Failed to load event"}</p>
+												{:else if part.state === "input-available" || part.state === "input-streaming"}
+													<div class="flex items-center gap-2 text-xs text-muted-foreground">
+														<HugeiconsIcon icon={Loading03Icon} className="size-3 animate-spin" />
+														<span>Loading...</span>
+													</div>
+												{/if}
+											</div>
+										{/if}
+									{/each}
+								</div>
+							{/each}
+
+							{#if chat.status === "streaming" || chat.status === "submitted"}
+								<div class="mr-8 flex items-center gap-2 rounded-xl bg-secondary/50 p-3">
+									<HugeiconsIcon icon={Loading03Icon} className="size-4 animate-spin text-primary" />
+									<span class="text-sm text-muted-foreground">
+										{chat.status === "submitted" ? "Thinking..." : "Responding..."}
+									</span>
+								</div>
+							{/if}
+
+							<div class="flex items-center justify-between pt-2">
+								<Button
+									type="button"
+									variant="ghost"
+									size="sm"
+									onclick={clearAIChat}
+									class="text-xs text-muted-foreground"
+								>
+									<HugeiconsIcon icon={Cancel01Icon} className="mr-1 size-3" />
+									Clear chat
+								</Button>
+								{#if chat.status === "streaming"}
+									<Button
+										type="button"
+										variant="ghost"
+										size="sm"
+										onclick={() => chat.stop()}
+										class="text-xs text-destructive"
+									>
+										Stop
+									</Button>
+								{/if}
+							</div>
+						{/if}
+					</div>
+				{:else}
+					<!-- Standard Search Results -->
+					<!-- Events Section -->
+					{#if searchQuery.data?.events && searchQuery.data.events.length > 0}
 					<div class="animate-item mb-4">
 						<h3
 							class="mb-2 px-2 text-xs font-medium tracking-wider text-muted-foreground uppercase"
@@ -274,6 +575,7 @@
 						<div class="flex flex-col gap-1">
 							{#each searchQuery.data.events as event}
 								<button
+									type="button"
 									class="group flex w-full items-center gap-3 rounded-xl p-2 text-left transition-colors hover:bg-secondary/50"
 									onclick={() => handleEventSelect(event)}
 								>
@@ -310,6 +612,7 @@
 						<div class="flex flex-col gap-1">
 							{#each searchQuery.data.communities as community}
 								<button
+									type="button"
 									class="group flex w-full items-center gap-3 rounded-xl p-2 text-left transition-colors hover:bg-secondary/50"
 									onclick={() => handleCommunitySelect(community)}
 								>
@@ -346,6 +649,7 @@
 						<div class="flex flex-col gap-1">
 							{#each searchQuery.data.users as user}
 								<button
+									type="button"
 									class="group flex w-full items-center gap-3 rounded-xl p-2 text-left transition-colors hover:bg-secondary/50"
 									onclick={() => handleUserSelect(user)}
 								>
@@ -415,6 +719,7 @@
 						{:else if geoQuery.data?.features}
 							{#each geoQuery.data.features as feature}
 								<button
+									type="button"
 									class="group flex w-full items-center gap-3 rounded-xl p-2 text-left transition-colors hover:bg-secondary/50"
 									onclick={() => handleLocationSelect(feature)}
 								>
@@ -436,6 +741,7 @@
 						{/if}
 					</div>
 				</div>
+			{/if}
 			</div>
 		</div>
 	</div>

@@ -45,52 +45,65 @@
 		},
 	});
 
-	onMount(async () => {
+	onMount(() => {
 		let center: [number, number];
 		let zoom: number;
+		let aborted = false;
 
-		const program = Effect.gen(function* () {
-			const geoService = yield* GeolocationService;
-			const position = yield* geoService.getCurrentPosition({
-				enableHighAccuracy: true,
-				timeout: 6000,
-				maximumAge: 0,
+		const initMap = async () => {
+			const program = Effect.gen(function* () {
+				const geoService = yield* GeolocationService;
+				const position = yield* geoService.getCurrentPosition({
+					enableHighAccuracy: true,
+					timeout: 6000,
+					maximumAge: 0,
+				});
+				return position;
 			});
-			return position;
-		});
 
-		const runnable = Effect.provide(program, GeolocationServiceLive);
+			const runnable = Effect.provide(program, GeolocationServiceLive);
 
-		try {
-			const position = await Runtime.runPromise(runtime)(runnable);
-			center = [position.longitude, position.latitude];
-			zoom = 15;
-		} catch {
-			center = approximateLocation.data
-				? [approximateLocation.data.lon, approximateLocation.data.lat]
-				: [-74.5, 40];
-			zoom = 9;
-		}
+			try {
+				const position = await Runtime.runPromise(runtime)(runnable);
+				center = [position.longitude, position.latitude];
+				zoom = 15;
+			} catch {
+				center = approximateLocation.data
+					? [approximateLocation.data.lon, approximateLocation.data.lat]
+					: [-74.5, 40];
+				zoom = 9;
+			}
 
-		mapState.instance = new mapboxgl.Map({
-			container: "lythar-map",
-			style: mapStyle,
-			center,
-			zoom,
-			config: {
-				basemap: {
-					lightPreset: getLightingPreset(mode.current || "light"),
+			if (aborted) return;
+
+			mapState.instance = new mapboxgl.Map({
+				container: "lythar-map",
+				style: mapStyle,
+				center,
+				zoom,
+				config: {
+					basemap: {
+						lightPreset: getLightingPreset(mode.current || "light"),
+					},
 				},
-			},
-		});
+			});
 
-		const attrControl = new mapboxgl.AttributionControl({
-			compact: true,
-			customAttribution:
-				'© <a href="https://lythar.com" target="_blank" rel="noopener noreferrer">Lythar</a>',
-		});
+			const attrControl = new mapboxgl.AttributionControl({
+				compact: true,
+				customAttribution:
+					'© <a href="https://lythar.com" target="_blank" rel="noopener noreferrer">Lythar</a>',
+			});
 
-		mapState.instance.addControl(attrControl, "bottom-right");
+			mapState.instance.addControl(attrControl, "bottom-right");
+		};
+
+		initMap();
+
+		return () => {
+			aborted = true;
+			mapState.instance?.remove();
+			mapState.instance = null;
+		};
 	});
 
 	$effect(() => {
