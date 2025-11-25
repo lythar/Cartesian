@@ -38,11 +38,40 @@
 	import { baseUrl } from "$lib/api/client";
 	import ChangePasswordForm from "$lib/components/auth/change-password-form.svelte";
 	import { ScrollArea } from "$lib/components/ui/scroll-area";
+	import { page } from "$app/stores";
+	import { pushState } from "$app/navigation";
+	import { browser } from "$app/environment";
 
 	let { open = $bindable(false) } = $props();
 
 	const auth = $derived($authStore);
 	const queryClient = useQueryClient();
+
+	let previousState = $state(!!$page.state.profileDialog);
+
+	$effect(() => {
+		const currentState = !!$page.state.profileDialog;
+
+		if (open) {
+			if (!currentState) {
+				if (previousState) {
+					// State was present, now gone -> Back button pressed
+					open = false;
+				} else {
+					// State wasn't present, still isn't -> Initial open
+					if (browser) {
+						pushState("", { profileDialog: true });
+					}
+				}
+			}
+		} else {
+			if (currentState && browser) {
+				history.back();
+			}
+		}
+
+		previousState = currentState;
+	});
 
 	const blocksQuery = createQuery(() => ({
 		queryKey: ["myBlocks"],
@@ -167,7 +196,7 @@
 
 <Dialog.Root bind:open>
 	<Dialog.Content
-		class="flex h-[600px] max-w-[500px] flex-col gap-0 overflow-hidden rounded-3xl border border-border/40 bg-background/95 p-0 shadow-2xl backdrop-blur-xl md:max-w-[600px]"
+		class="fixed inset-0 left-0 top-0 z-50 flex h-full max-h-none w-full max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-0 bg-background/95 p-0 shadow-none backdrop-blur-xl md:fixed md:left-[50%] md:top-[50%] md:h-[600px] md:max-h-[600px] md:w-full md:max-w-[600px] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-3xl md:border md:border-border/40 md:shadow-2xl"
 		showCloseButton={false}
 	>
 		<div

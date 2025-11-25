@@ -7,6 +7,8 @@ declare global {
 		// interface PageData {}
 		interface PageState {
 			previewDrawer?: boolean;
+			profileDialog?: boolean;
+			eventsDialog?: boolean;
 		}
 		// interface Platform {}
 	}

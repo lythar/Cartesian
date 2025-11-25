@@ -26,6 +26,9 @@
 	import { mapInteractionState, editEventOverlayState } from "./map-state.svelte";
 	import { format, formatDistanceToNow, isBefore, addWeeks } from "date-fns";
 	import { getInitials, getAvatarUrl } from "$lib/utils";
+	import { page } from "$app/stores";
+	import { pushState } from "$app/navigation";
+	import { browser } from "$app/environment";
 
 	let { open = $bindable(false) } = $props();
 
@@ -35,6 +38,30 @@
 	const meQuery = createGetAccountApiMe();
 
 	let searchQuery = $state("");
+
+	let previousState = $state(!!$page.state.eventsDialog);
+
+	$effect(() => {
+		const currentState = !!$page.state.eventsDialog;
+
+		if (open) {
+			if (!currentState) {
+				if (previousState) {
+					open = false;
+				} else {
+					if (browser) {
+						pushState("", { eventsDialog: true });
+					}
+				}
+			}
+		} else {
+			if (currentState && browser) {
+				history.back();
+			}
+		}
+
+		previousState = currentState;
+	});
 
 	function getNextWindow(event: EventDto): EventWindowDto | undefined {
 		if (!event.windows || event.windows.length === 0) return undefined;
@@ -258,7 +285,7 @@
 
 <Dialog.Root bind:open>
 	<Dialog.Content
-		class="flex h-[600px] max-w-[500px] flex-col gap-0 overflow-hidden rounded-3xl border border-border/40 bg-background/95 p-0 shadow-2xl backdrop-blur-xl md:max-w-[600px]"
+		class="fixed inset-0 left-0 top-0 z-50 flex h-full max-h-none w-full max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-0 bg-background/95 p-0 shadow-none backdrop-blur-xl md:fixed md:left-[50%] md:top-[50%] md:h-[600px] md:max-h-[600px] md:w-full md:max-w-[600px] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-3xl md:border md:border-border/40 md:shadow-2xl"
 		showCloseButton={false}
 	>
 		<div class="flex flex-none flex-col gap-4 border-b border-border/10 px-6 py-4">
