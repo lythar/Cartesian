@@ -48,18 +48,23 @@
 </script>
 
 <Drawer.Root bind:open {onOpenChange}>
-	<Drawer.Content>
-		<div class="mx-auto w-full p-4 pb-8">
+	<Drawer.Content hideHandle>
+		<div class="relative mx-auto w-full pb-8">
+			<div
+				class="absolute left-1/2 top-3 z-10 h-1.5 w-[100px] -translate-x-1/2 rounded-full bg-white/50 backdrop-blur-sm"
+			></div>
 			{#if mapInteractionState.previewEvent}
 				<EventPreview
 					event={mapInteractionState.previewEvent}
 					hideCloseButton
-					class="w-full shadow-none"
+					class="w-full rounded-b-none rounded-t-lg shadow-none"
 				/>
 			{/if}
-			<Drawer.Footer class="pt-2">
-				<Drawer.Close class={buttonVariants({ variant: "outline" })}>Close</Drawer.Close>
-			</Drawer.Footer>
+			<div class="px-4">
+				<Drawer.Footer class="pt-2">
+					<Drawer.Close class={buttonVariants({ variant: "outline" })}>Close</Drawer.Close>
+				</Drawer.Footer>
+			</div>
 		</div>
 	</Drawer.Content>
 </Drawer.Root>

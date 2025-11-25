@@ -11,6 +11,7 @@
 		...restProps
 	}: DrawerPrimitive.ContentProps & {
 		portalProps?: DrawerPrimitive.PortalProps;
+		hideHandle?: boolean;
 	} = $props();
 </script>
 
@@ -29,9 +30,11 @@
 		)}
 		{...restProps}
 	>
-		<div
-			class="mx-auto mt-4 hidden h-2 w-[100px] shrink-0 rounded-full bg-muted group-data-[vaul-drawer-direction=bottom]/drawer-content:block"
-		></div>
+		{#if !hideHandle}
+			<div
+				class="mx-auto mt-4 hidden h-2 w-[100px] shrink-0 rounded-full bg-muted group-data-[vaul-drawer-direction=bottom]/drawer-content:block"
+			></div>
+		{/if}
 		{@render children?.()}
 	</DrawerPrimitive.Content>
 </DrawerPrimitive.Portal>
