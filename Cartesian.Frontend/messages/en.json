@@ -163,5 +163,11 @@
 	"sidebar_title": "Sidebar",
 	"sidebar_description": "Displays the mobile sidebar.",
 	"landing_system_status": "System: Online",
-	"landing_location_status": "Loc: Global"
+	"landing_location_status": "Loc: Global",
+	"profile_picture_title": "Profile Picture",
+	"profile_picture_formats": "JPG, GIF or PNG. Max size of 5MB.",
+	"validation_name_required": "Name is required",
+	"validation_description_required": "Description is required",
+	"validation_tag_required": "At least one tag is required",
+	"error_load_address": "Failed to load address"
 }

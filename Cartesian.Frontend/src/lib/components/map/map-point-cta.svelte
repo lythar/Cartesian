@@ -143,11 +143,13 @@
 						Loading address...
 					</p>
 				{:else if geocodeQuery?.isError}
-					<p class="text-sm text-destructive">Failed to load address</p>
+					<p class="text-sm text-destructive">{m.error_load_address()}</p>
 				{:else if geocodeQuery?.data?.features?.[0]?.properties}
 					{@const properties = geocodeQuery.data.features[0].properties}
 					<p class="text-sm font-semibold text-foreground">
-						{properties.name ?? properties.place_formatted ?? "Unknown location"}
+						{properties.name ??
+							properties.place_formatted ??
+							m.event_location_unknown()}
 					</p>
 				{/if}
 

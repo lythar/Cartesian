@@ -6,6 +6,7 @@
 	import { cn } from "$lib/utils";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import { Calendar03Icon, Clock01Icon } from "@hugeicons/core-free-icons";
+	import { m } from "$lib/paraglide/messages";
 	import {
 		DateFormatter,
 		type DateValue,
@@ -17,13 +18,15 @@
 
 	let {
 		value = $bindable(),
-		placeholder = "Pick a date",
+		placeholder,
 		class: className,
 	} = $props<{
 		value: string;
 		placeholder?: string;
 		class?: string;
 	}>();
+
+	const actualPlaceholder = $derived(placeholder ?? m.date_picker_placeholder());
 
 	const df = new DateFormatter("en-US", {
 		dateStyle: "medium",
@@ -85,7 +88,7 @@
 						{#if date}
 							{df.format(date.toDate(getLocalTimeZone()))} at {time}
 						{:else}
-							{placeholder}
+							{actualPlaceholder}
 						{/if}
 					</span>
 				</Button>

@@ -60,7 +60,7 @@
 	let address = $derived(
 		reverseGeocodeQuery.data?.features?.[0]?.properties?.place_formatted ||
 			reverseGeocodeQuery.data?.features?.[0]?.properties?.full_address ||
-			"Unknown location",
+			m.event_location_unknown(),
 	);
 
 	let tags = $derived(typeof event.tags === "string" ? JSON.parse(event.tags) : event.tags || []);

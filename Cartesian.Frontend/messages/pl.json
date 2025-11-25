@@ -163,5 +163,11 @@
 	"sidebar_title": "Pasek boczny",
 	"sidebar_description": "Wyświetla mobilny pasek boczny.",
 	"landing_system_status": "System: Online",
-	"landing_location_status": "Lok: Global"
+	"landing_location_status": "Lok: Global",
+	"profile_picture_title": "Zdjęcie profilowe",
+	"profile_picture_formats": "JPG, GIF lub PNG. Maksymalny rozmiar 5MB.",
+	"validation_name_required": "Nazwa jest wymagana",
+	"validation_description_required": "Opis jest wymagany",
+	"validation_tag_required": "Wymagany jest co najmniej jeden tag",
+	"error_load_address": "Nie udało się załadować adresu"
 }

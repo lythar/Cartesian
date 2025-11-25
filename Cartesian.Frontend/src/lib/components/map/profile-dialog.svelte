@@ -233,9 +233,11 @@
 
 						<div class="flex flex-1 flex-col gap-2">
 							<div class="flex flex-col gap-1">
-								<h3 class="leading-none font-medium">Profile Picture</h3>
+								<h3 class="leading-none font-medium">
+									{m.profile_picture_title()}
+								</h3>
 								<p class="text-xs text-muted-foreground">
-									JPG, GIF or PNG. Max size of 5MB.
+									{m.profile_picture_formats()}
 								</p>
 							</div>
 							<div class="flex gap-2">
