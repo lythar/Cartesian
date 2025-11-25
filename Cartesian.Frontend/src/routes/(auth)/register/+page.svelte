@@ -7,6 +7,7 @@
 	import { zod4Client } from "sveltekit-superforms/adapters";
 	import { schema } from "./schema";
 	import type { PageData } from "./$types";
+	import { authStore } from "$lib/stores/auth.svelte";
 
 	let { data }: { data: PageData } = $props();
 
@@ -16,8 +17,9 @@
 		mutation: {
 			onSuccess: (data) => {
 				console.log("Registration successful:", data.me);
+				authStore.setUser(data.me);
 				errorMessage = null;
-				goto("/login");
+				goto("/app");
 			},
 			onError: (error: CartesianIdentityError) => {
 				console.error("Registration error:", error);
