@@ -142,8 +142,8 @@
 		<MapPointCta map={mapState.instance} bind:selectedLocation />
 		<NewEventOverlay map={mapState.instance} />
 		<EditEventOverlay map={mapState.instance} />
-		<EventDetailsOverlay />
 		<EventPreviewDrawer />
+		<EventDetailsOverlay />
 		<MapEventsLayer map={mapState.instance} />
 	{/if}
 </div>

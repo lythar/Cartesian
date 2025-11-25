@@ -33,12 +33,13 @@
 			mapInteractionState.eventDetailsOpen = true;
 			newEventOverlayState.open = false;
 			
-			// Close the drawer
+			// Close the drawer immediately
+			mapInteractionState.previewEventOpen = false;
+			mapInteractionState.previewEvent = null;
+
+			// Pop history state if it exists to keep history clean
 			if (browser && $page.state.previewDrawer) {
 				history.back();
-			} else {
-				mapInteractionState.previewEventOpen = false;
-				mapInteractionState.previewEvent = null;
 			}
 		}
 	}
