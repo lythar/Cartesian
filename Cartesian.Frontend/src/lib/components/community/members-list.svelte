@@ -10,7 +10,7 @@
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 	import { ScrollArea } from "$lib/components/ui/scroll-area";
 	import { Permissions } from "$lib/constants/permissions";
-	import { Delete01Icon, MoreHorizontalIcon } from "@hugeicons/core-free-icons";
+	import { MoreHorizontalIcon } from "@hugeicons/core-free-icons";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import { useQueryClient } from "@tanstack/svelte-query";
 
@@ -56,23 +56,27 @@
 	}
 </script>
 
-<div class="flex flex-col gap-3">
-	<div class="flex items-center justify-between px-2">
-		<h2 class="text-[10px] font-semibold tracking-widest text-muted-foreground/60 uppercase">
+<div class="flex flex-col h-full">
+	<div
+		class="flex h-16 items-center justify-between border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4"
+	>
+		<h2 class="text-xs font-semibold text-foreground/70 uppercase tracking-wider">
 			Members
 		</h2>
-		<span class="text-[10px] font-medium text-muted-foreground/50">{members.length}</span>
+		<Badge variant="outline" class="text-[10px] py-0 h-4 border-border/50 text-muted-foreground"
+			>{members.length}</Badge
+		>
 	</div>
 
-	<ScrollArea class="h-[400px] pr-4">
-		<div class="space-y-0.5">
+	<ScrollArea class="flex-1">
+		<div class="p-2 space-y-0.5">
 			{#each members as membership (membership.id)}
 				<div
-					class="group flex items-center justify-between rounded-lg px-2 py-1.5 transition-colors hover:bg-muted/40"
+					class="group flex items-center justify-between rounded-md px-2 py-1.5 transition-colors hover:bg-muted/50"
 				>
-					<div class="flex items-center gap-2.5">
+					<div class="flex items-center gap-3 overflow-hidden">
 						<Avatar.Root
-							class="h-7 w-7 rounded-md border border-transparent transition-colors group-hover:border-border/50"
+							class="h-8 w-8 rounded-full border border-border/40"
 						>
 							<Avatar.Image
 								src={membership.user.avatar?.url}
@@ -80,28 +84,22 @@
 								class="object-cover"
 							/>
 							<Avatar.Fallback
-								class="rounded-md bg-primary/5 text-[10px] font-medium text-primary"
+								class="bg-muted text-[10px] font-medium text-foreground/70"
 							>
 								{membership.user.name.substring(0, 2).toUpperCase()}
 							</Avatar.Fallback>
 						</Avatar.Root>
-						<div>
-							<div class="flex items-center gap-2">
-								<p class="text-xs leading-none font-medium text-foreground/90">
+						<div class="min-w-0">
+							<div class="flex items-center gap-1.5">
+								<p class="text-sm font-medium leading-none text-foreground truncate">
 									{membership.user.name}
 								</p>
 								{#if (membership.permissions & Permissions.Admin) === Permissions.Admin}
-									<Badge
-										variant="secondary"
-										class="h-3.5 rounded-[3px] px-1 text-[8px] font-semibold tracking-wider text-primary uppercase opacity-80"
-										>Admin</Badge
-									>
+									<span class="text-[10px] text-primary font-semibold">Admin</span>
 								{/if}
 							</div>
-							<p class="text-[9px] text-muted-foreground/60">
-								Joined {new Date(
-									membership.createdAt as string,
-								).toLocaleDateString()}
+							<p class="text-[10px] text-muted-foreground truncate">
+								Joined {new Date(membership.createdAt as string).toLocaleDateString()}
 							</p>
 						</div>
 					</div>

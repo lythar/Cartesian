@@ -25,23 +25,25 @@
 	}
 </script>
 
-<div class="flex items-end gap-2 rounded-3xl border border-border/40 bg-card p-2 shadow-sm">
+<div class="relative flex w-full items-end gap-2 rounded-xl bg-muted/40 ring-offset-background focus-within:ring-1 focus-within:ring-ring">
 	<Textarea
 		bind:value={content}
 		onkeydown={handleKeydown}
-		placeholder="Type a message..."
-		class="min-h-[44px] w-full resize-none border-0 bg-transparent px-4 py-3 focus-visible:ring-0 focus-visible:ring-offset-0"
+		placeholder="Message..."
+		class="min-h-[44px] w-full resize-none border-0 bg-transparent px-4 py-3 placeholder:text-muted-foreground/50 focus-visible:ring-0 focus-visible:ring-offset-0"
 		rows={1}
 		{disabled}
 	/>
-	<Button
-		size="icon"
-		variant="ghost"
-		class="h-10 w-10 shrink-0 rounded-full text-primary hover:bg-primary/10 hover:text-primary"
-		onclick={handleSend}
-		disabled={!content.trim() || disabled}
-	>
-		<HugeiconsIcon icon={SentIcon} size={20} strokeWidth={2} />
-		<span class="sr-only">Send</span>
-	</Button>
+	<div class="pb-1.5 pr-1.5">
+		<Button
+			size="icon"
+			variant="ghost"
+			class="h-8 w-8 shrink-0 rounded-lg text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
+			onclick={handleSend}
+			disabled={!content.trim() || disabled}
+		>
+			<HugeiconsIcon icon={SentIcon} size={18} strokeWidth={2} />
+			<span class="sr-only">Send</span>
+		</Button>
+	</div>
 </div>

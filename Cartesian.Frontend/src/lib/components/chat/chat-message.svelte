@@ -7,41 +7,61 @@
 	let {
 		message,
 		author,
-		isCurrentUser
+		isCurrentUser,
+		isStacked = false,
 	} = $props<{
 		message: ChatMessageDto;
 		author: CartesianUserDto | undefined;
 		isCurrentUser: boolean;
+		isStacked?: boolean;
 	}>();
 </script>
 
-<div class={cn("flex w-full gap-3", isCurrentUser ? "flex-row-reverse" : "flex-row")}>
-	<Avatar.Root class="h-8 w-8 shrink-0">
-		<Avatar.Image src={author?.avatar?.url} alt={author?.name} class="object-cover" />
-		<Avatar.Fallback class="bg-primary/10 text-xs font-medium text-primary">
-			{author?.name?.substring(0, 2).toUpperCase() ?? "??"}
-		</Avatar.Fallback>
-	</Avatar.Root>
-
-	<div class={cn("flex max-w-[70%] flex-col", isCurrentUser ? "items-end" : "items-start")}>
-		<div class="flex items-center gap-2">
-			<span class="text-xs font-medium text-muted-foreground">
-				{author?.name ?? "Unknown User"}
-			</span>
-			<span class="text-[10px] text-muted-foreground/60">
-				{format(new Date(message.createdAt as string), "HH:mm")}
+<div
+	class={cn(
+		"group flex w-full gap-3 -mx-4 px-4 transition-colors relative",
+		isStacked ? "py-0.5 hover:bg-muted/30" : "py-2 mt-1 hover:bg-muted/30",
+	)}
+>
+	{#if !isStacked}
+		<Avatar.Root class="h-8 w-8 shrink-0 mt-0.5 border border-border/20">
+			<Avatar.Image src={author?.avatar?.url} alt={author?.name} class="object-cover" />
+			<Avatar.Fallback class="bg-primary/5 text-[10px] font-medium text-foreground/70">
+				{author?.name?.substring(0, 2).toUpperCase() ?? "??"}
+			</Avatar.Fallback>
+		</Avatar.Root>
+	{:else}
+		<div class="h-8 w-8 shrink-0 flex justify-end">
+			<span class="hidden group-hover:block text-[10px] text-muted-foreground/50 pt-1 pr-1">
+				{format(new Date(message.createdAt as string), "h:mm a")}
 			</span>
 		</div>
+	{/if}
 
-		<div
+	<div class="flex flex-col min-w-0 flex-1">
+		{#if !isStacked}
+			<div class="flex items-center gap-2">
+				<span
+					class={cn(
+						"text-xs font-semibold leading-none hover:underline cursor-pointer",
+						isCurrentUser ? "text-primary" : "text-foreground",
+					)}
+				>
+					{author?.name ?? "Unknown User"}
+				</span>
+				<span class="text-[10px] text-muted-foreground/50 select-none">
+					{format(new Date(message.createdAt as string), "h:mm a")}
+				</span>
+			</div>
+		{/if}
+
+		<p
 			class={cn(
-				"mt-1 rounded-2xl px-4 py-2 text-sm",
-				isCurrentUser
-					? "bg-primary text-primary-foreground rounded-tr-none"
-					: "bg-muted text-foreground rounded-tl-none"
+				"text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap break-words",
+				isStacked ? "" : "mt-0.5",
 			)}
 		>
-			<p class="whitespace-pre-wrap break-words">{message.content}</p>
-		</div>
+			{message.content}
+		</p>
 	</div>
 </div>
