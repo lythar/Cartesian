@@ -228,204 +228,226 @@
 		</div>
 	{/if}
 
-        <Button
-          variant="ghost"
-          size="icon"
-          class="absolute top-4 right-4 h-8 w-8 rounded-full bg-background/50 backdrop-blur hover:bg-background/80"
-          onclick={onClose}
-        >
-          <HugeiconsIcon icon={Cancel01Icon} size={16} strokeWidth={2} />
-          <span class="sr-only">Close</span>
-        </Button>
-
-
+	<Button
+		variant="ghost"
+		size="icon"
+		class="absolute top-4 right-4 h-8 w-8 rounded-full bg-background/50 backdrop-blur hover:bg-background/80"
+		onclick={onClose}
+	>
+		<HugeiconsIcon icon={Cancel01Icon} size={16} strokeWidth={2} />
+		<span class="sr-only">Close</span>
+	</Button>
 </div>
 
 <div
-	class="scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent flex-1 overflow-y-auto p-6"
+	class="scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6"
 >
-	<div class="mb-6">
-		<h2 class="mb-2 text-2xl font-bold tracking-tight">{event.eventName}</h2>
+	<div class="mb-6 space-y-4">
+		<h2 class="text-xl font-bold tracking-tight break-words hyphens-auto sm:text-2xl">
+			{event.eventName}
+		</h2>
 
 		{#if !hasMultipleSchedules}
-			<div
-				class="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground"
-			>
-				<div class="flex items-center gap-1.5">
-					<HugeiconsIcon icon={Calendar03Icon} size={16} />
-					<span>{format(new Date(event.startTime), "MMM d, yyyy")}</span>
-				</div>
-				<div class="flex items-center gap-1.5">
-					<HugeiconsIcon icon={Clock01Icon} size={16} />
-					<span
-						>{format(new Date(event.startTime), "h:mm a")} - {format(
-							new Date(event.endTime),
-							"h:mm a",
-						)}</span
-					>
-				</div>
-			</div>
-		{/if}
-
-		{#if eventLocation}
-			<div class="mb-3 flex items-start gap-1.5 text-sm text-muted-foreground">
-				<HugeiconsIcon icon={Location01Icon} size={16} className="mt-0.5 shrink-0" />
-				<div class="flex flex-col">
-					<span class="font-medium text-foreground">{address}</span>
-					<span class="text-xs text-muted-foreground">
-						{latitude?.toFixed(6)}, {longitude?.toFixed(6)}
+			<div class="flex flex-col gap-2 rounded-lg bg-muted/50 p-3 text-sm">
+				<div class="flex items-center gap-2.5 text-muted-foreground">
+					<div class="shrink-0">
+						<HugeiconsIcon icon={Calendar03Icon} size={18} />
+					</div>
+					<span class="font-medium text-foreground">
+						{format(new Date(event.startTime), "EEEE, MMMM d, yyyy")}
 					</span>
 				</div>
+				<div class="flex items-center gap-2.5 text-muted-foreground">
+					<div class="shrink-0">
+						<HugeiconsIcon icon={Clock01Icon} size={18} />
+					</div>
+					<span>
+						{format(new Date(event.startTime), "h:mm a")} - {format(
+							new Date(event.endTime),
+							"h:mm a",
+						)}
+					</span>
+				</div>
+				{#if eventLocation}
+					<div class="flex items-start gap-2.5 text-muted-foreground">
+						<div class="mt-0.5 shrink-0">
+							<HugeiconsIcon icon={Location01Icon} size={18} />
+						</div>
+						<div class="flex flex-col gap-0.5">
+							<span class="font-medium text-foreground leading-snug break-words"
+								>{address}</span
+							>
+							<span class="text-xs text-muted-foreground/80">
+								{latitude?.toFixed(6)}, {longitude?.toFixed(6)}
+							</span>
+						</div>
+					</div>
+				{/if}
 			</div>
 		{/if}
 
-		<div class="flex items-center gap-2">
-			<Avatar class="h-6 w-6">
-				<AvatarImage
-					src={event.communityId
-						? getAvatarUrl({ id: event.communityAvatar! })
-						: getAvatarUrl({ id: event.authorAvatar! })}
-					alt={event.communityId ? event.communityName : event.authorName}
-				/>
-				<AvatarFallback
-					>{(event.communityId ? event.communityName : event.authorName)
-						?.substring(0, 2)
-						.toUpperCase()}</AvatarFallback
-				>
-			</Avatar>
-			<span class="text-sm font-medium text-muted-foreground">
-				Hosted by {#if event.communityId}
-					<span class="text-foreground">{event.communityName}</span>
-				{:else}
-					<button
-						class="text-foreground hover:underline"
-						onclick={() => openUserProfile(event.authorId)}
+		<div class="flex items-center justify-between gap-4 rounded-lg border bg-card p-3 shadow-sm">
+			<div class="flex items-center gap-3">
+				<Avatar class="h-10 w-10 border">
+					<AvatarImage
+						src={event.communityId
+							? getAvatarUrl({ id: event.communityAvatar! })
+							: getAvatarUrl({ id: event.authorAvatar! })}
+						alt={event.communityId ? event.communityName : event.authorName}
+					/>
+					<AvatarFallback>
+						{(event.communityId ? event.communityName : event.authorName)
+							?.substring(0, 2)
+							.toUpperCase()}
+					</AvatarFallback>
+				</Avatar>
+				<div class="flex flex-col">
+					<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider"
+						>Hosted by</span
 					>
-						{event.authorName}
-					</button>
-				{/if}
-			</span>
+					{#if event.communityId}
+						<span class="font-semibold text-foreground">{event.communityName}</span>
+					{:else}
+						<button
+							class="text-start font-semibold text-foreground hover:underline"
+							onclick={() => openUserProfile(event.authorId)}
+						>
+							{event.authorName}
+						</button>
+					{/if}
+				</div>
+			</div>
 		</div>
 
-		<div class="mt-4 flex items-center gap-2">
+		<div class="flex flex-col gap-3 sm:flex-row sm:items-center">
 			<Button
 				variant={isParticipating ? "outline" : "default"}
-				class="flex-1"
+				class="h-14 w-full flex-1 text-base font-semibold sm:h-10 sm:w-auto sm:text-sm"
 				onclick={toggleParticipation}
 				disabled={participateMutation.isPending || unparticipateMutation.isPending}
 			>
-				{isParticipating ? "Don't participate" : "Participate in event"}
+				{isParticipating ? "Don't participate" : "Participate"}
 			</Button>
 
-			<Tooltip.Root>
-				<Tooltip.Trigger>
-					<Button variant="outline" size="icon" onclick={shareEvent}>
-						<HugeiconsIcon icon={Share01Icon} size={20} strokeWidth={1.5} />
-						<span class="sr-only">Share event</span>
-					</Button>
-				</Tooltip.Trigger>
-				<Tooltip.Content>Share event</Tooltip.Content>
-			</Tooltip.Root>
+			<div class="flex gap-2">
+				<Tooltip.Root>
+					<Tooltip.Trigger class="flex-1 sm:flex-none">
+						<Button
+							variant="outline"
+							class="h-12 w-full px-4 text-base sm:h-10 sm:w-auto sm:px-3 sm:text-sm"
+							onclick={shareEvent}
+						>
+							<HugeiconsIcon icon={Share01Icon} size={20} strokeWidth={1.5} />
+							<span class="ml-2 sm:hidden">Share</span>
+						</Button>
+					</Tooltip.Trigger>
+					<Tooltip.Content>Share event</Tooltip.Content>
+				</Tooltip.Root>
 
-			<Tooltip.Root>
-				<Tooltip.Trigger>
-					<Button
-						variant="outline"
-						size="icon"
-						onclick={toggleFavorite}
-						disabled={favoriteMutation.isPending || unfavoriteMutation.isPending}
-					>
-						<HugeiconsIcon
-							icon={FavouriteIcon}
-							size={20}
-							strokeWidth={1.5}
-							className={isFavorited ? "fill-red-500 text-red-500" : ""}
-						/>
-						<span class="sr-only">{isFavorited ? "Unfavorite" : "Favorite"}</span>
-					</Button>
-				</Tooltip.Trigger>
-				<Tooltip.Content>{isFavorited ? "Unfavorite" : "Favorite"}</Tooltip.Content>
-			</Tooltip.Root>
+				<Tooltip.Root>
+					<Tooltip.Trigger class="flex-1 sm:flex-none">
+						<Button
+							variant="outline"
+							class="h-12 w-full px-4 text-base sm:h-10 sm:w-auto sm:px-3 sm:text-sm"
+							onclick={toggleFavorite}
+							disabled={favoriteMutation.isPending || unfavoriteMutation.isPending}
+						>
+							<div class={isFavorited ? "text-red-500 fill-red-500" : ""}>
+								<HugeiconsIcon
+									icon={FavouriteIcon}
+									size={20}
+									strokeWidth={1.5}
+								/>
+							</div>
+							<span class="ml-2 sm:hidden">{isFavorited ? "Unfavorite" : "Favorite"}</span>
+						</Button>
+					</Tooltip.Trigger>
+					<Tooltip.Content>{isFavorited ? "Unfavorite" : "Favorite"}</Tooltip.Content>
+				</Tooltip.Root>
+			</div>
 		</div>
 
 		<!-- Participants -->
 		{#if participants.length > 0}
-			<div class="mt-4 flex items-center gap-3">
-				<div class="flex items-center">
-					<HugeiconsIcon
-						icon={UserMultiple02Icon}
-						size={16}
-						className="text-muted-foreground mr-2"
-					/>
-					<div class="flex -space-x-2">
+			<div class="flex items-center justify-between rounded-lg border border-dashed p-3">
+				<div class="flex items-center gap-3">
+					<div class="flex -space-x-3">
 						{#each displayParticipants as participant}
-							<Avatar class="h-7 w-7 border-2 border-background">
+							<Avatar class="h-8 w-8 border-2 border-background ring-1 ring-muted">
 								<AvatarImage
 									src={getAvatarUrl(participant.avatar)}
 									alt={participant.name}
 								/>
-								<AvatarFallback class="text-xs"
+								<AvatarFallback class="text-[10px]"
 									>{getInitials(participant.name)}</AvatarFallback
 								>
 							</Avatar>
 						{/each}
 						{#if remainingParticipantCount > 0}
 							<div
-								class="flex h-7 w-7 items-center justify-center rounded-full border-2 border-background bg-muted text-xs font-medium text-muted-foreground"
+								class="flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-muted text-[10px] font-medium text-muted-foreground ring-1 ring-muted"
 							>
 								+{remainingParticipantCount}
 							</div>
 						{/if}
 					</div>
+					<div class="flex flex-col">
+						<span class="text-sm font-medium text-foreground">
+							{participants.length}
+							{participants.length === 1 ? "person" : "people"}
+						</span>
+						<span class="text-xs text-muted-foreground">going</span>
+					</div>
 				</div>
-				<span class="text-sm text-muted-foreground">
-					{participants.length}
-					{participants.length === 1 ? "participant" : "participants"}
-				</span>
 			</div>
 		{/if}
 	</div>
 
 	<!-- Tags -->
-	<div class="mb-6 flex flex-wrap gap-2">
-		{#each showAllTags ? tags : displayTags as tag}
-			{@const config = EVENT_TAG_CONFIG[tag as keyof typeof EVENT_TAG_CONFIG]}
-			<span
-				class={cn(
-					"group flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
-					"border-transparent bg-muted/50 text-muted-foreground",
-				)}
-			>
-				{#if config?.icon}
-					<HugeiconsIcon
-						icon={config.icon}
-						size={14}
-						strokeWidth={2}
-						className="text-muted-foreground/70"
-					/>
-				{/if}
-				{config ? m[config.translationKey as keyof typeof m]() : tag}
-			</span>
-		{/each}
-		{#if remainingTags > 0 && !showAllTags}
-			<button
-				class="rounded-full bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted/80"
-				onclick={() => (showAllTags = true)}
-			>
-				+{remainingTags} more
-			</button>
-		{/if}
-	</div>
+	{#if tags.length > 0}
+		<div class="mb-8 flex flex-wrap gap-2">
+			{#each showAllTags ? tags : displayTags as tag}
+				{@const config = EVENT_TAG_CONFIG[tag as keyof typeof EVENT_TAG_CONFIG]}
+				<span
+					class={cn(
+						"flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+						"border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+					)}
+				>
+					{#if config?.icon}
+						<span class="opacity-70 flex items-center">
+							<HugeiconsIcon
+								icon={config.icon}
+								size={14}
+								strokeWidth={2}
+							/>
+						</span>
+					{/if}
+					{config ? m[config.translationKey as keyof typeof m]() : tag}
+				</span>
+			{/each}
+			{#if remainingTags > 0 && !showAllTags}
+				<button
+					class="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted/80 transition-colors"
+					onclick={() => (showAllTags = true)}
+				>
+					+{remainingTags} more
+				</button>
+			{/if}
+		</div>
+	{/if}
 
 	<!-- Description -->
 	{#if eventDetails?.description}
 		<div class="mb-8">
-			<h3 class="mb-2 text-sm font-semibold tracking-wider text-muted-foreground uppercase">
+			<h3 class="mb-3 text-sm font-semibold tracking-wider text-muted-foreground uppercase">
 				About
 			</h3>
-			<p class="text-sm leading-relaxed whitespace-pre-wrap text-foreground/90">
-				{eventDetails.description}
-			</p>
+			<div class="prose prose-sm prose-muted text-foreground/90 max-w-none">
+				<p class="whitespace-pre-wrap leading-relaxed">
+					{eventDetails.description}
+				</p>
+			</div>
 		</div>
 	{/if}
 
