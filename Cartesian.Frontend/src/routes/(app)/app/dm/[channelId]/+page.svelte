@@ -242,7 +242,7 @@
 					</Avatar.Fallback>
 				</Avatar.Root>
 				<div>
-					<h2 class="text-sm font-semibold leading-none">{otherUser.name}</h2>
+					<h2 class="text-left text-sm font-semibold leading-none">{otherUser.name}</h2>
 					<p class="text-xs text-muted-foreground">Direct Message</p>
 				</div>
 			</button>
