@@ -76,7 +76,7 @@ services:
       - "cartesian"
   proxy:
     image: "caddy:2-alpine"
-    expose:
+    ports:
       - "3000:8080"
     volumes:
       - type: "bind"
