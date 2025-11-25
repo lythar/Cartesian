@@ -28,7 +28,8 @@ public class EventGeoJsonEndpoint : IEndpoint
         // Filter by visibility
         if (req.Visibility != null)
         {
-            query = query.Where(e => e.Visibility == req.Visibility);
+            var visibility = req.Visibility;
+            query = query.Where(e => e.Visibility == visibility);
         }
         else
         {
@@ -38,30 +39,35 @@ public class EventGeoJsonEndpoint : IEndpoint
         // Filter by tags
         if (req.Tags != null && req.Tags.Length > 0)
         {
-            query = query.Where(e => e.Tags.Any(t => req.Tags.Contains(t)));
+            var tags = req.Tags.ToList();
+            query = query.Where(e => e.Tags.Any(t => tags.Contains(t)));
         }
 
         // Filter by community
         if (req.CommunityId != null)
         {
-            query = query.Where(e => e.CommunityId == req.CommunityId);
+            var communityId = req.CommunityId;
+            query = query.Where(e => e.CommunityId == communityId);
         }
 
         // Filter by timing
         if (req.Timing != null)
         {
-            query = query.Where(e => e.Timing == req.Timing);
+            var timing = req.Timing;
+            query = query.Where(e => e.Timing == timing);
         }
 
         // Filter by date range based on event windows
         if (req.StartDate != null)
         {
-            query = query.Where(e => e.Windows.Any(w => w.StartTime == null || w.StartTime >= req.StartDate));
+            var startDate = req.StartDate;
+            query = query.Where(e => e.Windows.Any(w => w.StartTime == null || w.StartTime >= startDate));
         }
 
         if (req.EndDate != null)
         {
-            query = query.Where(e => e.Windows.Any(w => w.EndTime == null || w.EndTime <= req.EndDate));
+            var endDate = req.EndDate;
+            query = query.Where(e => e.Windows.Any(w => w.EndTime == null || w.EndTime <= endDate));
         }
 
         // Filter by bounding box

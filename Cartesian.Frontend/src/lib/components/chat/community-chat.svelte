@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { MyUserDto, MembershipDto, CartesianUserDto } from "$lib/api/cartesian-client";
+	import type { MyUserDto, MembershipDto, CartesianUserDto, ReactionSummaryDto, PinnedChatMessageDto } from "$lib/api/cartesian-client";
 	import ChatInput from "$lib/components/chat/chat-input.svelte";
 	import ChatMessage from "$lib/components/chat/chat-message.svelte";
 	import { ScrollArea } from "$lib/components/ui/scroll-area";
@@ -11,11 +11,17 @@
 		chatState,
 		members,
 		currentUser,
+		pinnedMessages = [],
+		onPinUpdate,
 	} = $props<{
 		chatState: ChatState;
 		members: MembershipDto[];
 		currentUser: MyUserDto | undefined;
+		pinnedMessages?: PinnedChatMessageDto[];
+		onPinUpdate?: () => void;
 	}>();
+
+	const pinnedMessageIds = $derived(new Set(pinnedMessages.map((p: PinnedChatMessageDto) => p.message.id)));
 
 	function getAuthor(userId: string): CartesianUserDto | undefined {
 		const member = members.find((m: MembershipDto) => m.userId === userId);
@@ -82,6 +88,14 @@
 		await chatState.sendMessage(content);
 		scrollToBottom();
 	}
+
+	function handleReactionUpdate(messageId: string, reactions: ReactionSummaryDto[]) {
+		chatState.updateMessageReactions(messageId, reactions);
+	}
+
+	function handlePinUpdate() {
+		onPinUpdate?.();
+	}
 </script>
 
 <div class="flex flex-1 flex-col overflow-hidden relative">
@@ -138,6 +152,11 @@
 								author={getAuthor(message.authorId)}
 								isCurrentUser={message.authorId === currentUser?.id}
 								{isStacked}
+								currentUserId={currentUser?.id ?? ""}
+								channelId={chatState.channelId ?? ""}
+								isPinned={pinnedMessageIds.has(message.id)}
+								onReactionUpdate={handleReactionUpdate}
+								onPinUpdate={handlePinUpdate}
 							/>
 						{/each}
 					{/if}

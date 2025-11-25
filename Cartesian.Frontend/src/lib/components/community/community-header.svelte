@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from "$app/navigation";
-	import type { CommunityDto, MyUserDto } from "$lib/api/cartesian-client";
+	import type { CommunityDto, MyUserDto, PinnedChatMessageDto } from "$lib/api/cartesian-client";
 	import {
 		createDeleteCommunityMutation,
 		createJoinCommunityMutation,
@@ -10,15 +10,19 @@
 	import { Button } from "$lib/components/ui/button";
 	import * as Sidebar from "$lib/components/ui/sidebar";
 	import * as Tooltip from "$lib/components/ui/tooltip";
+	import * as Sheet from "$lib/components/ui/sheet";
+	import { ScrollArea } from "$lib/components/ui/scroll-area";
 	import {
 		Delete01Icon,
 		LockKeyIcon,
 		Logout01Icon,
 		UserGroupIcon,
 		UserBlock02Icon,
+		Pin02Icon,
 	} from "@hugeicons/core-free-icons";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import { useQueryClient } from "@tanstack/svelte-query";
+	import { format } from "date-fns";
 
 	let {
 		community,
@@ -26,17 +30,23 @@
 		isMember,
 		isAdmin,
 		isOwner,
+		pinnedMessages = [],
 		onToggleMembers,
 		onToggleBans,
+		onTogglePins,
 	} = $props<{
 		community: CommunityDto;
 		currentUser: MyUserDto | undefined;
 		isMember: boolean;
 		isAdmin: boolean;
 		isOwner: boolean;
+		pinnedMessages?: PinnedChatMessageDto[];
 		onToggleMembers?: () => void;
 		onToggleBans?: () => void;
+		onTogglePins?: () => void;
 	}>();
+
+	let pinsSheetOpen = $state(false);
 
 	const queryClient = useQueryClient();
 	const joinMutation = createJoinCommunityMutation(queryClient);
@@ -114,6 +124,22 @@
 	</div>
 
 	<div class="flex items-center gap-2">
+		{#if pinnedMessages.length > 0}
+			<Tooltip.Root>
+				<Tooltip.Trigger>
+					<Button
+						variant="ghost"
+						size="icon"
+						class="h-8 w-8 text-amber-500 hover:text-amber-600 hover:bg-amber-500/10"
+						onclick={() => (pinsSheetOpen = true)}
+					>
+						<HugeiconsIcon icon={Pin02Icon} size={16} strokeWidth={1.5} />
+					</Button>
+				</Tooltip.Trigger>
+				<Tooltip.Content>Pinned Messages ({pinnedMessages.length})</Tooltip.Content>
+			</Tooltip.Root>
+		{/if}
+
 		<div class="lg:hidden">
 			<Button
 				variant="ghost"
@@ -187,3 +213,37 @@
 		{/if}
 	</div>
 </div>
+
+<Sheet.Root bind:open={pinsSheetOpen}>
+	<Sheet.Content side="right" class="w-80 p-0 sm:w-96">
+		<Sheet.Header class="border-b border-border/40 p-4">
+			<Sheet.Title class="flex items-center gap-2">
+				<HugeiconsIcon icon={Pin02Icon} size={18} className="text-amber-500" />
+				Pinned Messages
+			</Sheet.Title>
+			<Sheet.Description class="text-xs">
+				{pinnedMessages.length} pinned message{pinnedMessages.length !== 1 ? "s" : ""}
+			</Sheet.Description>
+		</Sheet.Header>
+		<ScrollArea class="h-[calc(100vh-8rem)]">
+			<div class="flex flex-col gap-2 p-4">
+				{#each pinnedMessages as pin (pin.pinId)}
+					<div class="rounded-lg border border-border/40 bg-muted/20 p-3">
+						<p class="text-sm text-foreground/90 whitespace-pre-wrap break-words">
+							{pin.message.content}
+						</p>
+						<div class="mt-2 flex items-center justify-between text-[10px] text-muted-foreground">
+							<span>Pinned by {pin.pinnedByUsername}</span>
+							<span>{format(new Date(pin.pinnedAt as string), "MMM d, h:mm a")}</span>
+						</div>
+					</div>
+				{:else}
+					<div class="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+						<HugeiconsIcon icon={Pin02Icon} size={32} className="mb-2 opacity-50" />
+						<p class="text-sm">No pinned messages</p>
+					</div>
+				{/each}
+			</div>
+		</ScrollArea>
+	</Sheet.Content>
+</Sheet.Root>

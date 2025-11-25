@@ -10,7 +10,7 @@ export const myProvider = customProvider({
 	languageModels: {
 		"description-enhance": google("gemini-2.5-flash"),
 		"interactive-search": wrapLanguageModel({
-			model: google("gemini-2.5-pro"),
+			model: google("gemini-2.5-flash"),
 			middleware: extractReasoningMiddleware({ tagName: "think" }),
 		}),
 	},

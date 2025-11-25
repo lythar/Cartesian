@@ -1,4 +1,4 @@
-import type { ChatMessageDto } from "$lib/api/cartesian-client";
+import type { ChatMessageDto, ReactionSummaryDto } from "$lib/api/cartesian-client";
 import {
 	createGetCommunityChannelQuery,
 	createGetMessagesInfiniteQuery,
@@ -143,6 +143,15 @@ export class ChatState {
 			console.error("Failed to send message", e);
 			throw e;
 		}
+	}
+
+	updateMessageReactions(messageId: string, reactions: ReactionSummaryDto[]) {
+		this.realtimeMessages = this.realtimeMessages.map((msg) => {
+			if (msg.id === messageId) {
+				return { ...msg, reactionSummary: reactions };
+			}
+			return msg;
+		});
 	}
 
 	dispose() {

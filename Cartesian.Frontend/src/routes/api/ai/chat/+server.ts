@@ -5,7 +5,15 @@ import { searchTools } from "$lib/server/ai/tools";
 import type { RequestHandler } from "./$types";
 
 export const POST: RequestHandler = async ({ request }) => {
-	const { messages }: { messages: UIMessage[] } = await request.json();
+	const body = await request.json();
+	const messages: UIMessage[] = body.messages || [];
+
+	if (!messages.length) {
+		return new Response(JSON.stringify({ error: "No messages provided" }), {
+			status: 400,
+			headers: { "Content-Type": "application/json" },
+		});
+	}
 
 	const result = streamText({
 		model: myProvider.languageModel("interactive-search"),

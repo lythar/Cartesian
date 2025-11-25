@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { page } from "$app/stores";
+	import type { PinnedChatMessageDto } from "$lib/api/cartesian-client";
+	import { getChatApiChannelChannelIdPins } from "$lib/api/cartesian-client";
 	import {
 		createGetCommunityMembersQuery,
 		createGetCommunityQuery,
@@ -43,12 +45,29 @@
 	let chatState = $state<ChatState | null>(null);
 	let membersSheetOpen = $state(false);
 	let bansSheetOpen = $state(false);
+	let pinnedMessages = $state<PinnedChatMessageDto[]>([]);
+
+	async function loadPinnedMessages() {
+		if (!chatState?.channelId) return;
+		try {
+			const response = await getChatApiChannelChannelIdPins(chatState.channelId);
+			pinnedMessages = response.pins;
+		} catch (e) {
+			console.error("Failed to load pinned messages", e);
+		}
+	}
 
 	$effect(() => {
 		if (communityId) {
 			const currentState = untrack(() => chatState);
 			if (currentState) currentState.dispose();
 			chatState = new ChatState(communityId, queryClient);
+		}
+	});
+
+	$effect(() => {
+		if (chatState?.channelId) {
+			loadPinnedMessages();
 		}
 	});
 
@@ -82,11 +101,18 @@
 				isMember={!!currentMembership}
 				isAdmin={hasAdminPermissions}
 				{isOwner}
+				{pinnedMessages}
 				onToggleMembers={() => (membersSheetOpen = !membersSheetOpen)}
 				onToggleBans={() => (bansSheetOpen = !bansSheetOpen)}
 			/>
 
-			<CommunityChat {chatState} {members} {currentUser} />
+			<CommunityChat
+				{chatState}
+				{members}
+				{currentUser}
+				{pinnedMessages}
+				onPinUpdate={loadPinnedMessages}
+			/>
 		</div>
 
 		<aside class="hidden w-64 border-l border-border/40 bg-muted/10 lg:block">

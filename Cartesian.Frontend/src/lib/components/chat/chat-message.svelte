@@ -1,24 +1,44 @@
 <script lang="ts">
 	import { goto } from "$app/navigation";
-	import type { CartesianUserDto, ChatMessageDto } from "$lib/api/cartesian-client";
-	import { getEventApiEventId } from "$lib/api/cartesian-client";
+	import type { CartesianUserDto, ChatMessageDto, ReactionSummaryDto } from "$lib/api/cartesian-client";
+	import {
+		getEventApiEventId,
+		postChatApiMessageMessageIdReact,
+		deleteChatApiMessageMessageIdReact,
+		postChatApiChannelChannelIdPinMessageId,
+		deleteChatApiChannelChannelIdPinMessageId,
+	} from "$lib/api/cartesian-client";
 	import { baseUrl } from "$lib/api/client";
 	import * as Avatar from "$lib/components/ui/avatar";
+	import * as Popover from "$lib/components/ui/popover";
+	import * as Tooltip from "$lib/components/ui/tooltip";
 	import { cn } from "$lib/utils";
-	import { parseMessageContent } from "$lib/utils/markdown";
+	import { parseMessageContent, getCachedEmoji } from "$lib/utils/markdown";
 	import { format } from "date-fns";
 	import { openUserProfile } from "$lib/components/profile/profile-state.svelte";
+	import { HugeiconsIcon } from "@hugeicons/svelte";
+	import { Add01Icon, Pin02Icon } from "@hugeicons/core-free-icons";
 
 	let {
 		message,
 		author,
 		isCurrentUser,
 		isStacked = false,
+		currentUserId = "",
+		channelId = "",
+		isPinned = false,
+		onReactionUpdate,
+		onPinUpdate,
 	} = $props<{
 		message: ChatMessageDto;
 		author: CartesianUserDto | undefined;
 		isCurrentUser: boolean;
 		isStacked?: boolean;
+		currentUserId?: string;
+		channelId?: string;
+		isPinned?: boolean;
+		onReactionUpdate?: (messageId: string, reactions: ReactionSummaryDto[]) => void;
+		onPinUpdate?: () => void;
 	}>();
 
 	interface EventEmbed {
@@ -30,10 +50,18 @@
 		error: boolean;
 	}
 
+	const QUICK_REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "🎉"];
+
 	let eventEmbeds = $state<EventEmbed[]>([]);
 	let loadedEventIds = $state<string[]>([]);
+	let isHovered = $state(false);
+	let showReactionPicker = $state(false);
+	let isReacting = $state(false);
+	let isPinning = $state(false);
 
 	const parsedContent = $derived(parseMessageContent(message.content));
+	const reactions = $derived(message.reactionSummary ?? []);
+	const showToolbar = $derived(isHovered || showReactionPicker);
 
 	function handleAuthorClick() {
 		if (author?.id) {
@@ -98,13 +126,102 @@
 		if (!avatar) return undefined;
 		return `${baseUrl}/media/api/${avatar.id}`;
 	}
+
+	async function handlePin() {
+		if (isPinning || !channelId) return;
+		isPinning = true;
+
+		try {
+			if (isPinned) {
+				await deleteChatApiChannelChannelIdPinMessageId(channelId, message.id);
+			} else {
+				await postChatApiChannelChannelIdPinMessageId(channelId, message.id);
+			}
+			onPinUpdate?.();
+		} catch (e) {
+			console.error("Failed to toggle pin", e);
+		} finally {
+			isPinning = false;
+		}
+	}
+
+	async function handleReaction(emoji: string) {
+		if (isReacting) return;
+		isReacting = true;
+		showReactionPicker = false;
+
+		try {
+			const existingReaction = reactions.find((r: ReactionSummaryDto) => r.emoji === emoji && r.currentUserReacted);
+
+			if (existingReaction) {
+				await deleteChatApiMessageMessageIdReact(message.id, { emoji });
+				const updatedReactions = reactions
+					.map((r: ReactionSummaryDto) => {
+						if (r.emoji === emoji) {
+							const newCount = Number(r.count) - 1;
+							if (newCount <= 0) return null;
+							return {
+								...r,
+								count: newCount,
+								currentUserReacted: false,
+								userIds: r.userIds.filter((id: string) => id !== currentUserId),
+							};
+						}
+						return r;
+					})
+					.filter((r: ReactionSummaryDto | null): r is ReactionSummaryDto => r !== null);
+				onReactionUpdate?.(message.id, updatedReactions);
+			} else {
+				await postChatApiMessageMessageIdReact(message.id, { emoji });
+				const existingIdx = reactions.findIndex((r: ReactionSummaryDto) => r.emoji === emoji);
+				let updatedReactions: ReactionSummaryDto[];
+
+				if (existingIdx >= 0) {
+					updatedReactions = reactions.map((r: ReactionSummaryDto, idx: number) => {
+						if (idx === existingIdx) {
+							return {
+								...r,
+								count: Number(r.count) + 1,
+								currentUserReacted: true,
+								userIds: [...r.userIds, currentUserId],
+							};
+						}
+						return r;
+					});
+				} else {
+					updatedReactions = [
+						...reactions,
+						{
+							emoji,
+							count: 1,
+							currentUserReacted: true,
+							userIds: [currentUserId],
+						},
+					];
+				}
+				onReactionUpdate?.(message.id, updatedReactions);
+			}
+		} catch (e) {
+			console.error("Failed to toggle reaction", e);
+		} finally {
+			isReacting = false;
+		}
+	}
 </script>
 
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
 	class={cn(
 		"group flex w-full gap-3 -mx-4 px-4 transition-colors relative",
 		isStacked ? "hover:bg-muted/30" : "pt-3 hover:bg-muted/30",
+		isPinned && "bg-amber-500/5",
 	)}
+	onmouseenter={() => (isHovered = true)}
+	onmouseleave={() => {
+		if (!showReactionPicker) {
+			isHovered = false;
+		}
+	}}
 >
 	{#if !isStacked}
 		<button
@@ -128,23 +245,24 @@
 	{/if}
 
 	<div class="flex flex-col min-w-0 flex-1">
-	{#if !isStacked}
-		<div class="flex items-center gap-2">
-			<button
-				type="button"
-				onclick={handleAuthorClick}
-				class={cn(
-					"text-xs font-semibold leading-none hover:underline cursor-pointer",
-					isCurrentUser ? "text-primary" : "text-foreground",
-				)}
-			>
-				{author?.name ?? "Unknown User"}
-			</button>
-			<span class="text-[10px] text-muted-foreground/50 select-none whitespace-nowrap">
-				{format(new Date(message.createdAt as string), "h:mm a")}
-			</span>
-		</div>
-	{/if}		<div
+		{#if !isStacked}
+			<div class="flex items-center gap-2">
+				<button
+					type="button"
+					onclick={handleAuthorClick}
+					class={cn(
+						"text-xs font-semibold leading-none hover:underline cursor-pointer",
+						isCurrentUser ? "text-primary" : "text-foreground",
+					)}
+				>
+					{author?.name ?? "Unknown User"}
+				</button>
+				<span class="text-[10px] text-muted-foreground/50 select-none whitespace-nowrap">
+					{format(new Date(message.createdAt as string), "h:mm a")}
+				</span>
+			</div>
+		{/if}
+		<div
 			class={cn(
 				"message-content text-sm leading-relaxed text-foreground/90 wrap-break-word",
 				isStacked ? "" : "mt-0.5",
@@ -190,7 +308,100 @@
 				{/each}
 			</div>
 		{/if}
+
+		{#if reactions.length > 0}
+			<div class="mt-1.5 flex flex-wrap gap-1">
+				{#each reactions as reaction}
+					<button
+						type="button"
+						onclick={() => handleReaction(reaction.emoji)}
+						disabled={isReacting}
+						class={cn(
+							"inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-colors",
+							reaction.currentUserReacted
+								? "border-primary/40 bg-primary/10 text-primary hover:bg-primary/20"
+								: "border-border/50 bg-muted/30 text-muted-foreground hover:bg-muted/50",
+						)}
+					>
+						<span class="reaction-emoji">{@html getCachedEmoji(reaction.emoji)}</span>
+						<span class="text-[10px] font-medium">{reaction.count}</span>
+					</button>
+				{/each}
+			</div>
+		{/if}
 	</div>
+
+	{#if showToolbar}
+		<div
+			class="absolute right-2 top-0 -translate-y-1/2 z-10"
+			onmouseenter={() => (isHovered = true)}
+			onmouseleave={() => {
+				if (!showReactionPicker) {
+					isHovered = false;
+				}
+			}}
+		>
+			<div class="flex items-center gap-0.5 rounded-md border border-border/50 bg-background p-0.5 shadow-md">
+				{#each QUICK_REACTIONS as emoji}
+					<button
+						type="button"
+						onclick={() => handleReaction(emoji)}
+						disabled={isReacting}
+						class="rounded p-1 transition-colors hover:bg-muted"
+						title={`React with ${emoji}`}
+					>
+						<span class="reaction-picker-emoji">{@html getCachedEmoji(emoji)}</span>
+					</button>
+				{/each}
+				<Popover.Root
+					bind:open={showReactionPicker}
+					onOpenChange={(open) => {
+						showReactionPicker = open;
+						if (!open) {
+							isHovered = false;
+						}
+					}}
+				>
+					<Popover.Trigger class="rounded p-1 transition-colors hover:bg-muted">
+						<HugeiconsIcon icon={Add01Icon} className="size-4 text-muted-foreground" />
+					</Popover.Trigger>
+					<Popover.Content class="w-auto p-2" side="top" align="end">
+						<div class="grid grid-cols-8 gap-1">
+							{#each ["😀", "😃", "😄", "😁", "😆", "😅", "🤣", "😂", "🙂", "🙃", "😉", "😊", "😇", "🥰", "😍", "🤩", "😘", "😗", "😚", "😙", "🥲", "😋", "😛", "😜", "🤪", "😝", "🤑", "🤗", "🤭", "🤫", "🤔", "🤐", "🤨", "😐", "😑", "😶", "😏", "😒", "🙄", "😬", "🤥", "😌", "😔", "😪", "🤤", "😴", "😷", "🤒", "🤕", "🤢", "🤮", "🤧", "🥵", "🥶", "🥴", "😵", "🤯", "🤠", "🥳", "🥸", "😎", "🤓", "🧐", "👍", "👎", "👏", "🙌", "🤝", "💪", "❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍", "💔", "❣️", "💕", "💞", "💓", "💗", "💖", "💝", "💘", "🎉", "🎊", "✨", "🔥", "💯", "⭐", "🌟", "💫", "✅", "❌"] as emoji}
+								<button
+									type="button"
+									onclick={() => handleReaction(emoji)}
+									disabled={isReacting}
+									class="rounded p-1.5 transition-colors hover:bg-muted"
+								>
+									<span class="reaction-picker-emoji">{@html getCachedEmoji(emoji)}</span>
+								</button>
+							{/each}
+						</div>
+					</Popover.Content>
+				</Popover.Root>
+
+				<div class="w-px h-4 bg-border/50 mx-0.5"></div>
+
+				<Tooltip.Root>
+					<Tooltip.Trigger>
+						<button
+							type="button"
+							onclick={handlePin}
+							disabled={isPinning}
+							class={cn(
+								"rounded p-1 transition-colors hover:bg-muted",
+								isPinned && "text-amber-500"
+							)}
+						>
+							<HugeiconsIcon icon={Pin02Icon} className="size-4" />
+						</button>
+					</Tooltip.Trigger>
+					<Tooltip.Content>{isPinned ? "Unpin message" : "Pin message"}</Tooltip.Content>
+				</Tooltip.Root>
+			</div>
+		</div>
+	{/if}
 </div>
 
 <style>
@@ -240,6 +451,24 @@
 		width: 1.2em;
 		margin: 0 0.05em;
 		vertical-align: -0.1em;
+		display: inline;
+	}
+	:global(.message-content img.twemoji) {
+		height: 1.2em;
+		width: 1.2em;
+		margin: 0 0.05em;
+		vertical-align: -0.1em;
+		display: inline;
+	}
+	:global(.reaction-emoji img.twemoji) {
+		height: 1em;
+		width: 1em;
+		display: inline;
+		vertical-align: -0.1em;
+	}
+	:global(.reaction-picker-emoji img.twemoji) {
+		height: 1.25rem;
+		width: 1.25rem;
 		display: inline;
 	}
 </style>
