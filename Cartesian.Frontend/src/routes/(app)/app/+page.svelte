@@ -55,10 +55,18 @@
 		<meta property="og:title" content={data.metaEvent.name} />
 		<meta property="og:description" content={data.metaEvent.description} />
 		<meta property="og:site_name" content={`Hosted by ${data.metaEvent.author.name}`} />
+		<meta property="og:url" content={$page.url.href} />
+		<meta property="og:type" content="website" />
 
 		{#if data.metaEvent.image}
-			<meta property="og:image" content={getMediaUrl(data.metaEvent.image.id)} />
-			<meta name="twitter:image" content={getMediaUrl(data.metaEvent.image.id)} />
+			<meta
+				property="og:image"
+				content={new URL(getMediaUrl(data.metaEvent.image.id), $page.url).href}
+			/>
+			<meta
+				name="twitter:image"
+				content={new URL(getMediaUrl(data.metaEvent.image.id), $page.url).href}
+			/>
 		{/if}
 
 		<meta name="twitter:card" content="summary_large_image" />
