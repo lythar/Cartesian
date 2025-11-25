@@ -76,9 +76,9 @@ services:
       - "cartesian"
   proxy:
     image: "caddy:2-alpine"
-    ports:
-      - "80:80"
-      - "443:443"
+    expose:
+      - "80"
+      - "443"
     volumes:
       - type: "bind"
         source: "./Caddyfile"
@@ -99,7 +99,7 @@ services:
       - "frontend"
 networks:
   cartesian:
-    driver: "bridge"
+    internal: true
 volumes:
   cartesian-postgres-data:
     driver: "local"

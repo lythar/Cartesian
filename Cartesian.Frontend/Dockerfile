@@ -1,20 +1,35 @@
-FROM node:25-alpine AS build
+FROM node:25-alpine AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN npm i -g corepack
+RUN corepack enable && corepack prepare pnpm@10.20.0 --activate
 
-RUN npm install -g pnpm
-
+FROM base AS deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm fetch --frozen-lockfile
+
+FROM base AS build
+WORKDIR /app
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm install --frozen-lockfile --offline --prefer-offline
+
 COPY .prettierignore svelte.config.js tsconfig.json vite.config.ts components.json orval.config.ts prettier.config.js ./
 COPY messages/ ./messages/
 COPY project.inlang/ ./project.inlang/
 COPY src/ ./src/
 COPY static/ ./static/
-RUN --mount=type=cache,target=/pnpm/store pnpm install --frozen-lockfile
+
 RUN pnpm run build
 
-FROM node:25-alpine AS runtime
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm install --prod --frozen-lockfile --offline --prefer-offline
 
+FROM node:25-alpine AS runtime
 WORKDIR /app
+
 COPY --from=build /app/build ./build
 COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/node_modules ./node_modules
@@ -25,4 +40,7 @@ USER node
 
 EXPOSE 3000
 
-ENTRYPOINT ["node","build"]
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+
+CMD ["node", "build"]
