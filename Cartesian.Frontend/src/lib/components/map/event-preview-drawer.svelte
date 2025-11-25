@@ -8,6 +8,7 @@
 	import { buttonVariants } from "$lib/components/ui/button";
 
 	let open = $state(false);
+	let previousDrawerState = $state(!!$page.state.previewDrawer);
 
 	$effect(() => {
 		open = mapInteractionState.previewEventOpen;
@@ -25,24 +26,30 @@
 	}
 
 	$effect(() => {
-		if (mapInteractionState.previewEventOpen && !$page.state.previewDrawer) {
-			if (browser) {
-				pushState("", { previewDrawer: true });
+		const currentDrawerState = !!$page.state.previewDrawer;
+
+		if (mapInteractionState.previewEventOpen) {
+			if (!currentDrawerState) {
+				if (previousDrawerState) {
+					// State was present, now gone -> Back button pressed
+					mapInteractionState.previewEventOpen = false;
+					mapInteractionState.previewEvent = null;
+				} else {
+					// State wasn't present, still isn't -> Initial open
+					if (browser) {
+						pushState("", { previewDrawer: true });
+					}
+				}
 			}
 		}
-	});
 
-	$effect(() => {
-		if (!$page.state.previewDrawer && mapInteractionState.previewEventOpen) {
-			mapInteractionState.previewEventOpen = false;
-			mapInteractionState.previewEvent = null;
-		}
+		previousDrawerState = currentDrawerState;
 	});
 </script>
 
 <Drawer.Root bind:open {onOpenChange}>
 	<Drawer.Content>
-		<div class="mx-auto w-full max-w-sm p-4 pb-8">
+		<div class="mx-auto w-full p-4 pb-8">
 			{#if mapInteractionState.previewEvent}
 				<EventPreview
 					event={mapInteractionState.previewEvent}
