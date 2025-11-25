@@ -2,7 +2,14 @@ import { z } from "zod";
 
 export const schema = z
 	.object({
-		username: z.string().min(3).max(31),
+		username: z
+			.string()
+			.min(3, "Username must be at least 3 characters")
+			.max(30, "Username must be at most 30 characters")
+			.regex(
+				/^[\p{L}\p{N}\s._-]+$/u,
+				"Username can only contain letters, numbers, spaces, and symbols (. _ -)",
+			),
 		email: z.string().email(),
 		password: z
 			.string()

@@ -34,7 +34,10 @@ builder.Services.AddIdentity<CartesianUser, IdentityRole>(options =>
         options.Password.RequiredLength = 6;
         options.Password.RequiredUniqueChars = 1;
 
-        options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
+        // Allow alphanumeric, spaces, and common symbols (underscore, hyphen, dot)
+        // This also includes Polish, Cyrillic, and other Unicode letters via the default validator
+        // Empty string disables the character restriction (validated by regex in RegisterValidator)
+        options.User.AllowedUserNameCharacters = string.Empty;
         options.User.RequireUniqueEmail = true;
     })
     .AddEntityFrameworkStores<CartesianDbContext>()

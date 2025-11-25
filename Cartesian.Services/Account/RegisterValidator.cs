@@ -9,7 +9,7 @@ public class RegisterBodyValidator : AbstractValidator<RegisterEndpoint.Register
         RuleFor(x => x.Username)
             .NotEmpty().WithMessage("Username is required")
             .Length(3, 30).WithMessage("Username must be between 3 and 30 characters")
-            .Matches(@"^[a-zA-Z0-9 ]+$").WithMessage("Username can only contain letters, numbers, and spaces");
+            .Matches(@"^[\p{L}\p{N}\s._-]+$").WithMessage("Username can only contain letters, numbers, spaces, and symbols (. _ -)");
 
         RuleFor(x => x.Email)
             .NotEmpty().WithMessage("Email is required")
