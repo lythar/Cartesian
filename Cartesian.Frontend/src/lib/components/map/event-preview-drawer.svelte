@@ -6,6 +6,8 @@
 	import { pushState } from "$app/navigation";
 	import { browser } from "$app/environment";
 	import { buttonVariants } from "$lib/components/ui/button";
+	import { Button } from "$lib/components/ui/button";
+	import { newEventOverlayState } from "./map-state.svelte";
 
 	let open = $state(false);
 	let previousDrawerState = $state(!!$page.state.previewDrawer);
@@ -21,6 +23,22 @@
 
 			if (browser && $page.state.previewDrawer) {
 				history.back();
+			}
+		}
+	}
+
+	function openDetails() {
+		if (mapInteractionState.previewEvent) {
+			mapInteractionState.selectedEvent = mapInteractionState.previewEvent;
+			mapInteractionState.eventDetailsOpen = true;
+			newEventOverlayState.open = false;
+			
+			// Close the drawer
+			if (browser && $page.state.previewDrawer) {
+				history.back();
+			} else {
+				mapInteractionState.previewEventOpen = false;
+				mapInteractionState.previewEvent = null;
 			}
 		}
 	}
@@ -57,11 +75,13 @@
 				<EventPreview
 					event={mapInteractionState.previewEvent}
 					hideCloseButton
+					hideViewButton
 					class="w-full rounded-b-none rounded-t-lg shadow-none"
 				/>
 			{/if}
 			<div class="px-4">
-				<Drawer.Footer class="pt-2">
+				<Drawer.Footer class="pt-0">
+					<Button onclick={openDetails} class="w-full">View Details</Button>
 					<Drawer.Close class={buttonVariants({ variant: "outline" })}>Close</Drawer.Close>
 				</Drawer.Footer>
 			</div>

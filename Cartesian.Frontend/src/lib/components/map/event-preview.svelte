@@ -17,9 +17,16 @@
 		onclose?: () => void;
 		class?: string;
 		hideCloseButton?: boolean;
+		hideViewButton?: boolean;
 	}
 
-	let { event, onclose, class: className, hideCloseButton = false }: Props = $props();
+	let {
+		event,
+		onclose,
+		class: className,
+		hideCloseButton = false,
+		hideViewButton = false,
+	}: Props = $props();
 
 	function openDetails() {
 		mapInteractionState.selectedEvent = event;
@@ -99,9 +106,11 @@
 					{event.communityId ? event.communityName : event.authorName}
 				</span>
 			</div>
-			<Button variant="ghost" size="sm" class="h-7 text-xs" onclick={openDetails}>
-				View
-			</Button>
+			{#if !hideViewButton}
+				<Button variant="ghost" size="sm" class="h-7 text-xs" onclick={openDetails}>
+					View
+				</Button>
+			{/if}
 		</div>
 	</div>
 </div>
