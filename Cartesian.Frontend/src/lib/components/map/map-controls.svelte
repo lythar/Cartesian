@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { Button } from "$lib/components/ui/button";
-	import { animate } from "motion";
 	import { getLightingPreset } from "./map-utils";
 	import { mode } from "mode-watcher";
 	import * as ButtonGroup from "$lib/components/ui/button-group/index";
@@ -27,8 +26,6 @@
 	}
 
 	let { map }: Props = $props();
-	let locateButtonRef: HTMLButtonElement | undefined = $state();
-	let mapStyleButtonRef: HTMLButtonElement | undefined = $state();
 
 	let mapStyle = $state<"streets" | "satellite">("streets");
 

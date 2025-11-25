@@ -24,6 +24,7 @@
 		Add01Icon,
 		Delete02Icon,
 		ImageAdd01Icon,
+		AiEditingIcon,
 	} from "@hugeicons/core-free-icons";
 	import { createForwardGeocodeQuery } from "$lib/api/queries/forward-geocode.query";
 	import {
@@ -41,12 +42,11 @@
 	import { Debounced } from "runed";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import { EVENT_TAG_CONFIG } from "$lib/constants/event-tags";
-	import { m } from "$lib/paraglide/messages";
-	import { fly, slide } from "svelte/transition";
-	import DateTimePicker from "./date-time-picker.svelte";
-	import { Effect } from "effect";
-
-	interface Props {
+import { m } from "$lib/paraglide/messages";
+import { fly, slide, fade } from "svelte/transition";
+import DateTimePicker from "./date-time-picker.svelte";
+import { Effect } from "effect";
+import { Completion } from "@ai-sdk/svelte";	interface Props {
 		map: mapboxgl.Map;
 	}
 
@@ -58,6 +58,7 @@
 	let searchQuery = $state("");
 	let isSearching = $state<boolean>(false);
 	let cancelDialogOpen = $state(false);
+	let isGlowing = $state(false);
 	let submitError = $state<string | null>(null);
 	const debouncedSearch = new Debounced<string>(() => searchQuery, 300);
 
@@ -358,6 +359,17 @@
 
 	const { form: formData, enhance } = form;
 
+	const aiEnhancer = new Completion({
+		api: "/api/ai/enhance-description",
+		streamProtocol: "text",
+	});
+
+	$effect(() => {
+		if (aiEnhancer.loading) {
+			$formData.description = aiEnhancer.completion;
+		}
+	});
+
 	function addEventWindow() {
 		eventWindows = [
 			...eventWindows,
@@ -470,12 +482,57 @@
 											bind:value={$formData.description}
 											placeholder="Add details about your event..."
 											rows={4}
+											disabled={aiEnhancer.loading}
 											class="resize-none border-border/50 bg-muted/30 px-3 py-2 shadow-none transition-all focus-visible:bg-background focus-visible:ring-1"
 										/>
 									{/snippet}
 								</Form.Control>
 								<Form.FieldErrors />
 							</Form.Field>
+
+							<!-- AI Enhance Button -->
+							<div class="mt-2 flex justify-end">
+								<Button
+									variant="outline"
+									size="sm"
+									disabled={aiEnhancer.loading || !$formData.description}
+									onclick={() => aiEnhancer.complete($formData.description)}
+									class={cn(
+										"group relative overflow-hidden rounded-full border border-primary/20 bg-background/50 pr-4 pl-3 text-xs font-medium transition-all hover:border-primary/40 hover:bg-background hover:shadow-sm",
+										(isGlowing || aiEnhancer.loading) &&
+											"border-primary/50 shadow-[0_0_15px_rgba(59,130,246,0.3)]",
+									)}
+									onmouseenter={() => (isGlowing = true)}
+									onmouseleave={() => (isGlowing = false)}
+								>
+									{#if isGlowing || aiEnhancer.loading}
+										<div
+											class="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent"
+											transition:fade
+										></div>
+									{/if}
+									{#if aiEnhancer.loading}
+										<HugeiconsIcon
+											icon={Loading03Icon}
+											size={14}
+											strokeWidth={2}
+											className="mr-2 animate-spin text-primary"
+										/>
+									{:else}
+										<HugeiconsIcon
+											icon={AiEditingIcon}
+											size={14}
+											strokeWidth={2}
+											className="mr-2 text-primary"
+										/>
+									{/if}
+									<span
+										class="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent transition-all group-hover:to-primary"
+									>
+										Enhance with AI
+									</span>
+								</Button>
+							</div>
 						</div>
 					</div>
 

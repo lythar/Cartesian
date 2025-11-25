@@ -5,6 +5,7 @@ var builder = DistributedApplication.CreateBuilder(args);
 builder.AddDockerComposeEnvironment("compose");
 
 var mapboxPublicToken = builder.AddParameter("mapbox-public-token");
+var googleAiKey = builder.AddParameter("google-ai-key");
 
 var postgres = builder.AddPostgres("postgres")
     .WithImage("postgis/postgis:18-3.6-alpine")
@@ -28,6 +29,7 @@ builder.AddNodeApp("frontend", "../Cartesian.Frontend", "dev")
     .WithHttpEndpoint(env: "PORT", targetPort: 5173, isProxied: false)
     .WithEnvironment("PUBLIC_SERVICES_URL", services.GetEndpoint("http"))
     .WithEnvironment("PUBLIC_MAPBOX_ACCESS_TOKEN", mapboxPublicToken)
+    .WithEnvironment("GOOGLE_AI_KEY", googleAiKey)
     .WithExternalHttpEndpoints();
 
 builder.Build().Run();

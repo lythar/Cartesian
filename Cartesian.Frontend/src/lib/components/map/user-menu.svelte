@@ -15,6 +15,7 @@
 	import { goto } from "$app/navigation";
 	import ProfileDialog from "./profile-dialog.svelte";
 	import EventsDialog from "./events-dialog.svelte";
+	import SettingsDialog from "./settings-dialog.svelte";
 	import { baseUrl } from "$lib/api/client";
 	import { useQueryClient } from "@tanstack/svelte-query";
 	import {
@@ -31,6 +32,7 @@
 	const auth = $derived($authStore);
 	let openProfile = $state(false);
 	let openEvents = $state(false);
+	let openSettings = $state(false);
   let openLoginAlert = $state(false);
 
   const layout = getLayoutContext();
@@ -145,7 +147,7 @@
 					<HugeiconsIcon icon={Calendar03Icon} className="size-5 duotone-fill" />
 					<span class="font-medium">Events</span>
 				</DropdownMenu.Item>
-				<DropdownMenu.Item class="cursor-pointer gap-3">
+				<DropdownMenu.Item class="cursor-pointer gap-3" onclick={() => (openSettings = true)}>
 					<HugeiconsIcon icon={Settings01Icon} className="size-5 duotone-fill" />
 					<span class="font-medium">Settings</span>
 				</DropdownMenu.Item>
@@ -164,4 +166,5 @@
 
 	<ProfileDialog bind:open={openProfile} />
 	<EventsDialog bind:open={openEvents} />
+	<SettingsDialog bind:open={openSettings} />
 {/if}

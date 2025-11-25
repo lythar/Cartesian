@@ -11,6 +11,9 @@ importers:
       '@ai-sdk/google':
         specifier: ^2.0.43
         version: 2.0.43(zod@4.1.12)
+      '@ai-sdk/svelte':
+        specifier: ^3.0.102
+        version: 3.0.102(svelte@5.43.5)(zod@4.1.12)
       '@hugeicons/core-free-icons':
         specifier: ^1.2.1
         version: 1.2.1
@@ -183,6 +186,15 @@ packages:
   '@ai-sdk/provider@2.0.0':
     resolution: {integrity: sha512-6o7Y2SeO9vFKB8lArHXehNuusnpddKPk7xqL7T2/b+OvXMRIXUO1rR4wcv1hAFUAT9avGZshty3Wlua/XA7TvA==}
     engines: {node: '>=18'}
+
+  '@ai-sdk/svelte@3.0.102':
+    resolution: {integrity: sha512-C8uyVjFL2FUfZQv7Z9Hceo5OnLLfgjYl5K3/l/rTnNrBXvA5GJUv4ZuNm4/nmdgvzjRV2uJKqoMoK+893oUsRQ==}
+    peerDependencies:
+      svelte: ^5.31.0
+      zod: ^3.25.76 || ^4.1.8
+    peerDependenciesMeta:
+      zod:
+        optional: true
 
   '@apidevtools/json-schema-ref-parser@14.0.1':
     resolution: {integrity: sha512-Oc96zvmxx1fqoSEdUmfmvvb59/KDOnUoJ7s2t7bISyAn0XEz57LCCw8k2Y4Pf3mwKaZLMciESALORLgfe2frCw==}
@@ -3042,6 +3054,14 @@ snapshots:
   '@ai-sdk/provider@2.0.0':
     dependencies:
       json-schema: 0.4.0
+
+  '@ai-sdk/svelte@3.0.102(svelte@5.43.5)(zod@4.1.12)':
+    dependencies:
+      '@ai-sdk/provider-utils': 3.0.17(zod@4.1.12)
+      ai: 5.0.102(zod@4.1.12)
+      svelte: 5.43.5
+    optionalDependencies:
+      zod: 4.1.12
 
   '@apidevtools/json-schema-ref-parser@14.0.1':
     dependencies:

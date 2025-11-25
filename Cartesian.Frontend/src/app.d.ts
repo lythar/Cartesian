@@ -9,6 +9,7 @@ declare global {
 			previewDrawer?: boolean;
 			profileDialog?: boolean;
 			eventsDialog?: boolean;
+			settingsDialog?: boolean;
 		}
 		// interface Platform {}
 	}

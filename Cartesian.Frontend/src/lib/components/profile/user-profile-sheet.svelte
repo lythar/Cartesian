@@ -1,7 +1,7 @@
 <script lang="ts">
-	import * as Sheet from "$lib/components/ui/sheet";
-	import * as Avatar from "$lib/components/ui/avatar";
-	import * as Tabs from "$lib/components/ui/tabs";
+	import { Sheet, SheetContent, SheetTitle } from "$lib/components/ui/sheet";
+	import { Avatar, AvatarImage, AvatarFallback } from "$lib/components/ui/avatar";
+	import { Tabs, TabsList, TabsTrigger, TabsContent } from "$lib/components/ui/tabs";
 	import { Button } from "$lib/components/ui/button";
 	import { Badge } from "$lib/components/ui/badge";
 	import { ScrollArea } from "$lib/components/ui/scroll-area";
@@ -134,18 +134,18 @@
 	}
 </script>
 
-<Sheet.Root
+<Sheet
 	open={userProfileState.open}
 	onOpenChange={(open) => {
 		if (!open) closeUserProfile();
 	}}
 >
-	<Sheet.Content side="right" class="w-full p-0 sm:max-w-md">
+	<SheetContent side="right" class="w-full p-0 sm:max-w-md">
 		<div class="flex h-full flex-col">
 			<div
 				class="flex items-center justify-between border-b border-border/40 px-4 py-3"
 			>
-				<Sheet.Title class="text-lg font-semibold">Profile</Sheet.Title>
+				<SheetTitle class="text-lg font-semibold">Profile</SheetTitle>
 				<Button
 					variant="ghost"
 					size="icon"
@@ -176,18 +176,18 @@
 				{:else if user}
 					<div class="p-6">
 						<div class="flex flex-col items-center gap-4">
-							<Avatar.Root class="h-24 w-24 border-4 border-muted/30">
-								<Avatar.Image
+							<Avatar class="h-24 w-24 border-4 border-muted/30">
+								<AvatarImage
 									src={getAvatarUrl(user.avatar)}
 									alt={user.name}
 									class="object-cover"
 								/>
-								<Avatar.Fallback
+								<AvatarFallback
 									class="bg-muted text-2xl font-medium text-muted-foreground"
 								>
 									{getInitials(user.name)}
-								</Avatar.Fallback>
-							</Avatar.Root>
+								</AvatarFallback>
+							</Avatar>
 
 							<div class="text-center">
 								<h2 class="text-xl font-semibold">{user.name}</h2>
@@ -230,15 +230,15 @@
 							{/if}
 						</div>
 
-						<Tabs.Root value="events" class="mt-6">
-							<Tabs.List class="w-full">
-								<Tabs.Trigger value="events" class="flex-1 gap-2">
+						<Tabs value="events" class="mt-6">
+							<TabsList class="w-full">
+								<TabsTrigger value="events" class="flex-1 gap-2">
 									<HugeiconsIcon icon={Calendar03Icon} size={14} />
 									Events
-								</Tabs.Trigger>
-							</Tabs.List>
+								</TabsTrigger>
+							</TabsList>
 
-							<Tabs.Content value="events" class="mt-4 space-y-3">
+							<TabsContent value="events" class="mt-4 space-y-3">
 								{#if eventsQuery.isLoading}
 									{#each Array(3) as _}
 										<div class="rounded-lg border border-border/40 p-3">
@@ -292,11 +292,11 @@
 										</button>
 									{/each}
 								{/if}
-							</Tabs.Content>
-						</Tabs.Root>
+							</TabsContent>
+						</Tabs>
 					</div>
 				{/if}
 			</ScrollArea>
 		</div>
-	</Sheet.Content>
-</Sheet.Root>
+	</SheetContent>
+</Sheet>

@@ -45,11 +45,10 @@
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import { AiEditingIcon } from "@hugeicons/core-free-icons";
 	import { EVENT_TAG_CONFIG } from "$lib/constants/event-tags";
-	import { m } from "$lib/paraglide/messages";
-	import { fly, fade, slide } from "svelte/transition";
-	import DateTimePicker from "./date-time-picker.svelte";
-
-	const queryClient = useQueryClient();
+import { m } from "$lib/paraglide/messages";
+import { fly, fade, slide } from "svelte/transition";
+import DateTimePicker from "./date-time-picker.svelte";
+import { Completion } from "@ai-sdk/svelte";	const queryClient = useQueryClient();
 
 	interface Props {
 		map: mapboxgl.Map;
@@ -65,6 +64,7 @@
 	let cancelDialogOpen = $state(false);
 	let isGlowing = $state(false);
 	let submitError = $state<string | null>(null);
+
 	const debouncedSearch = new Debounced<string>(() => searchQuery, 300);
 
 	type EventWindowInput = {
@@ -357,6 +357,17 @@
 
 	const { form: formData, enhance } = form;
 
+	const aiEnhancer = new Completion({
+		api: "/api/ai/enhance-description",
+		streamProtocol: "text",
+	});
+
+	$effect(() => {
+		if (aiEnhancer.loading) {
+			$formData.description = aiEnhancer.completion;
+		}
+	});
+
 	function addEventWindow() {
 		if (showSimpleMode && simpleStartTime && simpleEndTime) {
 			// Move simple mode data to first window
@@ -553,6 +564,7 @@
 										bind:value={$formData.description}
 										placeholder="Add details about your event..."
 										rows={4}
+										disabled={aiEnhancer.loading}
 										class="resize-none border-border/50 bg-muted/30 px-3 py-2 shadow-none transition-all focus-visible:bg-background focus-visible:ring-1"
 									/>
 								{/snippet}
@@ -565,26 +577,37 @@
 							<Button
 								variant="outline"
 								size="sm"
+								disabled={aiEnhancer.loading || !$formData.description}
+								onclick={() => aiEnhancer.complete($formData.description)}
 								class={cn(
 									"group relative overflow-hidden rounded-full border border-primary/20 bg-background/50 pr-4 pl-3 text-xs font-medium transition-all hover:border-primary/40 hover:bg-background hover:shadow-sm",
-									isGlowing &&
+									(isGlowing || aiEnhancer.loading) &&
 										"border-primary/50 shadow-[0_0_15px_rgba(59,130,246,0.3)]",
 								)}
 								onmouseenter={() => (isGlowing = true)}
 								onmouseleave={() => (isGlowing = false)}
 							>
-								{#if isGlowing}
+								{#if isGlowing || aiEnhancer.loading}
 									<div
 										class="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent"
 										transition:fade
 									></div>
 								{/if}
-								<HugeiconsIcon
-									icon={AiEditingIcon}
-									size={14}
-									strokeWidth={2}
-									className="mr-2 text-primary"
-								/>
+								{#if aiEnhancer.loading}
+									<HugeiconsIcon
+										icon={Loading03Icon}
+										size={14}
+										strokeWidth={2}
+										className="mr-2 animate-spin text-primary"
+									/>
+								{:else}
+									<HugeiconsIcon
+										icon={AiEditingIcon}
+										size={14}
+										strokeWidth={2}
+										className="mr-2 text-primary"
+									/>
+								{/if}
 								<span
 									class="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent transition-all group-hover:to-primary"
 								>

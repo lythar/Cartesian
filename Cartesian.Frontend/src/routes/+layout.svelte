@@ -40,7 +40,7 @@
 	<UserProfileSheet />
 
 	<div
-		class="dark min-h-screen overflow-x-hidden bg-background font-sans text-foreground antialiased selection:bg-white/20 selection:text-white"
+		class="min-h-screen overflow-x-hidden bg-background font-sans text-foreground antialiased selection:bg-primary/30 selection:text-primary-foreground"
 	>
 		<!-- Noise Overlay -->
 		<div
@@ -66,13 +66,13 @@
 		width: 6px;
 	}
 	:global(::-webkit-scrollbar-track) {
-		background: #09090b;
+		background: var(--secondary);
 	}
 	:global(::-webkit-scrollbar-thumb) {
-		background: #27272a;
+		background: var(--border);
 		border-radius: 3px;
 	}
 	:global(::-webkit-scrollbar-thumb:hover) {
-		background: #3f3f46;
+		background: var(--accent);
 	}
 </style>
