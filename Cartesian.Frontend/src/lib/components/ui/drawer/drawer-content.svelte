@@ -7,6 +7,7 @@
 		ref = $bindable(null),
 		class: className,
 		portalProps,
+		hideHandle,
 		children,
 		...restProps
 	}: DrawerPrimitive.ContentProps & {
