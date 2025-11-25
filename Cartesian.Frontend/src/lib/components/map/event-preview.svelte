@@ -15,9 +15,11 @@
 	interface Props {
 		event: MapEventProperties;
 		onclose?: () => void;
+		class?: string;
+		hideCloseButton?: boolean;
 	}
 
-	let { event, onclose }: Props = $props();
+	let { event, onclose, class: className, hideCloseButton = false }: Props = $props();
 
 	function openDetails() {
 		mapInteractionState.selectedEvent = event;
@@ -34,17 +36,19 @@
 	let remainingTags = $derived(tags.length - 3);
 </script>
 
-<div class="relative w-[300px] overflow-hidden rounded-2xl bg-background">
-	<Button
-		variant="ghost"
-		size="icon"
-		class="absolute right-2 top-2 z-10 h-8 w-8 rounded-full bg-black/40 text-white hover:bg-black/60"
-		onclick={() => {
-			onclose?.();
-		}}
-	>
-		<HugeiconsIcon icon={Cancel01Icon} size={16} />
-	</Button>
+<div class={cn("relative overflow-hidden rounded-2xl bg-background", className)}>
+	{#if !hideCloseButton}
+		<Button
+			variant="ghost"
+			size="icon"
+			class="absolute right-2 top-2 z-10 h-8 w-8 rounded-full bg-black/40 text-white hover:bg-black/60"
+			onclick={() => {
+				onclose?.();
+			}}
+		>
+			<HugeiconsIcon icon={Cancel01Icon} size={16} />
+		</Button>
+	{/if}
 	<div class="flex h-32 w-full items-center justify-center bg-muted">
 		{#if images.length > 0}
 			<div

@@ -23,6 +23,7 @@
 	import EditEventOverlay from "./edit-event-overlay.svelte";
 	import MapEventsLayer from "./map-events-layer.svelte";
 	import EventDetailsOverlay from "./event-details-overlay.svelte";
+	import EventPreviewDrawer from "./event-preview-drawer.svelte";
 
 	interface Props {
 		ipGeo: IpGeo | null;
@@ -142,6 +143,7 @@
 		<NewEventOverlay map={mapState.instance} />
 		<EditEventOverlay map={mapState.instance} />
 		<EventDetailsOverlay />
+		<EventPreviewDrawer />
 		<MapEventsLayer map={mapState.instance} />
 	{/if}
 </div>

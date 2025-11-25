@@ -32,6 +32,8 @@ export interface MapEventProperties {
 export const mapInteractionState = $state({
 	selectedEvent: null as MapEventProperties | null,
 	eventDetailsOpen: false,
+	previewEvent: null as MapEventProperties | null,
+	previewEventOpen: false,
 });
 
 export let newEventOverlayState = $state<{

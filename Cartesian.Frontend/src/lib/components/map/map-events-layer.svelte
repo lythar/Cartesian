@@ -4,7 +4,8 @@
 	import { mode } from "mode-watcher";
 	import { getAllContexts, mount, unmount } from "svelte";
 	import EventPreview from "./event-preview.svelte";
-	import type { MapEventProperties } from "./map-state.svelte";
+	import { type MapEventProperties, mapInteractionState } from "./map-state.svelte";
+	import { getLayoutContext } from "$lib/context/layout.svelte";
 
 	interface Props {
 		map: mapboxgl.Map;
@@ -12,6 +13,7 @@
 
 	let { map }: Props = $props();
 
+	const layout = getLayoutContext();
 	const componentContexts = getAllContexts();
 
 	const eventsQuery = createEventsGeojsonQuery(
@@ -120,6 +122,18 @@
 				coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
 			}
 
+			if (layout.isMobile) {
+				mapInteractionState.previewEvent = properties;
+				mapInteractionState.previewEventOpen = true;
+				map.flyTo({
+					center: coordinates as [number, number],
+					zoom: 16,
+					padding: { bottom: 300 }, // Shift map up so point is visible above drawer
+					duration: 1000,
+				});
+				return;
+			}
+
 			const popupNode = document.createElement("div");
 
 			const popup = new mapboxgl.Popup({
@@ -133,6 +147,7 @@
 				props: {
 					event: properties,
 					onclose: () => popup.remove(),
+					class: "w-[300px]",
 				},
 				context: componentContexts,
 			});
