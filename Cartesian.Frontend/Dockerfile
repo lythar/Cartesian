@@ -1,8 +1,8 @@
 FROM node:25-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN npm i -g corepack
-RUN corepack enable && corepack prepare pnpm@10.20.0 --activate
+RUN npm i -g --force corepack
+RUN corepack enable
 
 FROM base AS deps
 WORKDIR /app
@@ -14,7 +14,7 @@ FROM base AS build
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm install --frozen-lockfile --offline --prefer-offline
+    pnpm install --frozen-lockfile --prefer-offline
 
 COPY .prettierignore svelte.config.js tsconfig.json vite.config.ts components.json orval.config.ts prettier.config.js ./
 COPY messages/ ./messages/
