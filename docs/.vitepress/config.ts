@@ -7,6 +7,10 @@ export default defineConfig({
   description:
     'Dokumentacja techniczna z projektu na hackathon hackheroes.pl',
 
+  vite: {
+    assetsInclude: ['**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.gif', '**/*.svg'],
+  },
+
   themeConfig: {
     logo: "./logo.svg",
     nav: [{ text: "Dokumentacja techniczna", link: "/main" }],
