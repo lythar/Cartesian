@@ -1,6 +1,6 @@
 # Lythar
 
-> **Cartesian** to kryptonim projektu
+> **Cartesian** to kryptonim projektu na HackHeroes 2025
 
 Lythar to platforma społecznościowa skupiona na budowaniu autentycznych relacji w świecie rzeczywistym. W dobie cyfrowej izolacji, zachęcamy młodych ludzi do wychodzenia z domu i tworzenia lokalnych społeczności.
 
