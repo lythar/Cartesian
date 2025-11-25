@@ -57,7 +57,9 @@ class GlobalChatSseService {
 			if (this.#reconnectAttempts < this.#maxReconnectAttempts) {
 				this.#reconnectAttempts++;
 				const delay = this.#reconnectDelay * Math.pow(2, this.#reconnectAttempts - 1);
-				console.log(`[SSE] Reconnecting in ${delay}ms (attempt ${this.#reconnectAttempts})`);
+				console.log(
+					`[SSE] Reconnecting in ${delay}ms (attempt ${this.#reconnectAttempts})`,
+				);
 				setTimeout(() => this.connect(), delay);
 			}
 		};

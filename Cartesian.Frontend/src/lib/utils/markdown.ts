@@ -7,7 +7,8 @@ const marked = new Marked({
 	breaks: true,
 });
 
-const EVENT_LINK_REGEX = /(?:https?:\/\/[^\s]*\/app\?event=([a-f0-9-]+)|\/app\?event=([a-f0-9-]+))/gi;
+const EVENT_LINK_REGEX =
+	/(?:https?:\/\/[^\s]*\/app\?event=([a-f0-9-]+)|\/app\?event=([a-f0-9-]+))/gi;
 
 export interface ParsedContent {
 	html: string;
