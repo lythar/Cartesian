@@ -77,7 +77,8 @@ services:
   proxy:
     image: "caddy:2-alpine"
     ports:
-      - "8080:8080"
+      - "80:80"
+      - "443:443"
     volumes:
       - type: "bind"
         source: "./Caddyfile"
