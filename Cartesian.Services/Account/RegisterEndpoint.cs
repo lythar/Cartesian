@@ -27,10 +27,8 @@ public class RegisterEndpoint : IEndpoint
 
         var authProperties = new AuthenticationProperties
         {
-            AllowRefresh = true,
-            ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7),
             IsPersistent = true,
-            IssuedUtc = DateTimeOffset.UtcNow
+            AllowRefresh = true
         };
 
         var principal = claimsService.GetPrincipalForUser(user);
