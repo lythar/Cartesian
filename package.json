@@ -1,14 +1,18 @@
 {
-	"name": "cartesian-monorepo",
-	"private": true,
-	"version": "0.0.1",
-	"type": "module",
-	"scripts": {
-		"prepare": "husky install"
-	},
-	"devDependencies": {
-		"husky": "^9.1.7",
-		"lint-staged": "^15.2.11"
-	},
-	"packageManager": "pnpm@10.20.0+sha512.cf9998222162dd85864d0a8102e7892e7ba4ceadebbf5a31f9c2fce48dfce317a9c53b9f6464d1ef9042cba2e02ae02a9f7c143a2b438cd93c91840f0192b9dd"
+  "name": "cartesian-monorepo",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "prepare": "husky install",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.11",
+    "vitepress": "^1.6.4"
+  },
+  "packageManager": "pnpm@10.20.0+sha512.cf9998222162dd85864d0a8102e7892e7ba4ceadebbf5a31f9c2fce48dfce317a9c53b9f6464d1ef9042cba2e02ae02a9f7c143a2b438cd93c91840f0192b9dd"
 }
