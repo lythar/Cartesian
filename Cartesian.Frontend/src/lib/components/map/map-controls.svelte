@@ -94,7 +94,7 @@
 <ButtonGroup.Root
 	orientation="vertical"
 	class={cn(
-		"absolute bottom-24 left-4 z-20 lg:bottom-4 [&_button]:dark:bg-card [&_button]:dark:hover:bg-secondary",
+		"absolute bottom-8 left-4 z-20 lg:bottom-4 [&_button]:dark:bg-card [&_button]:shadow-neu-depth [&_button]:rounded-3xl [&_button]:corner-squircle [&_button]:dark:hover:bg-secondary",
 		layout.isMobile && "[&_button]:size-16! [&_svg]:size-7!",
 	)}
 >

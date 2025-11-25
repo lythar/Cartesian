@@ -73,6 +73,10 @@
 	--shadow-neu-highlight:
 		inset 0 1px 0 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 0 rgba(0, 0, 0, 0.2),
 		0 4px 16px rgba(0, 0, 0, 0.16);
+	--shadow-neu-depth:
+		0px 32px 64px -16px #ffffff, 0px 16px 32px -8px #f0f0f0, 0px 8px 16px -4px #d8d8d8,
+		0px 4px 8px -2px #c0c0c0, 0px -8px 16px -1px #d8d8d8, 0px 2px 4px -1px #c0c0c0,
+		0px 0px 0px 1px #808080, inset 0px 0px 0px 1px #00000010, inset 0px 1px 0px #0000001a;
 }
 
 .dark {
@@ -131,6 +135,13 @@
 	--shadow-neu-highlight:
 		inset 0 1px 0 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 0 rgba(0, 0, 0, 0.2),
 		0 4px 16px rgba(0, 0, 0, 0.16);
+	--shadow-neu-depth:
+    /* outer shadows */
+		0px 32px 64px -16px #0000004c, 0px 16px 32px -8px #0000004c, 0px 8px 16px -4px #0000003d,
+		0px 4px 8px -2px #0000003d, 0px -8px 16px -1px #00000029,
+		/* negative vertical offset */ 0px 2px 4px -1px #0000003d,
+		/* border */ 0px 0px 0px 1px #000000, /* inner Shadows */ inset 0px 0px 0px 1px #ffffff14,
+		inset 0px 1px 0px #ffffff33;
 }
 
 @theme inline {
@@ -186,6 +197,7 @@
 	--shadow-2xl: var(--shadow-2xl);
 
 	--shadow-neu-highlight: var(--shadow-neu-highlight);
+	--shadow-neu-depth: var(--shadow-neu-depth);
 
 	--corner-shape-scoop: scoop;
 	--corner-shape-bevel: bevel;

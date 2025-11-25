@@ -11,7 +11,7 @@
 	import { getLayoutContext } from "$lib/context/layout.svelte";
 	import { authStore } from "$lib/stores/auth.svelte";
 	import { unreadMessagesStore } from "$lib/stores/unread-messages.svelte";
-	import { PlusSignIcon } from "@hugeicons/core-free-icons";
+	import { MapsGlobal01Icon, PlusSignIcon } from "@hugeicons/core-free-icons";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import MobileNavigation from "./mobile-navigation.svelte";
 	import NavigationHeader from "./navigation-header.svelte";
@@ -58,7 +58,28 @@
 				</div>
 			{:else}
 				<div class="flex-1 overflow-auto px-3 py-4">
-					<Sidebar.Group>
+          <Sidebar.Group>
+            <Sidebar.Menu>
+              <Sidebar.MenuItem>
+                <Sidebar.MenuButton
+                  isActive={isActive('/app')}
+                >
+                  {#snippet child({ props })}
+                    <a href="/app" {...props}>
+                      <HugeiconsIcon
+                        icon={MapsGlobal01Icon}
+                        size={16}
+                        strokeWidth={2}
+                      />
+                      <span>Map</span>
+                    </a>
+                  {/snippet}
+                </Sidebar.MenuButton>
+              </Sidebar.MenuItem>
+            </Sidebar.Menu>
+          </Sidebar.Group>
+
+          <Sidebar.Group>
 						<DmSidebar />
 					</Sidebar.Group>
 

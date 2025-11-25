@@ -480,14 +480,14 @@
 <div
 	bind:this={overlayContainer}
 	class={cn(
-		"pointer-events-none absolute top-4 right-4 bottom-4 z-50 flex w-full max-w-lg origin-top-right flex-col",
+		"pointer-events-none overflow-hidden absolute inset-0 lg:left-auto lg:top-4 lg:right-4 lg:bottom-4 z-50 flex w-full max-w-full lg:max-w-lg origin-top-right flex-col",
 		open ? "" : "",
 	)}
 >
 	<div
 		class={cn(
-			"flex h-full flex-col overflow-hidden rounded-3xl border border-border/40 bg-background shadow-2xl transition-all",
-			open ? "pointer-events-auto" : "pointer-events-none",
+			"flex h-full flex-col overflow-hidden lg:rounded-3xl border border-border/40 bg-background shadow-2xl transition-all",
+			open ? "pointer-events-auto " : "pointer-events-none",
 		)}
 	>
 		<!-- Header -->

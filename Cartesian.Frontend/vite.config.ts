@@ -31,7 +31,7 @@ export default defineConfig(async ({ command }) => {
 		],
 		define,
 		ssr: {
-			noExternal: ["svelte-sonner", "@hugeicons/svelte"],
+			noExternal: ["svelte-sonner", "@hugeicons/svelte", "bits-ui"],
 		},
 	};
 });

@@ -15,6 +15,8 @@
 
 	let { data }: { data: PageData } = $props();
 
+	console.log("Login Page Mounted, data.form:", data?.form);
+
 	let errorMessage = $state<string | null>(null);
 
 	const loginMutation = createPostAccountApiLogin({

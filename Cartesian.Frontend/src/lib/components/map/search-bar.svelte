@@ -124,7 +124,6 @@
 			return;
 		}
 
-		// Get the first window's location
 		const window = event.windows[0];
 		const location = window.location;
 
@@ -136,7 +135,6 @@
 
 		const [lng, lat] = location.coordinates;
 
-		// Zoom to the event location
 		mapState.instance?.flyTo({
 			center: [lng, lat],
 			zoom: 16,
@@ -144,7 +142,6 @@
 			duration: 2000,
 		});
 
-		// Show popup with event details
 		setTimeout(() => {
 			new mapboxgl.Popup()
 				.setLngLat([lng, lat])
@@ -157,7 +154,7 @@
 				`,
 				)
 				.addTo(mapState.instance!);
-		}, 2100); // Show popup after fly animation completes
+		}, 2100);
 
 		isFocused = false;
 	}
@@ -178,11 +175,11 @@
 >
 	<div
 		bind:this={searchBarRef}
-		class="relative w-full rounded-full bg-card/90 shadow-neu-highlight backdrop-blur-md"
+		class="relative w-full rounded-full bg-background/90 shadow-neu-highlight backdrop-blur-md"
 	>
-		<div class="flex h-16 w-full items-center gap-2 px-2 lg:h-14">
+		<div class="flex h-16 w-full items-center gap-2 px-2 lg:h-14 group">
 			<div
-				class="flex h-12 flex-1 items-center gap-2 rounded-full bg-secondary/50 px-3 transition-colors focus-within:bg-secondary lg:h-10"
+				class="flex h-12 flex-1 items-center gap-2 rounded-full bg-secondary/30 px-3 transition-colors focus-within:bg-secondary/50 lg:h-10"
 			>
 				<HugeiconsIcon icon={Search01Icon} className="size-5 text-muted-foreground" />
 				<div class="flex-1">
@@ -191,10 +188,9 @@
 						placeholder={isAIMode
 							? "Ask AI to find events..."
 							: "Search events, locations..."}
-						class="h-10 border-0 bg-transparent px-0 text-base shadow-none placeholder:text-muted-foreground/70 focus-visible:ring-0 dark:bg-transparent"
+						class="h-10 border-0 bg-transparent px-0 text-base shadow-none placeholder:text-muted-foreground/70 focus-visible:ring-0 dark:bg-transparent peer"
 						onfocus={() => (isFocused = true)}
 						onblur={() => {
-							// Small timeout to allow clicks on results to register
 							setTimeout(() => (isFocused = false), 200);
 						}}
 					/>
@@ -218,7 +214,7 @@
 							"h-12 w-12 shrink-0 rounded-full transition-all duration-200 lg:h-10 lg:w-10",
 							isAIMode
 								? "bg-primary text-primary-foreground shadow-lg"
-								: "bg-secondary/50 text-foreground",
+								: "bg-secondary/30 text-foreground",
 						)}
 						onclick={() => (isAIMode = !isAIMode)}
 					>
@@ -239,13 +235,13 @@
 						variant="ghost"
 						size="icon"
 						class={cn(
-							"h-12 w-12 shrink-0 rounded-full bg-secondary/50 text-foreground transition-all duration-200 lg:h-10 lg:w-10",
+							"h-12 w-12 shrink-0 rounded-full bg-secondary/30 text-foreground transition-all duration-200 lg:h-10 lg:w-10 group-has-focus:hidden",
 							isRefreshing && "animate-spin",
 						)}
 						onclick={handleRefreshEvents}
 						disabled={isRefreshing}
 					>
-						<HugeiconsIcon icon={RefreshIcon} size={20} className="duotone-fill" />
+						<HugeiconsIcon icon={RefreshIcon} size={20} />
 						<span class="sr-only">Refresh events</span>
 					</Button>
 				</Tooltip.Trigger>

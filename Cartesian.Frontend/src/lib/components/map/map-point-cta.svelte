@@ -136,11 +136,11 @@
 
 <LoginAlertDialog bind:open={loginAlertOpen} />
 
-<div class="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 transform">
+<div class="absolute top-24 lg:top-auto bottom-auto lg:bottom-4 left-1/2 z-10 -translate-x-1/2 transform w-full lg:w-fit px-4">
 	{#if selectedLocation}
 		<div
 			bind:this={locationElement}
-			class="inline-flex min-w-50 flex-row justify-between gap-6 rounded-lg bg-background p-4 shadow-lg"
+			class="inline-flex min-w-full w-full lg:min-w-50 lg:w-fit flex-col lg:flex-row justify-between gap-6 rounded-4xl corner-squircle lg:rounded-lg bg-background/80 backdrop-blur-lg p-4 shadow-lg"
 		>
 			<div class="flex flex-col">
 				{#if geocodeQuery?.isPending}
@@ -163,7 +163,7 @@
 				</p>
 			</div>
 			<!-- CTA -->
-			<div class="flex w-fit items-center gap-2">
+			<div class="flex justify-between lg:w-fit lg:items-center gap-2">
 				<Button
 					variant="default"
 					size="lg"
