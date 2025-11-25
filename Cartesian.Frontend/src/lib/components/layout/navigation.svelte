@@ -226,7 +226,7 @@
 	<Sidebar.Inset>
 		<main
 			class="relative flex flex-1 flex-col overflow-hidden {layout.isMobile
-				? 'pb-[72px]'
+				? ''
 				: ''}"
 		>
 			{#if !layout.isMobile}
