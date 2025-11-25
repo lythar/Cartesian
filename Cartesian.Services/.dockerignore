@@ -1,0 +1,38 @@
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.user
+_ReSharper.Caches/
+
+# Build outputs
+bin/
+obj/
+packages/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Documentation
+*.md
+AGENTS.md
+
+# Temp files
+*.tmp
+*.temp

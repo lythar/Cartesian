@@ -1,0 +1,43 @@
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+*.user
+
+# Build outputs
+node_modules/
+.output/
+build/
+.svelte-kit/
+dist/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Documentation
+*.md
+AGENTS.md
+UI_PLAN.md
+
+# Temp files
+*.tmp
+*.temp
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*

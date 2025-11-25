@@ -1,8 +1,9 @@
 import { Effect, Schema } from "effect";
 import { createQuery } from "@tanstack/svelte-query";
 import type { CreateQueryOptions, CreateQueryResult, QueryClient } from "@tanstack/svelte-query";
+import { env } from "$env/dynamic/public";
 
-const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+const getMapboxToken = () => env.PUBLIC_MAPBOX_ACCESS_TOKEN || "";
 
 const FeaturePropertiesSchema = Schema.Struct({
 	name: Schema.optional(Schema.String),
@@ -28,7 +29,7 @@ export class ReverseGeocodeError extends Schema.TaggedError<ReverseGeocodeError>
 
 export const fetchReverseGeocode = (longitude: number, latitude: number) =>
 	Effect.gen(function* () {
-		const url = `https://api.mapbox.com/search/geocode/v6/reverse?longitude=${longitude}&latitude=${latitude}&access_token=${MAPBOX_ACCESS_TOKEN}`;
+		const url = `https://api.mapbox.com/search/geocode/v6/reverse?longitude=${longitude}&latitude=${latitude}&access_token=${getMapboxToken()}`;
 
 		const response = yield* Effect.tryPromise({
 			try: () => fetch(url),

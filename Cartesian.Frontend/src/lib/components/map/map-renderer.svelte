@@ -6,6 +6,7 @@
 		GeolocationService,
 		GeolocationServiceLive,
 	} from "$lib/effects/services/geolocation.service";
+	import { env } from "$env/dynamic/public";
 	import { Effect, Runtime } from "effect";
 	import mapboxgl from "mapbox-gl";
 	import { mode } from "mode-watcher";
@@ -30,7 +31,7 @@
 	let { ipGeo }: Props = $props();
 	const layout = getLayoutContext();
 
-	mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+	mapboxgl.accessToken = env.PUBLIC_MAPBOX_ACCESS_TOKEN || "";
 
 	const mapStyle = "mapbox://styles/mapbox/standard";
 	const runtime = Runtime.defaultRuntime;

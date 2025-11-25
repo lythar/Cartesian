@@ -1,10 +1,7 @@
 import { Effect, Schema } from "effect";
+import { env } from "$env/dynamic/public";
 
-export const baseUrl =
-	import.meta.env.services_url ??
-	import.meta.env.services__https__0 ??
-	import.meta.env.services__http__0 ??
-	"http://localhost:5164";
+export const baseUrl = env.PUBLIC_SERVICES_URL || "";
 
 export interface FetchConfig extends RequestInit {
 	url: string;

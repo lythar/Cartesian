@@ -25,6 +25,56 @@
   - Apply: Auto-runs in development, manual in production
 - **Format**: `dotnet format`
 
+## Aspire Development Tools
+
+When the Aspire AppHost is running, **ALWAYS** use the Aspire MCP tools for monitoring and managing resources:
+
+### Available Aspire Tools
+
+- **aspire-dashboard_list_resources**: List all resources (services, databases, containers) with their status, endpoints, and health
+- **aspire-dashboard_list_console_logs**: View console output for a specific resource (stdout/stderr)
+- **aspire-dashboard_list_structured_logs**: View structured logs for a specific resource or all resources
+- **aspire-dashboard_list_traces**: View distributed traces across resources for performance monitoring
+- **aspire-dashboard_list_trace_structured_logs**: View logs for a specific trace ID
+- **aspire-dashboard_execute_resource_command**: Execute commands on resources (start, stop, restart)
+
+### Common Scenarios
+
+**Check service status:**
+```
+Use: aspire-dashboard_list_resources
+Returns: All services with running state, endpoints, and health status
+```
+
+**Debug a failing service:**
+```
+1. Use: aspire-dashboard_list_console_logs with resourceName
+2. Review stdout/stderr for exceptions or errors
+3. Use: aspire-dashboard_list_structured_logs with resourceName for detailed logs
+```
+
+**Restart a service:**
+```
+Use: aspire-dashboard_execute_resource_command with resourceName and commandName: "resource-restart"
+Common resources: "cartesian-services", "cartesian-frontend", "cartesian-db", "cartesian-minio"
+```
+
+**Investigate performance issues:**
+```
+1. Use: aspire-dashboard_list_traces (optionally filter by resourceName)
+2. Identify slow traces by duration
+3. Use: aspire-dashboard_list_trace_structured_logs with traceId for detailed analysis
+```
+
+### Critical Rules for Aspire Tools
+
+1. **ALWAYS** use `aspire-dashboard_list_resources` first to verify resource names before using other tools
+2. **ALWAYS** check console logs when a resource fails to start or crashes
+3. **NEVER** use `dotnet run` or bash commands to restart services - use `aspire-dashboard_execute_resource_command` instead
+4. **ALWAYS** use Aspire traces for investigating distributed system issues (cross-service calls, database queries)
+5. **PREFER** structured logs over console logs for application-level debugging (more detailed, filterable)
+6. **DO NOT** assume resource names - they may differ from project names (e.g., "cartesian-services" not "Cartesian.Services")
+
 ## Architecture Patterns
 
 ### Endpoint Pattern

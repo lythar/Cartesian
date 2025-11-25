@@ -1,0 +1,110 @@
+services:
+  postgres:
+    image: "docker.io/postgis/postgis:18-3.6-alpine"
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+    expose:
+      - "5432"
+    volumes:
+      - type: "volume"
+        target: "/var/lib/postgresql/data"
+        source: "cartesian-postgres-data"
+        read_only: false
+    networks:
+      - "cartesian"
+  storage:
+    image: "docker.io/minio/minio:RELEASE.2025-09-07T16-13-09Z"
+    command:
+      - "server"
+      - "/data"
+      - "--console-address"
+      - ":9001"
+    environment:
+      MINIO_ROOT_USER: "admin"
+      MINIO_ROOT_PASSWORD: "${STORAGE_ROOTPASSWORD}"
+    expose:
+      - "9000"
+      - "9001"
+    volumes:
+      - type: "volume"
+        target: "/data"
+        source: "cartesian-storage-data"
+        read_only: false
+    networks:
+      - "cartesian"
+  services:
+    build:
+      context: .
+      dockerfile: Cartesian.Services/Dockerfile
+    environment:
+      AutoRunMigrations: "true"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "8080"
+      ConnectionStrings__database: "Host=postgres;Port=5432;Username=postgres;Password=${POSTGRES_PASSWORD};Database=cartesian"
+      DATABASE_HOST: "postgres"
+      DATABASE_PORT: "5432"
+      DATABASE_USERNAME: "postgres"
+      DATABASE_PASSWORD: "${POSTGRES_PASSWORD}"
+      DATABASE_URI: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/cartesian"
+      DATABASE_JDBCCONNECTIONSTRING: "jdbc:postgresql://postgres:5432/cartesian"
+      DATABASE_DATABASE: "cartesian"
+      ConnectionStrings__storage: "Endpoint=http://storage:9000;AccessKey=admin;SecretKey=${STORAGE_ROOTPASSWORD}"
+      STORAGE_HOST: "storage"
+      STORAGE_PORT: "9000"
+      STORAGE_ACCESSKEY: "admin"
+      STORAGE_SECRETKEY: "${STORAGE_ROOTPASSWORD}"
+      STORAGE_URI: "http://storage:9000"
+    expose:
+      - "8080"
+    networks:
+      - "cartesian"
+  frontend:
+    build:
+      context: Cartesian.Frontend
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: "production"
+      PORT: "3000"
+      PUBLIC_MAPBOX_ACCESS_TOKEN: "${MAPBOX_PUBLIC_TOKEN}"
+      PUBLIC_SERVICES_URL: ""
+    expose:
+      - "3000"
+    networks:
+      - "cartesian"
+  proxy:
+    image: "caddy:2-alpine"
+    ports:
+      - "8080:8080"
+    volumes:
+      - type: "bind"
+        source: "./Caddyfile"
+        target: "/etc/caddy/Caddyfile"
+        read_only: true
+        bind:
+          selinux: z
+      - type: "volume"
+        source: "cartesian-caddy-data"
+        target: "/data"
+      - type: "volume"
+        source: "cartesian-caddy-config"
+        target: "/config"
+    networks:
+      - "cartesian"
+    depends_on:
+      - "services"
+      - "frontend"
+networks:
+  cartesian:
+    driver: "bridge"
+volumes:
+  cartesian-postgres-data:
+    driver: "local"
+  cartesian-storage-data:
+    driver: "local"
+  cartesian-caddy-data:
+    driver: "local"
+  cartesian-caddy-config:
+    driver: "local"

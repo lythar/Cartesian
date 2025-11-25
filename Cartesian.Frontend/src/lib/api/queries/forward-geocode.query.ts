@@ -1,8 +1,9 @@
 import { Effect, Schema } from "effect";
 import { createQuery } from "@tanstack/svelte-query";
 import type { CreateQueryOptions, CreateQueryResult, QueryClient } from "@tanstack/svelte-query";
+import { env } from "$env/dynamic/public";
 
-const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+const getMapboxToken = () => env.PUBLIC_MAPBOX_ACCESS_TOKEN || "";
 
 const FeaturePropertiesSchema = Schema.Struct({
 	name: Schema.optional(Schema.String),
@@ -38,7 +39,7 @@ export const fetchForwardGeocode = (query: string) =>
 	Effect.gen(function* () {
 		if (!query || query.length < 3) return { features: [] };
 
-		const url = `https://api.mapbox.com/search/geocode/v6/forward?q=${encodeURIComponent(query)}&access_token=${MAPBOX_ACCESS_TOKEN}`;
+		const url = `https://api.mapbox.com/search/geocode/v6/forward?q=${encodeURIComponent(query)}&access_token=${getMapboxToken()}`;
 
 		const response = yield* Effect.tryPromise({
 			try: () => fetch(url),
@@ -71,7 +72,7 @@ export const fetchReverseGeocode = (longitude: number, latitude: number) =>
 	Effect.gen(function* () {
 		if (longitude === undefined || latitude === undefined) return { features: [] };
 
-		const url = `https://api.mapbox.com/search/geocode/v6/reverse?longitude=${longitude}&latitude=${latitude}&access_token=${MAPBOX_ACCESS_TOKEN}`;
+		const url = `https://api.mapbox.com/search/geocode/v6/reverse?longitude=${longitude}&latitude=${latitude}&access_token=${getMapboxToken()}`;
 
 		const response = yield* Effect.tryPromise({
 			try: () => fetch(url),
