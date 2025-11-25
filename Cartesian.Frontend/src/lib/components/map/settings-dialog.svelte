@@ -44,9 +44,12 @@
 	const currentLocale = $derived(getLocale());
 	const currentMode = $derived(mode.current);
 
-	const languageLabels: Record<string, string> = {
-		en: "English",
-		pl: "Polski",
+	const languageLabels: Record<string, {
+    name: string;
+    icon: string
+  }> = {
+		en: { name: "English", icon: "🇺🇲" },
+		pl: { name: "Polski", icon: "🇵🇱" },
 	};
 
 	function handleLanguageChange(locale: string) {
@@ -107,8 +110,7 @@
 							class="flex-1 gap-2"
 							onclick={() => handleLanguageChange(locale)}
 						>
-							<HugeiconsIcon icon={LanguageCircleIcon} size={16} />
-							{languageLabels[locale] ?? locale}
+              {languageLabels[locale]?.icon} {languageLabels[locale]?.name ?? locale}
 						</Button>
 					{/each}
 				</div>
