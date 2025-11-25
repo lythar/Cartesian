@@ -34,6 +34,7 @@ export const mapInteractionState = $state({
 	eventDetailsOpen: false,
 	previewEvent: null as MapEventProperties | null,
 	previewEventOpen: false,
+	desktopPopupOpen: false,
 });
 
 export let newEventOverlayState = $state<{

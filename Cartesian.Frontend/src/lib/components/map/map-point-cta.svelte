@@ -6,6 +6,7 @@
 		mapState,
 		newEventMarkerLocation,
 		newEventOverlayState,
+		mapInteractionState,
 	} from "./map-state.svelte";
 	import { authStore } from "$lib/stores/auth.svelte";
 	import LoginAlertDialog from "$lib/components/auth/login-alert-dialog.svelte";
@@ -121,6 +122,17 @@
 		return () => {
 			map.off("click", handleUpdateNewEventMarker);
 		};
+	});
+
+	// Clear the pin when an event preview is opened (mobile drawer or desktop popup)
+	$effect(() => {
+		if (mapInteractionState.previewEventOpen || mapInteractionState.desktopPopupOpen) {
+			selectedLocation = null;
+			queryLocation = null;
+			if (marker) {
+				marker.setLngLat([0, 0]);
+			}
+		}
 	});
 </script>
 

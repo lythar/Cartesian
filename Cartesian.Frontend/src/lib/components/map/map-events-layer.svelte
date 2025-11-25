@@ -157,8 +157,11 @@
 				.setDOMContent(popupNode)
 				.addTo(map);
 
+			mapInteractionState.desktopPopupOpen = true;
+
 			popup.on("close", () => {
 				unmount(component);
+				mapInteractionState.desktopPopupOpen = false;
 			});
 		});
 
