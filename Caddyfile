@@ -1,5 +1,9 @@
 :8080 {
-	handle /*/api/* {
+	@wildcardApi {
+		path_regexp api_capture ^/([^/]+)/api/.*
+	}
+
+	handle @wildcardApi {
 		reverse_proxy services:3002
 	}
 
