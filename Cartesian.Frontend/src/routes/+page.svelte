@@ -46,6 +46,10 @@
 	});
 </script>
 
+<svelte:head>
+	<title>Lythar - Find Your People</title>
+</svelte:head>
+
 <div class="relative flex min-h-screen flex-col overflow-hidden" role="application">
 	<!-- Navigation -->
 	<header class="fixed top-0 z-40 w-full px-6 py-6 md:px-12">
@@ -53,7 +57,7 @@
 			<div
 				class="text-lg font-bold tracking-tighter text-white uppercase mix-blend-difference"
 			>
-				Kart
+				Lythar
 			</div>
 			<nav>
 				<Button
@@ -174,8 +178,7 @@
 		</div>
 
 		<div class="text-right font-mono text-[10px] tracking-widest uppercase">
-			© {new Date().getFullYear()} Kart Inc.<br />
-			All rights reserved.
+			Made with ♥
 		</div>
 	</footer>
 </div>
