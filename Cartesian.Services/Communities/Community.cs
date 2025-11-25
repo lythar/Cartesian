@@ -15,6 +15,7 @@ public class Community
     public List<Event> Events { get; set; } = [];
     public List<Membership> Memberships { get; set; } = [];
     public List<Media> Images { get; set; } = [];
+    public List<CommunityBan> Bans { get; set; } = [];
     public bool InviteOnly { get; set; } = false;
 
     public CommunityDto ToDto() => new(Id, Name, Description, InviteOnly, MemberPermissions, Avatar?.ToDto());

@@ -15,6 +15,7 @@
 		LockKeyIcon,
 		Logout01Icon,
 		UserGroupIcon,
+		UserBlock02Icon,
 	} from "@hugeicons/core-free-icons";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import { useQueryClient } from "@tanstack/svelte-query";
@@ -26,6 +27,7 @@
 		isAdmin,
 		isOwner,
 		onToggleMembers,
+		onToggleBans,
 	} = $props<{
 		community: CommunityDto;
 		currentUser: MyUserDto | undefined;
@@ -33,6 +35,7 @@
 		isAdmin: boolean;
 		isOwner: boolean;
 		onToggleMembers?: () => void;
+		onToggleBans?: () => void;
 	}>();
 
 	const queryClient = useQueryClient();
@@ -153,6 +156,20 @@
 		{/if}
 
 		{#if isAdmin}
+			<Tooltip.Root>
+				<Tooltip.Trigger>
+					<Button
+						variant="ghost"
+						size="icon"
+						class="h-8 w-8 text-muted-foreground hover:text-foreground"
+						onclick={onToggleBans}
+					>
+						<HugeiconsIcon icon={UserBlock02Icon} size={16} strokeWidth={1.5} />
+					</Button>
+				</Tooltip.Trigger>
+				<Tooltip.Content>Banned Users</Tooltip.Content>
+			</Tooltip.Root>
+
 			<Tooltip.Root>
 				<Tooltip.Trigger>
 					<Button

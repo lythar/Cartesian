@@ -6,6 +6,7 @@
 		createGetPublicCommunitiesQuery,
 	} from "$lib/api/queries/community.query";
 	import { newCommunityOverlayState } from "$lib/components/community/community-state.svelte";
+	import DmSidebar from "$lib/components/chat/dm-sidebar.svelte";
 	import * as Sidebar from "$lib/components/ui/sidebar";
 	import { getLayoutContext } from "$lib/context/layout.svelte";
 	import { authStore } from "$lib/stores/auth.svelte";
@@ -58,6 +59,10 @@
 			{:else}
 				<div class="flex-1 overflow-auto px-3 py-4">
 					<Sidebar.Group>
+						<DmSidebar />
+					</Sidebar.Group>
+
+					<Sidebar.Group class="mt-6">
 						<Sidebar.GroupLabel
 							class="px-2 text-[10px] font-semibold tracking-wider text-muted-foreground/40 uppercase"
 						>

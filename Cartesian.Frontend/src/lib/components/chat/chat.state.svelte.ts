@@ -4,6 +4,7 @@ import {
 	createGetMessagesInfiniteQuery,
 	createSendMessageMutation,
 } from "$lib/api/queries/chat.query";
+import { getGetCommunityApiCommunityIdMembersQueryKey } from "$lib/api/cartesian-client";
 import { globalChatSse, type ChatEvent } from "$lib/stores/chat-sse.svelte";
 import { unreadMessagesStore } from "$lib/stores/unread-messages.svelte";
 import type { QueryClient } from "@tanstack/svelte-query";
@@ -11,6 +12,7 @@ import type { QueryClient } from "@tanstack/svelte-query";
 export class ChatState {
 	#communityId: string;
 	#queryClient: QueryClient;
+	#knownAuthorIds = new Set<string>();
 
 	realtimeMessages = $state<ChatMessageDto[]>([]);
 	isConnected = $derived(globalChatSse.isConnected);
@@ -35,6 +37,9 @@ export class ChatState {
 		const allMessages: ChatMessageDto[] = [];
 		for (const page of pages) {
 			allMessages.push(...page.messages);
+		}
+		for (const msg of allMessages) {
+			this.#knownAuthorIds.add(msg.authorId);
 		}
 		return allMessages;
 	});
@@ -100,6 +105,15 @@ export class ChatState {
 				const exists = this.realtimeMessages.some((m) => m.id === message.id);
 				if (!exists) {
 					this.realtimeMessages = [...this.realtimeMessages, message];
+
+					if (!this.#knownAuthorIds.has(message.authorId)) {
+						this.#queryClient.invalidateQueries({
+							queryKey: getGetCommunityApiCommunityIdMembersQueryKey(
+								this.#communityId,
+							),
+						});
+						this.#knownAuthorIds.add(message.authorId);
+					}
 				}
 
 				unreadMessagesStore.markAsRead(currentChannelId, message.id);

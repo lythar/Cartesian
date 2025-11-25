@@ -4,15 +4,18 @@
 		createRemoveMemberMutation,
 		createUpdateMemberPermissionsMutation,
 	} from "$lib/api/queries/community.query";
+	import { customInstance } from "$lib/api/client";
 	import * as Avatar from "$lib/components/ui/avatar";
+	import * as AlertDialog from "$lib/components/ui/alert-dialog";
 	import { Badge } from "$lib/components/ui/badge";
 	import { Button } from "$lib/components/ui/button";
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 	import { ScrollArea } from "$lib/components/ui/scroll-area";
 	import { Permissions } from "$lib/constants/permissions";
-	import { MoreHorizontalIcon } from "@hugeicons/core-free-icons";
+	import { MoreHorizontalIcon, UserIcon, Cancel01Icon, UserBlock02Icon } from "@hugeicons/core-free-icons";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
-	import { useQueryClient } from "@tanstack/svelte-query";
+	import { useQueryClient, createMutation } from "@tanstack/svelte-query";
+	import { openUserProfile } from "$lib/components/profile/profile-state.svelte";
 
 	let {
 		members,
@@ -30,16 +33,63 @@
 	const removeMemberMutation = createRemoveMemberMutation(queryClient);
 	const updateMemberPermissionsMutation = createUpdateMemberPermissionsMutation(queryClient);
 
+	let kickDialogOpen = $state(false);
+	let banDialogOpen = $state(false);
+	let selectedMember = $state<MembershipDto | null>(null);
+	let banReason = $state("");
+
+	const banMutation = createMutation(() => ({
+		mutationFn: async ({ userId, reason }: { userId: string; reason?: string }) => {
+			await customInstance({
+				url: `/community/api/${communityId}/ban/${userId}`,
+				method: "POST",
+				data: { reason },
+			});
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["community", communityId] });
+			queryClient.invalidateQueries({ queryKey: ["community", communityId, "members"] });
+		},
+	}));
+
 	const canManagePeople = $derived(
 		(userPermissions & Permissions.ManagePeople) === Permissions.ManagePeople,
 	);
 
-	async function handleRemoveMember(userId: string) {
-		if (!confirm("Are you sure you want to remove this member?")) return;
+	function openKickDialog(member: MembershipDto) {
+		selectedMember = member;
+		kickDialogOpen = true;
+	}
+
+	function openBanDialog(member: MembershipDto) {
+		selectedMember = member;
+		banReason = "";
+		banDialogOpen = true;
+	}
+
+	async function handleKick() {
+		if (!selectedMember) return;
 		try {
-			await removeMemberMutation.mutateAsync({ communityId, userId });
+			await removeMemberMutation.mutateAsync({ communityId, userId: selectedMember.userId });
+			kickDialogOpen = false;
+			selectedMember = null;
 		} catch (error) {
-			console.error("Failed to remove member", error);
+			console.error("Failed to kick member", error);
+		}
+	}
+
+	async function handleBan() {
+		if (!selectedMember) return;
+		try {
+			await banMutation.mutateAsync({
+				userId: selectedMember.userId,
+				reason: banReason || undefined,
+			});
+			banDialogOpen = false;
+			selectedMember = null;
+			banReason = "";
+		} catch (error) {
+			console.error("Failed to ban member", error);
 		}
 	}
 
@@ -58,7 +108,7 @@
 
 <div class="flex flex-col h-full">
 	<div
-		class="flex h-16 items-center justify-between border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4"
+		class="flex h-16 items-center justify-between border-b border-border/40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 px-4"
 	>
 		<h2 class="text-xs font-semibold text-foreground/70 uppercase tracking-wider">
 			Members
@@ -121,7 +171,11 @@
 								</Button>
 							</DropdownMenu.Trigger>
 							<DropdownMenu.Content align="end">
-								<DropdownMenu.Label>Actions</DropdownMenu.Label>
+								<DropdownMenu.Item onclick={() => openUserProfile(membership.userId)}>
+									<HugeiconsIcon icon={UserIcon} size={14} />
+									<span class="ml-2">View Profile</span>
+								</DropdownMenu.Item>
+								<DropdownMenu.Separator />
 								{#if (membership.permissions & Permissions.Admin) === Permissions.Admin}
 									<DropdownMenu.Item
 										onclick={() =>
@@ -146,9 +200,17 @@
 								<DropdownMenu.Separator />
 								<DropdownMenu.Item
 									class="text-destructive focus:text-destructive"
-									onclick={() => handleRemoveMember(membership.userId)}
+									onclick={() => openKickDialog(membership)}
 								>
-									Remove Member
+									<HugeiconsIcon icon={Cancel01Icon} size={14} />
+									<span class="ml-2">Kick</span>
+								</DropdownMenu.Item>
+								<DropdownMenu.Item
+									class="text-destructive focus:text-destructive"
+									onclick={() => openBanDialog(membership)}
+								>
+									<HugeiconsIcon icon={UserBlock02Icon} size={14} />
+									<span class="ml-2">Ban</span>
 								</DropdownMenu.Item>
 							</DropdownMenu.Content>
 						</DropdownMenu.Root>
@@ -158,3 +220,57 @@
 		</div>
 	</ScrollArea>
 </div>
+
+<AlertDialog.Root bind:open={kickDialogOpen}>
+	<AlertDialog.Content>
+		<AlertDialog.Header>
+			<AlertDialog.Title>Kick Member</AlertDialog.Title>
+			<AlertDialog.Description>
+				Are you sure you want to kick <span class="font-semibold">{selectedMember?.user.name}</span> from this community? They will be removed but can rejoin.
+			</AlertDialog.Description>
+		</AlertDialog.Header>
+		<AlertDialog.Footer>
+			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Action
+				class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+				onclick={handleKick}
+				disabled={removeMemberMutation.isPending}
+			>
+				{removeMemberMutation.isPending ? "Kicking..." : "Kick"}
+			</AlertDialog.Action>
+		</AlertDialog.Footer>
+	</AlertDialog.Content>
+</AlertDialog.Root>
+
+<AlertDialog.Root bind:open={banDialogOpen}>
+	<AlertDialog.Content>
+		<AlertDialog.Header>
+			<AlertDialog.Title>Ban Member</AlertDialog.Title>
+			<AlertDialog.Description>
+				Are you sure you want to ban <span class="font-semibold">{selectedMember?.user.name}</span> from this community? They will be removed and cannot rejoin until unbanned.
+			</AlertDialog.Description>
+		</AlertDialog.Header>
+		<div class="py-4">
+			<label for="ban-reason" class="text-sm font-medium">
+				Reason (optional)
+			</label>
+			<input
+				id="ban-reason"
+				type="text"
+				bind:value={banReason}
+				placeholder="Enter reason for ban..."
+				class="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+			/>
+		</div>
+		<AlertDialog.Footer>
+			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Action
+				class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+				onclick={handleBan}
+				disabled={banMutation.isPending}
+			>
+				{banMutation.isPending ? "Banning..." : "Ban"}
+			</AlertDialog.Action>
+		</AlertDialog.Footer>
+	</AlertDialog.Content>
+</AlertDialog.Root>

@@ -5,6 +5,7 @@
 	import { ScrollArea } from "$lib/components/ui/scroll-area";
 	import { Skeleton } from "$lib/components/ui/skeleton";
 	import type { ChatState } from "./chat.state.svelte";
+	import { untrack } from "svelte";
 
 	let {
 		chatState,
@@ -62,7 +63,9 @@
 
 	$effect(() => {
 		const msgCount = chatState.messages.length;
-		if (msgCount > 0 && isInitialLoad && !chatState.isLoading) {
+		const loading = chatState.isLoading;
+		const shouldScroll = untrack(() => isInitialLoad);
+		if (msgCount > 0 && shouldScroll && !loading) {
 			setTimeout(() => scrollToBottom(), 100);
 			isInitialLoad = false;
 		}

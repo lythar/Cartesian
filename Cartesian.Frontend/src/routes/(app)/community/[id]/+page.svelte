@@ -10,6 +10,7 @@
 	import { ChatState } from "$lib/components/chat/chat.state.svelte";
 	import CommunityHeader from "$lib/components/community/community-header.svelte";
 	import MembersList from "$lib/components/community/members-list.svelte";
+	import BannedUsersList from "$lib/components/community/banned-users-list.svelte";
 	import * as Sheet from "$lib/components/ui/sheet";
 	import { Skeleton } from "$lib/components/ui/skeleton";
 	import { useQueryClient } from "@tanstack/svelte-query";
@@ -41,6 +42,7 @@
 
 	let chatState = $state<ChatState | null>(null);
 	let membersSheetOpen = $state(false);
+	let bansSheetOpen = $state(false);
 
 	$effect(() => {
 		if (communityId) {
@@ -81,6 +83,7 @@
 				isAdmin={hasAdminPermissions}
 				{isOwner}
 				onToggleMembers={() => (membersSheetOpen = !membersSheetOpen)}
+				onToggleBans={() => (bansSheetOpen = !bansSheetOpen)}
 			/>
 
 			<CommunityChat {chatState} {members} {currentUser} />
@@ -108,6 +111,18 @@
 						userPermissions={currentMembership?.permissions ?? 0}
 						communityId={communityId ?? ""}
 					/>
+				</div>
+			</Sheet.Content>
+		</Sheet.Root>
+
+		<Sheet.Root bind:open={bansSheetOpen}>
+			<Sheet.Content side="right" class="w-72 p-0 sm:w-80">
+				<Sheet.Header class="sr-only">
+					<Sheet.Title>Banned Users</Sheet.Title>
+					<Sheet.Description>Banned users list</Sheet.Description>
+				</Sheet.Header>
+				<div class="h-full w-full pt-10">
+					<BannedUsersList communityId={communityId ?? ""} />
 				</div>
 			</Sheet.Content>
 		</Sheet.Root>

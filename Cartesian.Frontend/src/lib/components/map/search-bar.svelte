@@ -2,6 +2,7 @@
 	import { Input } from "$lib/components/ui/input";
 	import { Button } from "$lib/components/ui/button";
 	import * as Tooltip from "$lib/components/ui/tooltip";
+	import * as Avatar from "$lib/components/ui/avatar";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import {
 		AiMagicIcon,
@@ -17,12 +18,13 @@
 	import { createForwardGeocodeQuery } from "$lib/api/queries/forward-geocode.query";
 	import { createSearchAllQuery } from "$lib/api/queries/search.query";
 	import { mapState } from "$lib/components/map/map-state.svelte";
-	import { cn } from "$lib/utils";
+	import { cn, getAvatarUrl, getInitials } from "$lib/utils";
 	import { animate, stagger } from "motion";
 	import { Debounced } from "runed";
 	import mapboxgl from "mapbox-gl";
 	import { useQueryClient } from "@tanstack/svelte-query";
 	import { toast } from "svelte-sonner";
+	import { openUserProfile } from "$lib/components/profile/profile-state.svelte";
 
 	const layout = getLayoutContext();
 	const queryClient = useQueryClient();
@@ -161,15 +163,13 @@
 	}
 
 	function handleCommunitySelect(community: any) {
-		console.log("Selected community:", community);
-		// TODO: Navigate to community page
 		isFocused = false;
+		window.location.href = `/community/${community.id}`;
 	}
 
 	function handleUserSelect(user: any) {
-		console.log("Selected user:", user);
-		// TODO: Navigate to user profile
 		isFocused = false;
+		openUserProfile(user.id);
 	}
 </script>
 
@@ -353,11 +353,24 @@
 									class="group flex w-full items-center gap-3 rounded-xl p-2 text-left transition-colors hover:bg-secondary/50"
 									onclick={() => handleUserSelect(user)}
 								>
-									<div
-										class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-500 group-hover:bg-amber-500/20"
-									>
-										<HugeiconsIcon icon={UserIcon} className="size-5" />
-									</div>
+									{#if user.avatar}
+										<Avatar.Root class="h-10 w-10 shrink-0 rounded-lg border border-border/40">
+											<Avatar.Image
+												src={getAvatarUrl(user.avatar)}
+												alt={user.name}
+												class="object-cover rounded-lg"
+											/>
+											<Avatar.Fallback class="rounded-lg bg-amber-500/10 text-amber-500 text-xs font-medium">
+												{getInitials(user.name)}
+											</Avatar.Fallback>
+										</Avatar.Root>
+									{:else}
+										<div
+											class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-500 group-hover:bg-amber-500/20"
+										>
+											<HugeiconsIcon icon={UserIcon} className="size-5" />
+										</div>
+									{/if}
 									<div class="flex flex-col overflow-hidden">
 										<span class="truncate text-sm font-medium">{user.name}</span
 										>

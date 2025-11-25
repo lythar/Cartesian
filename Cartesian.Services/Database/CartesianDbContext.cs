@@ -21,6 +21,8 @@ public class CartesianDbContext : IdentityDbContext<CartesianUser>
     public DbSet<ChatUserSettings> ChatUserSettings { get; set; } = null!;
     public DbSet<ChatPinnedMessage> ChatPinnedMessages { get; set; } = null!;
     public DbSet<ChatReaction> ChatReactions { get; set; } = null!;
+    public DbSet<UserBlock> UserBlocks { get; set; } = null!;
+    public DbSet<CommunityBan> CommunityBans { get; set; } = null!;
 
     public CartesianDbContext()
     {
@@ -201,6 +203,36 @@ public class CartesianDbContext : IdentityDbContext<CartesianUser>
                 .HasMaxLength(20)
                 .IsUnicode(true);
             entity.HasIndex(e => new { e.MessageId, e.UserId, e.Emoji }).IsUnique();
+        });
+
+        builder.Entity<UserBlock>(entity =>
+        {
+            entity.HasOne(e => e.Blocker)
+                .WithMany()
+                .HasForeignKey(e => e.BlockerId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Blocked)
+                .WithMany()
+                .HasForeignKey(e => e.BlockedId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(e => new { e.BlockerId, e.BlockedId }).IsUnique();
+        });
+
+        builder.Entity<CommunityBan>(entity =>
+        {
+            entity.HasOne(e => e.Community)
+                .WithMany(c => c.Bans)
+                .HasForeignKey(e => e.CommunityId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.BannedBy)
+                .WithMany()
+                .HasForeignKey(e => e.BannedById)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(e => new { e.CommunityId, e.UserId }).IsUnique();
         });
     }
 }

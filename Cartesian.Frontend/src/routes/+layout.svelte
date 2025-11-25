@@ -8,6 +8,7 @@
 	import { onNavigate } from "$app/navigation";
 	import { authStore } from "$lib/stores/auth.svelte";
 	import { getAccountApiMe } from "$lib/api";
+	import UserProfileSheet from "$lib/components/profile/user-profile-sheet.svelte";
 
 	let { children } = $props();
 
@@ -36,6 +37,7 @@
 <QueryClientProvider client={queryClient}>
 	<ModeWatcher />
 	<Toaster />
+	<UserProfileSheet />
 
 	<div
 		class="dark min-h-screen overflow-x-hidden bg-background font-sans text-foreground antialiased selection:bg-white/20 selection:text-white"

@@ -35,6 +35,7 @@
 	import { Avatar, AvatarFallback, AvatarImage } from "$lib/components/ui/avatar";
 	import { format } from "date-fns";
 	import { getAvatarUrl, getMediaUrl, cn, getInitials } from "$lib/utils";
+	import { openUserProfile } from "$lib/components/profile/profile-state.svelte";
 	import { EVENT_TAG_CONFIG } from "$lib/constants/event-tags";
 	import { m } from "$lib/paraglide/messages";
 	import { invalidateAll } from "$app/navigation";
@@ -291,9 +292,16 @@
 				>
 			</Avatar>
 			<span class="text-sm font-medium text-muted-foreground">
-				Hosted by <span class="text-foreground"
-					>{event.communityId ? event.communityName : event.authorName}</span
-				>
+				Hosted by {#if event.communityId}
+					<span class="text-foreground">{event.communityName}</span>
+				{:else}
+					<button
+						class="text-foreground hover:underline"
+						onclick={() => openUserProfile(event.authorId)}
+					>
+						{event.authorName}
+					</button>
+				{/if}
 			</span>
 		</div>
 

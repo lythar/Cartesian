@@ -29,6 +29,16 @@ public class ChatMessageEndpoints : IEndpoint
             .RequireAuthorization()
             .Produces(200, typeof(ChatChannelDto));
 
+        app.MapGet("/chat/api/dm/channel/{channelId:guid}", GetDirectMessageChannelById)
+            .RequireAuthorization()
+            .Produces(200, typeof(DmChannelInfoDto))
+            .Produces(403, typeof(ChatAccessDeniedError))
+            .Produces(404, typeof(ChatChannelNotFoundError));
+
+        app.MapGet("/chat/api/dm/channels", GetRecentDirectMessageChannels)
+            .RequireAuthorization()
+            .Produces(200, typeof(RecentDmChannelsResponse));
+
         app.MapGet("/chat/api/community/channel", GetCommunityChannel)
             .RequireAuthorization()
             .Produces(200, typeof(ChatChannelDto))
@@ -140,6 +150,13 @@ public class ChatMessageEndpoints : IEndpoint
         var otherUserId = channel.Participant1Id == userId ? channel.Participant2Id : channel.Participant1Id;
         var recipientSettings = await db.ChatUserSettings.FirstOrDefaultAsync(s => s.UserId == otherUserId);
         if (recipientSettings?.DirectMessagesEnabled == false)
+            return false;
+
+        // Check for blocks in either direction
+        var isBlocked = await db.UserBlocks.AnyAsync(b =>
+            (b.BlockerId == userId && b.BlockedId == otherUserId) ||
+            (b.BlockerId == otherUserId && b.BlockedId == userId));
+        if (isBlocked)
             return false;
 
         return true;
@@ -276,6 +293,77 @@ public class ChatMessageEndpoints : IEndpoint
             channel.CommunityId,
             channel.EventId
         ));
+    }
+
+    private async Task<IResult> GetDirectMessageChannelById(CartesianDbContext db, UserManager<CartesianUser> userManager,
+        ClaimsPrincipal principal, Guid channelId)
+    {
+        var userId = userManager.GetUserId(principal);
+        if (userId == null) return Results.Unauthorized();
+
+        var channel = await db.ChatChannels
+            .Include(c => c.Participant1).ThenInclude(p => p!.Avatar)
+            .Include(c => c.Participant2).ThenInclude(p => p!.Avatar)
+            .FirstOrDefaultAsync(c => c.Id == channelId && c.Type == ChatChannelType.DirectMessage);
+
+        if (channel == null)
+            return Results.NotFound(new ChatChannelNotFoundError());
+
+        if (channel.Participant1Id != userId && channel.Participant2Id != userId)
+            return Results.Json(new ChatAccessDeniedError(), statusCode: 403);
+
+        var otherUser = channel.Participant1Id == userId ? channel.Participant2 : channel.Participant1;
+
+        return Results.Ok(new DmChannelInfoDto(
+            channel.Id,
+            channel.Type,
+            channel.IsEnabled,
+            channel.Participant1Id,
+            channel.Participant2Id,
+            otherUser?.ToDto()
+        ));
+    }
+
+    private async Task<IResult> GetRecentDirectMessageChannels(CartesianDbContext db, UserManager<CartesianUser> userManager,
+        ClaimsPrincipal principal, int limit = 10)
+    {
+        var userId = userManager.GetUserId(principal);
+        if (userId == null) return Results.Unauthorized();
+
+        var channels = await db.ChatChannels
+            .Include(c => c.Participant1)
+            .ThenInclude(p => p!.Avatar)
+            .Include(c => c.Participant2)
+            .ThenInclude(p => p!.Avatar)
+            .Include(c => c.Messages.OrderByDescending(m => m.CreatedAt).Take(1))
+            .Where(c => c.Type == ChatChannelType.DirectMessage &&
+                       (c.Participant1Id == userId || c.Participant2Id == userId))
+            .ToListAsync();
+
+        var channelsWithLastMessage = channels
+            .Select(c => new
+            {
+                Channel = c,
+                LastMessageAt = c.Messages.FirstOrDefault()?.CreatedAt ?? c.CreatedAt,
+                LastMessagePreview = c.Messages.FirstOrDefault()?.Content
+            })
+            .OrderByDescending(x => x.LastMessageAt)
+            .Take(limit)
+            .ToList();
+
+        var dmChannels = channelsWithLastMessage.Select(x =>
+        {
+            var otherUser = x.Channel.Participant1Id == userId ? x.Channel.Participant2 : x.Channel.Participant1;
+            return new DmChannelListItemDto(
+                x.Channel.Id,
+                otherUser?.Id ?? "",
+                otherUser?.ToDto(),
+                x.LastMessageAt,
+                x.LastMessagePreview
+            );
+        }).ToList();
+
+        return Results.Ok(new RecentDmChannelsResponse(dmChannels));
     }
 
     private async Task<IResult> GetCommunityChannel(CartesianDbContext db, UserManager<CartesianUser> userManager,
@@ -431,4 +519,6 @@ public class ChatMessageEndpoints : IEndpoint
     public record ChatChannelDto(Guid Id, ChatChannelType Type, bool IsEnabled, string? Participant1Id, string? Participant2Id, Guid? CommunityId, Guid? EventId);
     public record GetChannelsResponse(List<ChannelListItemDto> Channels);
     public record ChannelListItemDto(Guid ChannelId, ChatChannelType Type, bool IsEnabled, string Name, Guid? CommunityId, Guid? EventId, DateTime? EntityCreatedAt, DateTime ChannelCreatedAt);
+    public record DmChannelListItemDto(Guid ChannelId, string OtherUserId, CartesianUserDto? OtherUser, DateTime LastMessageAt, string? LastMessagePreview);
+    public record RecentDmChannelsResponse(List<DmChannelListItemDto> Channels);
 }

@@ -7,6 +7,7 @@
 	import { cn } from "$lib/utils";
 	import { parseMessageContent } from "$lib/utils/markdown";
 	import { format } from "date-fns";
+	import { openUserProfile } from "$lib/components/profile/profile-state.svelte";
 
 	let {
 		message,
@@ -33,6 +34,12 @@
 	let loadedEventIds = $state<string[]>([]);
 
 	const parsedContent = $derived(parseMessageContent(message.content));
+
+	function handleAuthorClick() {
+		if (author?.id) {
+			openUserProfile(author.id);
+		}
+	}
 
 	$effect(() => {
 		const { eventLinks } = parsedContent;
@@ -100,38 +107,44 @@
 	)}
 >
 	{#if !isStacked}
-		<Avatar.Root class="h-8 w-8 shrink-0 mt-0.5 border border-border/20">
-			<Avatar.Image src={getAvatarUrl(author?.avatar)} alt={author?.name} class="object-cover" />
-			<Avatar.Fallback class="bg-primary/5 text-[10px] font-medium text-foreground/70">
-				{author?.name?.substring(0, 2).toUpperCase() ?? "??"}
-			</Avatar.Fallback>
-		</Avatar.Root>
+		<button
+			class="h-8 w-8 shrink-0 mt-0.5"
+			onclick={handleAuthorClick}
+			type="button"
+		>
+			<Avatar.Root class="h-8 w-8 border border-border/20">
+				<Avatar.Image src={getAvatarUrl(author?.avatar)} alt={author?.name} class="object-cover" />
+				<Avatar.Fallback class="bg-primary/5 text-[10px] font-medium text-foreground/70">
+					{author?.name?.substring(0, 2).toUpperCase() ?? "??"}
+				</Avatar.Fallback>
+			</Avatar.Root>
+		</button>
 	{:else}
 		<div class="w-8 shrink-0 flex items-start justify-end">
-			<span class="hidden group-hover:block text-[10px] text-muted-foreground/50 pr-1">
+			<span class="absolute top-1/2 -translate-y-1/2 hidden group-hover:block text-[10px] text-muted-foreground/50 pr-1">
 				{format(new Date(message.createdAt as string), "h:mm a")}
 			</span>
 		</div>
 	{/if}
 
 	<div class="flex flex-col min-w-0 flex-1">
-		{#if !isStacked}
-			<div class="flex items-center gap-2">
-				<span
-					class={cn(
-						"text-xs font-semibold leading-none hover:underline cursor-pointer",
-						isCurrentUser ? "text-primary" : "text-foreground",
-					)}
-				>
-					{author?.name ?? "Unknown User"}
-				</span>
-				<span class="text-[10px] text-muted-foreground/50 select-none">
-					{format(new Date(message.createdAt as string), "h:mm a")}
-				</span>
-			</div>
-		{/if}
-
-		<div
+	{#if !isStacked}
+		<div class="flex items-center gap-2">
+			<button
+				type="button"
+				onclick={handleAuthorClick}
+				class={cn(
+					"text-xs font-semibold leading-none hover:underline cursor-pointer",
+					isCurrentUser ? "text-primary" : "text-foreground",
+				)}
+			>
+				{author?.name ?? "Unknown User"}
+			</button>
+			<span class="text-[10px] text-muted-foreground/50 select-none whitespace-nowrap">
+				{format(new Date(message.createdAt as string), "h:mm a")}
+			</span>
+		</div>
+	{/if}		<div
 			class={cn(
 				"message-content text-sm leading-relaxed text-foreground/90 wrap-break-word",
 				isStacked ? "" : "mt-0.5",

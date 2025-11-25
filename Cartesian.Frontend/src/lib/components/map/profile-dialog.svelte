@@ -17,6 +17,7 @@
 		Mail01Icon,
 		Cancel01Icon,
 		CheckmarkCircle02Icon,
+		UserBlock02Icon,
 	} from "@hugeicons/core-free-icons";
 	import {
 		postMediaApiUploadAvatar,
@@ -24,12 +25,45 @@
 		deleteAccountApiMeAvatar,
 		getAccountApiMe,
 	} from "$lib/api";
+	import { customInstance } from "$lib/api/client";
+	import { createQuery, createMutation, useQueryClient } from "@tanstack/svelte-query";
+	import type { CartesianUserDto } from "$lib/api/cartesian-client";
+
+	interface UserBlockDto {
+		id: string;
+		blockedUserId: string;
+		blockedUser: CartesianUserDto;
+		createdAt: string;
+	}
 	import { baseUrl } from "$lib/api/client";
 	import ChangePasswordForm from "$lib/components/auth/change-password-form.svelte";
+	import { ScrollArea } from "$lib/components/ui/scroll-area";
 
 	let { open = $bindable(false) } = $props();
 
 	const auth = $derived($authStore);
+	const queryClient = useQueryClient();
+
+	const blocksQuery = createQuery(() => ({
+		queryKey: ["myBlocks"],
+		queryFn: async () => {
+			const res = await customInstance<UserBlockDto[]>({ url: "/account/api/blocks", method: "GET" });
+			return res;
+		},
+		enabled: open,
+	}));
+
+	const unblockMutation = createMutation(() => ({
+		mutationFn: async (userId: string) => {
+			await customInstance({ url: `/account/api/block/${userId}`, method: "DELETE" });
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["myBlocks"] });
+		},
+	}));
+
+	const blocks = $derived(blocksQuery.data ?? []);
+
 	let isLoadingAvatar = $state(false);
 	let isSavingProfile = $state(false);
 	let fileInput = $state<HTMLInputElement | null>(null);
@@ -171,6 +205,13 @@
 					>
 						<HugeiconsIcon icon={LockKeyIcon} className="size-4" />
 						Security
+					</Tabs.Trigger>
+					<Tabs.Trigger
+						value="blocked"
+						class="flex-1 gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+					>
+						<HugeiconsIcon icon={UserBlock02Icon} className="size-4" />
+						Blocked
 					</Tabs.Trigger>
 				</Tabs.List>
 			</div>
@@ -332,6 +373,65 @@
 					</div>
 
 					<ChangePasswordForm />
+				</Tabs.Content>
+
+				<Tabs.Content value="blocked" class="mt-0 h-full space-y-6 p-6">
+					<div class="rounded-xl border border-destructive/20 bg-destructive/5 p-4">
+						<div class="flex items-start gap-3">
+							<div class="rounded-full bg-destructive/20 p-1.5 text-destructive">
+								<HugeiconsIcon icon={UserBlock02Icon} className="size-4" />
+							</div>
+							<div class="space-y-1">
+								<h4 class="text-sm font-medium">Blocked Users</h4>
+								<p class="text-xs text-muted-foreground">
+									Users you've blocked can't send you direct messages. You won't see their messages in DMs.
+								</p>
+							</div>
+						</div>
+					</div>
+
+					<ScrollArea class="h-[300px]">
+						{#if blocksQuery.isLoading}
+							<div class="text-center text-muted-foreground text-sm py-8">Loading...</div>
+						{:else if blocks.length === 0}
+							<div class="text-center text-muted-foreground text-sm py-8">
+								You haven't blocked anyone
+							</div>
+						{:else}
+							<div class="space-y-2">
+								{#each blocks as block (block.blockedUserId)}
+									<div class="flex items-center justify-between rounded-lg border border-border/50 bg-muted/20 p-3">
+										<div class="flex items-center gap-3">
+											<Avatar.Root class="h-10 w-10">
+												<Avatar.Image
+													src={block.blockedUser?.avatar ? `${baseUrl}/media/api/${block.blockedUser.avatar.id}` : null}
+													alt={block.blockedUser?.name}
+												/>
+												<Avatar.Fallback class="text-sm">
+													{block.blockedUser?.name?.substring(0, 2).toUpperCase() ?? "??"}
+												</Avatar.Fallback>
+											</Avatar.Root>
+											<div>
+												<p class="text-sm font-medium">{block.blockedUser?.name ?? "Unknown"}</p>
+												<p class="text-xs text-muted-foreground">
+													Blocked {new Date(block.createdAt as string).toLocaleDateString()}
+												</p>
+											</div>
+										</div>
+										<Button
+											variant="outline"
+											size="sm"
+											class="text-destructive hover:text-destructive hover:bg-destructive/10"
+											onclick={() => unblockMutation.mutate(block.blockedUserId)}
+											disabled={unblockMutation.isPending}
+										>
+											{unblockMutation.isPending ? "Unblocking..." : "Unblock"}
+										</Button>
+									</div>
+								{/each}
+							</div>
+						{/if}
+					</ScrollArea>
 				</Tabs.Content>
 			</div>
 		</Tabs.Root>
