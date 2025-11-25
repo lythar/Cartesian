@@ -4,6 +4,12 @@
 
 Lythar to platforma społecznościowa skupiona na budowaniu autentycznych relacji w świecie rzeczywistym. W dobie cyfrowej izolacji, zachęcamy młodych ludzi do wychodzenia z domu i tworzenia lokalnych społeczności.
 
+## 📚 Dokumentacja
+
+**[Pełna dokumentacja projektu → docs-cartesian.pages.dev](https://docs-cartesian.pages.dev/)**
+
+Dokumentacja zawiera szczegółowe informacje o architekturze systemu, interfejsie użytkownika i implementacji rozwiązania.
+
 ## Problem i rozwiązanie
 
 Mimo nieograniczonych możliwości kontaktu online, coraz więcej młodych ludzi odczuwa samotność i społeczną izolację. Lythar odpowiada na ten problem poprzez:
