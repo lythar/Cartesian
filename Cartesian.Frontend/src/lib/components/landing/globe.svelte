@@ -37,7 +37,7 @@
 			45,
 			container.clientWidth / container.clientHeight,
 			0.1,
-			1000
+			1000,
 		);
 		camera.position.z = VIEW_DISTANCE;
 		camera.position.y = 8;
@@ -100,7 +100,7 @@
 					// u: 0 to 1 (longitude)
 					// v: 0 to 1 (latitude)
 					const u = (spherical.theta + Math.PI) / (2 * Math.PI);
-					const v = 1 - (spherical.phi / Math.PI); // Invert v to match texture
+					const v = 1 - spherical.phi / Math.PI; // Invert v to match texture
 
 					// Sample texture
 					const px = Math.floor(u * canvas.width) % canvas.width;
@@ -122,7 +122,7 @@
 					// Is land check (approximate from reference)
 					// Reference: W - H < 0.1
 					// W = b/255, H = (r/255 + g/255)/2
-					const isLand = (b/255) - ((r/255 + g/255)/2) < 0.1;
+					const isLand = b / 255 - (r / 255 + g / 255) / 2 < 0.1;
 
 					if (isLand) {
 						positions.push(vector.multiplyScalar(GLOBE_RADIUS));
@@ -140,7 +140,7 @@
 
 				instancedMesh.instanceMatrix.needsUpdate = true;
 				globeGroup.add(instancedMesh);
-			}
+			},
 		);
 
 		// Animation Loop
@@ -154,7 +154,7 @@
 			renderer.render(scene, camera);
 
 			// Update events positions
-			const newRenderedEvents = events.map(event => {
+			const newRenderedEvents = events.map((event) => {
 				// Map 0-100 to spherical coordinates (matching original logic but scaled)
 				const lat = ((event.y - 50) / 50) * -Math.PI * 0.8;
 				const lon = ((event.x - 50) / 50) * Math.PI * 2;
@@ -176,7 +176,7 @@
 				const widthHalf = container!.clientWidth / 2;
 				const heightHalf = container!.clientHeight / 2;
 
-				const screenX = (pos.x * widthHalf) + widthHalf;
+				const screenX = pos.x * widthHalf + widthHalf;
 				const screenY = -(pos.y * heightHalf) + heightHalf;
 
 				// Raycast check or simple normal check
@@ -204,7 +204,7 @@
 					screenX,
 					screenY,
 					visible,
-					zIndex: Math.floor((1 - pos.z) * 1000) // Sort by depth
+					zIndex: Math.floor((1 - pos.z) * 1000), // Sort by depth
 				};
 			});
 
@@ -239,7 +239,7 @@
 
 	{#each renderedEvents as event}
 		<div
-			class="absolute left-0 top-0 will-change-transform"
+			class="absolute top-0 left-0 will-change-transform"
 			style="transform: translate3d({event.screenX}px, {event.screenY}px, 0); opacity: {event.visible
 				? 1
 				: 0}; z-index: {event.zIndex}; pointer-events: {event.visible ? 'auto' : 'none'};"

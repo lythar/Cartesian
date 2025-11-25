@@ -1,8 +1,8 @@
 {
-  "recommendations": [
-    "esbenp.prettier-vscode",
-    "oxc.oxc-vscode",
-    "svelte.svelte-vscode",
-    "inlang.vs-code-extension"
-  ]
+	"recommendations": [
+		"esbenp.prettier-vscode",
+		"oxc.oxc-vscode",
+		"svelte.svelte-vscode",
+		"inlang.vs-code-extension"
+	]
 }

@@ -25,7 +25,6 @@
 		{ title: "Vinyl Swap", category: "Music", x: 10, y: 50 },
 	];
 
-
 	onMount(() => {
 		const heroTexts = document.querySelectorAll(".hero-text");
 
@@ -47,10 +46,7 @@
 	});
 </script>
 
-<div
-	class="relative flex min-h-screen flex-col overflow-hidden"
-	role="application"
->
+<div class="relative flex min-h-screen flex-col overflow-hidden" role="application">
 	<!-- Navigation -->
 	<header class="fixed top-0 z-40 w-full px-6 py-6 md:px-12">
 		<div class="flex items-center justify-between">

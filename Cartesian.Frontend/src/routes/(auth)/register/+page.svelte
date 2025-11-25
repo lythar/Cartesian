@@ -2,10 +2,7 @@
 	import * as Form from "$lib/components/ui/form";
 	import { Input } from "$lib/components/ui/input";
 	import { goto } from "$app/navigation";
-	import {
-		createPostAccountApiRegister,
-		type CartesianIdentityError,
-	} from "$lib/api";
+	import { createPostAccountApiRegister, type CartesianIdentityError } from "$lib/api";
 	import { superForm } from "sveltekit-superforms";
 	import { zod4Client } from "sveltekit-superforms/adapters";
 	import { schema } from "./schema";
@@ -53,7 +50,6 @@
 	});
 
 	const { form: formData, enhance } = form;
-
 </script>
 
 <div class="flex min-h-screen items-center justify-center bg-background p-4">

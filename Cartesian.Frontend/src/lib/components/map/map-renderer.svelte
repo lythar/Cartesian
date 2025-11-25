@@ -27,14 +27,14 @@
 	}
 
 	let { ipGeo }: Props = $props();
-  	const layout = getLayoutContext();
+	const layout = getLayoutContext();
 
 	mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
 	const mapStyle = "mapbox://styles/mapbox/standard";
 	const runtime = Runtime.defaultRuntime;
 
-  	let selectedLocation = $state<{ lng: number; lat: number } | null>(null);
+	let selectedLocation = $state<{ lng: number; lat: number } | null>(null);
 
 	const approximateLocation = createIpGeoQuery({
 		query: {
@@ -81,12 +81,13 @@
 			},
 		});
 
-    const attrControl = new mapboxgl.AttributionControl({
-      compact: true,
-      customAttribution: '© <a href="https://lythar.com" target="_blank" rel="noopener noreferrer">Lythar</a>'
-    });
+		const attrControl = new mapboxgl.AttributionControl({
+			compact: true,
+			customAttribution:
+				'© <a href="https://lythar.com" target="_blank" rel="noopener noreferrer">Lythar</a>',
+		});
 
-    mapState.instance.addControl(attrControl, 'bottom-right');
+		mapState.instance.addControl(attrControl, "bottom-right");
 	});
 
 	$effect(() => {
@@ -129,21 +130,26 @@
 
 	{#if mapState.instance}
 		<SearchBar />
-    {#if layout.isDesktop}
-		  <UserMenu class="absolute top-5 right-4" />
-    {/if}
+		{#if layout.isDesktop}
+			<UserMenu class="absolute top-5 right-4" />
+		{/if}
 		<FabMenu />
 		<MapControls map={mapState.instance} />
 		<GeolocateControl map={mapState.instance} />
-    <MapPointCta map={mapState.instance} bind:selectedLocation />
-    <NewEventOverlay map={mapState.instance} />
-	<EventDetailsOverlay />
-	<MapEventsLayer map={mapState.instance} />
+		<MapPointCta map={mapState.instance} bind:selectedLocation />
+		<NewEventOverlay map={mapState.instance} />
+		<EventDetailsOverlay />
+		<MapEventsLayer map={mapState.instance} />
 	{/if}
 </div>
 
 <style global>
-  :global(#lythar-map > div.mapboxgl-control-container > div.mapboxgl-ctrl-bottom-right > div:nth-child(2)) {
-    display: none;
-  }
+	:global(
+		#lythar-map
+			> div.mapboxgl-control-container
+			> div.mapboxgl-ctrl-bottom-right
+			> div:nth-child(2)
+	) {
+		display: none;
+	}
 </style>

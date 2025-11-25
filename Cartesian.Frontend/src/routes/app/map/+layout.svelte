@@ -1,7 +1,7 @@
 <script lang="ts">
-    import 'mapbox-gl/dist/mapbox-gl.css'
+	import "mapbox-gl/dist/mapbox-gl.css";
 
-    const { children }= $props();
+	const { children } = $props();
 </script>
 
 {@render children?.()}

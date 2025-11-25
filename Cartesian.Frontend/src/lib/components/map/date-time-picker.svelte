@@ -12,13 +12,13 @@
 		getLocalTimeZone,
 		parseDate,
 		CalendarDate,
-		today
+		today,
 	} from "@internationalized/date";
 
 	let {
 		value = $bindable(),
 		placeholder = "Pick a date",
-		class: className
+		class: className,
 	} = $props<{
 		value: string;
 		placeholder?: string;
@@ -26,7 +26,7 @@
 	}>();
 
 	const df = new DateFormatter("en-US", {
-		dateStyle: "medium"
+		dateStyle: "medium",
 	});
 
 	let date = $state<DateValue | undefined>();
@@ -70,12 +70,17 @@
 				<Button
 					variant="outline"
 					class={cn(
-						"w-full justify-start text-left font-normal h-10 bg-muted/30 border-border/50 shadow-none",
-						!date && "text-muted-foreground"
+						"h-10 w-full justify-start border-border/50 bg-muted/30 text-left font-normal shadow-none",
+						!date && "text-muted-foreground",
 					)}
 					{...props}
 				>
-					<HugeiconsIcon icon={Calendar03Icon} size={16} strokeWidth={2} className="mr-2 shrink-0" />
+					<HugeiconsIcon
+						icon={Calendar03Icon}
+						size={16}
+						strokeWidth={2}
+						className="mr-2 shrink-0"
+					/>
 					<span class="truncate">
 						{#if date}
 							{df.format(date.toDate(getLocalTimeZone()))} at {time}
@@ -91,17 +96,17 @@
 				<div class="p-3">
 					<Calendar type="single" bind:value={date as any} />
 				</div>
-				<div class="border-t sm:border-l sm:border-t-0 p-3 flex flex-col gap-2 min-w-[150px]">
-					<div class="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-1">
+				<div
+					class="flex min-w-[150px] flex-col gap-2 border-t p-3 sm:border-t-0 sm:border-l"
+				>
+					<div
+						class="mb-1 flex items-center gap-2 text-sm font-medium text-muted-foreground"
+					>
 						<HugeiconsIcon icon={Clock01Icon} size={16} strokeWidth={2} />
 						Time
 					</div>
-					<Input
-						type="time"
-						bind:value={time}
-						class="h-9"
-					/>
-					<div class="text-xs text-muted-foreground mt-auto pt-2">
+					<Input type="time" bind:value={time} class="h-9" />
+					<div class="mt-auto pt-2 text-xs text-muted-foreground">
 						Select time for the event window.
 					</div>
 				</div>

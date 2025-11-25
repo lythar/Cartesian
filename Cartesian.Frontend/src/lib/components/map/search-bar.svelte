@@ -107,7 +107,7 @@
 		// Get the first window's location
 		const window = event.windows[0];
 		const location = window.location;
-		
+
 		if (!location || !location.coordinates) {
 			console.warn("Event window has no location coordinates");
 			isFocused = false;
@@ -128,12 +128,14 @@
 		setTimeout(() => {
 			new mapboxgl.Popup()
 				.setLngLat([lng, lat])
-				.setHTML(`
+				.setHTML(
+					`
 					<div class="p-2">
 						<h3 class="font-semibold text-sm mb-1">${event.name}</h3>
 						<p class="text-xs text-muted-foreground">${event.description}</p>
 					</div>
-				`)
+				`,
+				)
 				.addTo(mapState.instance!);
 		}, 2100); // Show popup after fly animation completes
 
@@ -171,7 +173,7 @@
 						placeholder={isAIMode
 							? m.search_bar_ai_placeholder()
 							: m.search_bar_placeholder()}
-						class="h-10 border-0 bg-transparent dark:bg-transparent px-0 text-base shadow-none placeholder:text-muted-foreground/70 focus-visible:ring-0"
+						class="h-10 border-0 bg-transparent px-0 text-base shadow-none placeholder:text-muted-foreground/70 focus-visible:ring-0 dark:bg-transparent"
 						onfocus={() => (isFocused = true)}
 						onblur={() => {
 							// Small timeout to allow clicks on results to register
@@ -243,9 +245,14 @@
 										<HugeiconsIcon icon={Calendar01Icon} className="size-5" />
 									</div>
 									<div class="flex flex-col overflow-hidden">
-										<span class="truncate text-sm font-medium">{event.name}</span>
+										<span class="truncate text-sm font-medium"
+											>{event.name}</span
+										>
 										<span class="truncate text-xs text-muted-foreground">
-											{event.description.substring(0, 60)}{event.description.length > 60 ? "..." : ""}
+											{event.description.substring(0, 60)}{event.description
+												.length > 60
+												? "..."
+												: ""}
 										</span>
 									</div>
 								</button>
@@ -274,9 +281,14 @@
 										<HugeiconsIcon icon={UserGroupIcon} className="size-5" />
 									</div>
 									<div class="flex flex-col overflow-hidden">
-										<span class="truncate text-sm font-medium">{community.name}</span>
+										<span class="truncate text-sm font-medium"
+											>{community.name}</span
+										>
 										<span class="truncate text-xs text-muted-foreground">
-											{community.description.substring(0, 60)}{community.description.length > 60 ? "..." : ""}
+											{community.description.substring(0, 60)}{community
+												.description.length > 60
+												? "..."
+												: ""}
 										</span>
 									</div>
 								</button>
@@ -305,7 +317,8 @@
 										<HugeiconsIcon icon={UserIcon} className="size-5" />
 									</div>
 									<div class="flex flex-col overflow-hidden">
-										<span class="truncate text-sm font-medium">{user.name}</span>
+										<span class="truncate text-sm font-medium">{user.name}</span
+										>
 									</div>
 								</button>
 							{/each}

@@ -24,10 +24,7 @@
 
 {#if collapsible === "none"}
 	<div
-		class={cn(
-			"text-sidebar-foreground w-(--sidebar-width) flex h-full flex-col",
-			className
-		)}
+		class={cn("flex h-full w-(--sidebar-width) flex-col text-sidebar-foreground", className)}
 		bind:this={ref}
 		{...restProps}
 	>
@@ -42,7 +39,7 @@
 			data-sidebar="sidebar"
 			data-slot="sidebar"
 			data-mobile="true"
-			class="text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
+			class="w-(--sidebar-width) p-0 text-sidebar-foreground [&>button]:hidden"
 			style="--sidebar-width: {SIDEBAR_WIDTH_MOBILE};"
 			{side}
 		>
@@ -58,7 +55,7 @@
 {:else}
 	<div
 		bind:this={ref}
-		class="text-sidebar-foreground group peer hidden md:block"
+		class="group peer hidden text-sidebar-foreground md:block"
 		data-state={sidebar.state}
 		data-collapsible={sidebar.state === "collapsed" ? collapsible : ""}
 		data-variant={variant}
@@ -69,18 +66,18 @@
 		<div
 			data-slot="sidebar-gap"
 			class={cn(
-				"w-(--sidebar-width) relative transition-[width] duration-200 ease-[cubic-bezier(0.45,-0.05,0.15,1.05)]",
+				"relative w-(--sidebar-width) transition-[width] duration-200 ease-[cubic-bezier(0.45,-0.05,0.15,1.05)]",
 				"group-data-[collapsible=offcanvas]:w-0",
 				"group-data-[side=right]:rotate-180",
 				variant === "floating" || variant === "inset"
 					? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]"
-					: "group-data-[collapsible=icon]:w-(--sidebar-width-icon)"
+					: "group-data-[collapsible=icon]:w-(--sidebar-width-icon)",
 			)}
 		></div>
 		<div
 			data-slot="sidebar-container"
 			class={cn(
-				"w-(--sidebar-width) fixed inset-y-0 z-10 hidden h-svh transition-[left,right,width] duration-200 ease-[cubic-bezier(0.45,-0.05,0.15,1.05)] md:flex",
+				"fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-[cubic-bezier(0.45,-0.05,0.15,1.05)] md:flex",
 				side === "left"
 					? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
 					: "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
@@ -88,14 +85,14 @@
 				variant === "floating" || variant === "inset"
 					? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]"
 					: "group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[side=left]:border-r group-data-[side=right]:border-l",
-				className
+				className,
 			)}
 			{...restProps}
 		>
 			<div
 				data-sidebar="sidebar"
 				data-slot="sidebar-inner"
-				class="group-data-[variant=floating]:border-none bg-card/30 rounded-xl flex h-full w-full flex-col group-data-[variant=floating]:rounded-2xl group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm"
+				class="flex h-full w-full flex-col rounded-xl bg-card/30 group-data-[variant=floating]:rounded-2xl group-data-[variant=floating]:border group-data-[variant=floating]:border-none group-data-[variant=floating]:shadow-sm"
 			>
 				{@render children?.()}
 			</div>

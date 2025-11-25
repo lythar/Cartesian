@@ -4,7 +4,12 @@
 	import * as Avatar from "$lib/components/ui/avatar";
 	import { LogOut } from "@lucide/svelte";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
-	import { Bookmark02Icon, Settings01Icon, UserIcon, Calendar03Icon } from "@hugeicons/core-free-icons";
+	import {
+		Bookmark02Icon,
+		Settings01Icon,
+		UserIcon,
+		Calendar03Icon,
+	} from "@hugeicons/core-free-icons";
 	import { cn, getAvatarUrl, getInitials } from "$lib/utils";
 	import { authStore } from "$lib/stores/auth.svelte";
 	import { goto } from "$app/navigation";
@@ -23,8 +28,6 @@
 		authStore.clearUser();
 		goto("/login");
 	}
-
-
 </script>
 
 {#if !auth.isAuthenticated}
@@ -41,11 +44,13 @@
 				<Button
 					variant="ghost"
 					size="icon"
-					class="size-12 rounded-full backdrop-blur-sm shadow-xl transition-all duration-300"
+					class="size-12 rounded-full shadow-xl backdrop-blur-sm transition-all duration-300"
 				>
 					<Avatar.Root class="size-12">
 						<Avatar.Image src={getAvatarUrl(auth.user.avatar)} alt={auth.user.name} />
-						<Avatar.Fallback class="bg-primary text-primary-foreground text-lg font-semibold">
+						<Avatar.Fallback
+							class="bg-primary text-lg font-semibold text-primary-foreground"
+						>
 							{getInitials(auth.user.name)}
 						</Avatar.Fallback>
 					</Avatar.Root>
@@ -53,46 +58,54 @@
 			</DropdownMenu.Trigger>
 		</div>
 		<DropdownMenu.Content
-			class="w-72 backdrop-blur-sm shadow-2xl border border-border/50 pb-3"
+			class="w-72 border border-border/50 pb-3 shadow-2xl backdrop-blur-sm"
 			align="end"
 			sideOffset={12}
 		>
-			<div class="px-3 py-4 mb-2">
+			<div class="mb-2 px-3 py-4">
 				<div class="flex items-center gap-3">
 					<Avatar.Root class="size-12">
-						<Avatar.Image src={getAvatarUrl({ id: auth.user.avatar?.id! })} alt={auth.user.name} />
-						<Avatar.Fallback class="bg-primary text-primary-foreground text-lg font-semibold">
+						<Avatar.Image
+							src={getAvatarUrl({ id: auth.user.avatar?.id! })}
+							alt={auth.user.name}
+						/>
+						<Avatar.Fallback
+							class="bg-primary text-lg font-semibold text-primary-foreground"
+						>
 							{getInitials(auth.user.name)}
 						</Avatar.Fallback>
 					</Avatar.Root>
-					<div class="flex-1 min-w-0">
-						<p class="font-semibold text-base truncate">{auth.user.name}</p>
-						<p class="text-sm text-muted-foreground truncate">{auth.user.email}</p>
+					<div class="min-w-0 flex-1">
+						<p class="truncate text-base font-semibold">{auth.user.name}</p>
+						<p class="truncate text-sm text-muted-foreground">{auth.user.email}</p>
 					</div>
 				</div>
 			</div>
 
-			<DropdownMenu.Group class="[&>div]:py-2 px-2">
-				<DropdownMenu.Item class="gap-3 cursor-pointer" onclick={() => (openProfile = true)}>
+			<DropdownMenu.Group class="px-2 [&>div]:py-2">
+				<DropdownMenu.Item
+					class="cursor-pointer gap-3"
+					onclick={() => (openProfile = true)}
+				>
 					<HugeiconsIcon icon={UserIcon} className="size-5 duotone-fill" />
-					<span class="font-medium">Profile</span>
+					<span class="font-medium">{m.user_menu_profile()}</span>
 				</DropdownMenu.Item>
-				<DropdownMenu.Item class="gap-3 cursor-pointer" onclick={() => (openEvents = true)}>
+				<DropdownMenu.Item class="cursor-pointer gap-3" onclick={() => (openEvents = true)}>
 					<HugeiconsIcon icon={Calendar03Icon} className="size-5 duotone-fill" />
-					<span class="font-medium">Events</span>
+					<span class="font-medium">{m.user_menu_events()}</span>
 				</DropdownMenu.Item>
-				<DropdownMenu.Item class="gap-3 cursor-pointer">
+				<DropdownMenu.Item class="cursor-pointer gap-3">
 					<HugeiconsIcon icon={Settings01Icon} className="size-5 duotone-fill" />
-					<span class="font-medium">Settings</span>
+					<span class="font-medium">{m.user_menu_settings()}</span>
 				</DropdownMenu.Item>
 			</DropdownMenu.Group>
 
 			<DropdownMenu.Separator class="my-2" />
 
 			<div class="px-2">
-				<DropdownMenu.Item class="gap-3 cursor-pointer" onclick={handleLogout}>
+				<DropdownMenu.Item class="cursor-pointer gap-3" onclick={handleLogout}>
 					<LogOut class="size-5" />
-					<span class="font-medium">Logout</span>
+					<span class="font-medium">{m.user_menu_logout()}</span>
 				</DropdownMenu.Item>
 			</div>
 		</DropdownMenu.Content>

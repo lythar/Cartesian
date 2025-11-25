@@ -2,11 +2,11 @@
 	import Navigation from "$lib/components/layout/navigation.svelte";
 	import { createLayoutContext } from "$lib/context/layout.svelte";
 
-  let { children } = $props();
+	let { children } = $props();
 
-  createLayoutContext();
+	createLayoutContext();
 </script>
 
 <Navigation>
-  {@render children?.()}
+	{@render children?.()}
 </Navigation>

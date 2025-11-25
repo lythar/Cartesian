@@ -127,7 +127,8 @@ export function createReverseGeocodeQuery<TData = ForwardGeocode, TError = Forwa
 		const coords = coordinates();
 		return {
 			queryKey: ["reverse-geocode", coords?.longitude, coords?.latitude] as const,
-			queryFn: () => Effect.runPromise(fetchReverseGeocode(coords!.longitude, coords!.latitude)),
+			queryFn: () =>
+				Effect.runPromise(fetchReverseGeocode(coords!.longitude, coords!.latitude)),
 			staleTime: 1000 * 60 * 60,
 			enabled: !!coords && coords.longitude !== undefined && coords.latitude !== undefined,
 			...options?.query,

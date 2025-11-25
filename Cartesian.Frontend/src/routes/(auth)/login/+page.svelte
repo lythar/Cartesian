@@ -5,7 +5,11 @@
 	import type { PageData } from "./$types";
 	import { superForm } from "sveltekit-superforms";
 	import { zod4Client } from "sveltekit-superforms/adapters";
-	import { createPostAccountApiLogin, getAccountApiMe, type InvalidCredentialsError } from "$lib/api";
+	import {
+		createPostAccountApiLogin,
+		getAccountApiMe,
+		type InvalidCredentialsError,
+	} from "$lib/api";
 	import { goto } from "$app/navigation";
 	import { authStore } from "$lib/stores/auth.svelte";
 	import { m } from "$lib/paraglide/messages";
@@ -50,7 +54,6 @@
 	});
 
 	const { form: formData, enhance } = form;
-
 </script>
 
 <div class="flex min-h-screen items-center justify-center bg-background p-4">

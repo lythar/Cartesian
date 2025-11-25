@@ -26,7 +26,7 @@
 		Delete02Icon,
 		ArrowRight01Icon,
 		Image01Icon,
-		ImageAdd01Icon
+		ImageAdd01Icon,
 	} from "@hugeicons/core-free-icons";
 	import { createForwardGeocodeQuery } from "$lib/api/queries/forward-geocode.query";
 	import {
@@ -36,7 +36,7 @@
 		createPostEventApiWindowWindowIdImages,
 		EventTag,
 		type CreateEventBody,
-		type CreateEventWindowBody
+		type CreateEventWindowBody,
 	} from "$lib/api/cartesian-client";
 	import { fetchReverseGeocode } from "$lib/api/queries/reverse-geocode.query";
 	import { createQuery } from "@tanstack/svelte-query";
@@ -85,15 +85,22 @@
 	const searchResults = createForwardGeocodeQuery(() => debouncedSearch.current);
 
 	const locationQuery = createQuery(() => ({
-		queryKey: ["reverse-geocode", newEventOverlayState.location?.lng, newEventOverlayState.location?.lat],
+		queryKey: [
+			"reverse-geocode",
+			newEventOverlayState.location?.lng,
+			newEventOverlayState.location?.lat,
+		],
 		queryFn: () => {
 			if (!newEventOverlayState.location) throw new Error("No location");
 			return Effect.runPromise(
-				fetchReverseGeocode(newEventOverlayState.location.lng, newEventOverlayState.location.lat)
+				fetchReverseGeocode(
+					newEventOverlayState.location.lng,
+					newEventOverlayState.location.lat,
+				),
 			);
 		},
 		enabled: !!newEventOverlayState.location,
-		staleTime: 1000 * 60 * 60
+		staleTime: 1000 * 60 * 60,
 	}));
 
 	$effect(() => {
@@ -109,12 +116,12 @@
 						opacity: [0, 1],
 						x: [20, 0],
 						scale: [0.95, 1],
-						filter: ["blur(8px)", "blur(0px)"]
+						filter: ["blur(8px)", "blur(0px)"],
 					},
 					{
 						duration: 0.5,
-						ease: [0.16, 1, 0.3, 1] // Spring-like ease
-					}
+						ease: [0.16, 1, 0.3, 1], // Spring-like ease
+					},
 				);
 			}
 		} else {
@@ -124,12 +131,12 @@
 					{
 						opacity: [1, 0],
 						scale: [1, 0.95],
-						filter: ["blur(0px)", "blur(8px)"]
+						filter: ["blur(0px)", "blur(8px)"],
 					},
 					{
 						duration: 0.3,
-						ease: [0.16, 1, 0.3, 1]
-					}
+						ease: [0.16, 1, 0.3, 1],
+					},
 				);
 			}
 		}
@@ -149,10 +156,16 @@
 					</div>
 				`;
 				marker = new mapboxgl.Marker({ element: el, anchor: "bottom" })
-					.setLngLat([newEventOverlayState.location.lng, newEventOverlayState.location.lat])
+					.setLngLat([
+						newEventOverlayState.location.lng,
+						newEventOverlayState.location.lat,
+					])
 					.addTo(map);
 			} else {
-				marker.setLngLat([newEventOverlayState.location.lng, newEventOverlayState.location.lat]);
+				marker.setLngLat([
+					newEventOverlayState.location.lng,
+					newEventOverlayState.location.lat,
+				]);
 			}
 		} else {
 			if (marker) {
@@ -177,14 +190,14 @@
 			const config = EVENT_TAG_CONFIG[tag];
 			const name = config ? m[config.translationKey as keyof typeof m]() : tag;
 			return name.toLowerCase().includes(tagSearchQuery.toLowerCase());
-		})
+		}),
 	);
 
 	const formSchema = z.object({
 		name: z.string().min(1, "Name is required"),
 		description: z.string().min(1, "Description is required"),
 		communityId: z.string().nullable().default(null),
-		tags: z.array(z.enum(tagValues)).min(1, "At least one tag is required")
+		tags: z.array(z.enum(tagValues)).min(1, "At least one tag is required"),
 	});
 
 	const createEventMutation = createPostEventApiCreate();
@@ -196,7 +209,7 @@
 		name: "",
 		description: "",
 		communityId: null,
-		tags: []
+		tags: [],
 	};
 
 	const form = superForm(defaults(initialData, zod4(formSchema)), {
@@ -218,9 +231,9 @@
 							type: "Point",
 							coordinates: [
 								newEventOverlayState.location.lng,
-								newEventOverlayState.location.lat
-							]
-						} as any
+								newEventOverlayState.location.lat,
+							],
+						} as any,
 					};
 
 					const event = await createEventMutation.mutateAsync({ data: eventBody });
@@ -231,10 +244,11 @@
 								try: () =>
 									createEventImagesMutation.mutateAsync({
 										eventId: event.id,
-										data: { file }
+										data: { file },
 									}),
-								catch: (error) => new Error(`Failed to upload event image: ${error}`)
-							})
+								catch: (error) =>
+									new Error(`Failed to upload event image: ${error}`),
+							}),
 						);
 						await Effect.runPromise(Effect.all(uploadEffects, { concurrency: 3 }));
 					}
@@ -247,7 +261,7 @@
 							title: w.title,
 							description: w.description,
 							startTime: new Date(w.startTime).toISOString(),
-							endTime: new Date(w.endTime).toISOString()
+							endTime: new Date(w.endTime).toISOString(),
 						}));
 					} else if (simpleStartTime && simpleEndTime) {
 						windowsToCreate = [
@@ -255,14 +269,14 @@
 								title: f.data.name,
 								description: f.data.description,
 								startTime: new Date(simpleStartTime).toISOString(),
-								endTime: new Date(simpleEndTime).toISOString()
-							}
+								endTime: new Date(simpleEndTime).toISOString(),
+							},
 						];
 					}
 
 					if (windowsToCreate.length > 0) {
 						const createWindowEffect = (
-							windowBody: CreateEventWindowBody & { tempId?: string }
+							windowBody: CreateEventWindowBody & { tempId?: string },
 						) =>
 							Effect.gen(function* (_) {
 								const { tempId, ...body } = windowBody;
@@ -271,13 +285,16 @@
 										try: () =>
 											createEventWindowMutation.mutateAsync({
 												eventId: event.id,
-												data: body
+												data: body,
 											}),
-										catch: (error) => new Error(`Failed to create window: ${error}`)
-									})
+										catch: (error) =>
+											new Error(`Failed to create window: ${error}`),
+									}),
 								);
 
-								const images = tempId ? windowImages[tempId] || [] : simpleWindowImages;
+								const images = tempId
+									? windowImages[tempId] || []
+									: simpleWindowImages;
 
 								if (images.length > 0) {
 									const imageEffects = images.map((file) =>
@@ -285,18 +302,24 @@
 											try: () =>
 												createWindowImagesMutation.mutateAsync({
 													windowId: window.id,
-													data: { file }
+													data: { file },
 												}),
-											catch: (error) => new Error(`Failed to upload window image: ${error}`)
-										})
+											catch: (error) =>
+												new Error(
+													`Failed to upload window image: ${error}`,
+												),
+										}),
 									);
 									yield* _(Effect.all(imageEffects, { concurrency: 3 }));
 								}
 							});
 
-						const allWindowsEffect = Effect.all(windowsToCreate.map(createWindowEffect), {
-							concurrency: 3
-						});
+						const allWindowsEffect = Effect.all(
+							windowsToCreate.map(createWindowEffect),
+							{
+								concurrency: 3,
+							},
+						);
 
 						await Effect.runPromise(allWindowsEffect);
 					}
@@ -317,7 +340,7 @@
 					console.error("Failed to create event", e);
 				}
 			}
-		}
+		},
 	});
 
 	const { form: formData, enhance } = form;
@@ -331,8 +354,8 @@
 					title: $formData.name || "Event Window 1",
 					description: $formData.description || "",
 					startTime: simpleStartTime,
-					endTime: simpleEndTime
-				}
+					endTime: simpleEndTime,
+				},
 			];
 			simpleStartTime = "";
 			simpleEndTime = "";
@@ -345,8 +368,8 @@
 					title: "",
 					description: "",
 					startTime: "",
-					endTime: ""
-				}
+					endTime: "",
+				},
 			];
 		}
 	}
@@ -370,11 +393,12 @@
 						src={URL.createObjectURL(file)}
 						alt="Preview"
 						class="h-full w-full object-cover transition-transform group-hover:scale-105"
-						onload={(e) => URL.revokeObjectURL((e.currentTarget as HTMLImageElement).src)}
+						onload={(e) =>
+							URL.revokeObjectURL((e.currentTarget as HTMLImageElement).src)}
 					/>
 					<button
 						type="button"
-						class="absolute right-1 top-1 rounded-full bg-background/80 p-1 text-muted-foreground opacity-0 backdrop-blur-sm transition-opacity hover:bg-destructive hover:text-destructive-foreground group-hover:opacity-100"
+						class="absolute top-1 right-1 rounded-full bg-background/80 p-1 text-muted-foreground opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100 hover:bg-destructive hover:text-destructive-foreground"
 						onclick={() => {
 							const newFiles = [...files];
 							newFiles.splice(i, 1);
@@ -390,7 +414,7 @@
 				class="flex h-20 w-20 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border/50 bg-muted/10 text-muted-foreground transition-colors hover:border-primary/50 hover:bg-primary/5 hover:text-primary"
 			>
 				<HugeiconsIcon icon={ImageAdd01Icon} size={20} strokeWidth={2} />
-				<span class="text-[10px] font-medium">Add</span>
+				<span class="text-[10px] font-medium">{m.common_add()}</span>
 				<input
 					{id}
 					type="file"
@@ -413,14 +437,14 @@
 <div
 	bind:this={overlayContainer}
 	class={cn(
-		"pointer-events-none absolute right-4 top-4 bottom-4 z-50 flex w-full max-w-lg origin-top-right flex-col",
-		open ? "" : ""
+		"pointer-events-none absolute top-4 right-4 bottom-4 z-50 flex w-full max-w-lg origin-top-right flex-col",
+		open ? "" : "",
 	)}
 >
 	<div
 		class={cn(
 			"flex h-full flex-col overflow-hidden rounded-3xl border border-border/40 bg-background shadow-2xl transition-all",
-			open ? "pointer-events-auto" : "pointer-events-none"
+			open ? "pointer-events-auto" : "pointer-events-none",
 		)}
 	>
 		<!-- Header -->
@@ -444,19 +468,23 @@
 
 		<!-- Content -->
 		<div
-			class="flex-1 overflow-y-auto px-6 pb-6 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent"
+			class="scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent flex-1 overflow-y-auto px-6 pb-6"
 		>
 			<form method="POST" use:enhance class="space-y-8" id="create-event-form">
 				<!-- Basic Info -->
 				<div class="space-y-3">
-					<Label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+					<Label
+						class="text-xs font-semibold tracking-wider text-muted-foreground uppercase"
+					>
 						{m.event_details_section()}
 					</Label>
 
 					<Form.Field {form} name="name" class="space-y-1.5">
 						<Form.Control>
 							{#snippet children({ props })}
-								<Form.Label class="text-xs text-muted-foreground ml-1">{m.event_title_label()}</Form.Label>
+								<Form.Label class="ml-1 text-xs text-muted-foreground"
+									>{m.event_title_label()}</Form.Label
+								>
 								<div class="relative">
 									<Input
 										{...props}
@@ -474,7 +502,9 @@
 						<Form.Field {form} name="description" class="space-y-1.5">
 							<Form.Control>
 								{#snippet children({ props })}
-									<Form.Label class="text-xs text-muted-foreground ml-1">Description</Form.Label>
+									<Form.Label class="ml-1 text-xs text-muted-foreground"
+										>{m.event_description_label()}</Form.Label
+									>
 									<Textarea
 										{...props}
 										bind:value={$formData.description}
@@ -493,8 +523,9 @@
 								variant="outline"
 								size="sm"
 								class={cn(
-									"group relative overflow-hidden rounded-full border border-primary/20 bg-background/50 pl-3 pr-4 text-xs font-medium transition-all hover:border-primary/40 hover:bg-background hover:shadow-sm",
-									isGlowing && "border-primary/50 shadow-[0_0_15px_rgba(59,130,246,0.3)]"
+									"group relative overflow-hidden rounded-full border border-primary/20 bg-background/50 pr-4 pl-3 text-xs font-medium transition-all hover:border-primary/40 hover:bg-background hover:shadow-sm",
+									isGlowing &&
+										"border-primary/50 shadow-[0_0_15px_rgba(59,130,246,0.3)]",
 								)}
 								onmouseenter={() => (isGlowing = true)}
 								onmouseleave={() => (isGlowing = false)}
@@ -521,7 +552,9 @@
 					</div>
 
 					<div class="space-y-1.5">
-						<Label class="ml-1 text-xs text-muted-foreground">{m.event_images_label()}</Label>
+						<Label class="ml-1 text-xs text-muted-foreground"
+							>{m.event_images_label()}</Label
+						>
 						{@render imagePicker(eventImages, (f) => (eventImages = f), "event-images")}
 					</div>
 				</div>
@@ -529,11 +562,15 @@
 				<!-- Location Section -->
 				<div class="space-y-3">
 					<div class="flex items-center justify-between">
-						<Label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+						<Label
+							class="text-xs font-semibold tracking-wider text-muted-foreground uppercase"
+						>
 							{m.event_location_section()}
 						</Label>
 						{#if !newEventOverlayState.location}
-							<span class="flex items-center gap-1 text-[10px] font-medium text-destructive">
+							<span
+								class="flex items-center gap-1 text-[10px] font-medium text-destructive"
+							>
 								<HugeiconsIcon icon={Location01Icon} size={12} strokeWidth={2} />
 								{m.event_location_required()}
 							</span>
@@ -549,22 +586,30 @@
 									<div
 										class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-background shadow-sm ring-1 ring-black/5"
 									>
-										<HugeiconsIcon icon={Location01Icon} size={20} strokeWidth={2} className="text-primary" />
+										<HugeiconsIcon
+											icon={Location01Icon}
+											size={20}
+											strokeWidth={2}
+											className="text-primary"
+										/>
 									</div>
 									<div class="flex-1 space-y-1 overflow-hidden">
-										<p class="truncate font-semibold leading-none tracking-tight">
+										<p
+											class="truncate leading-none font-semibold tracking-tight"
+										>
 											{#if locationQuery?.isPending}
 												<span class="animate-pulse">Locating...</span>
 											{:else if locationQuery?.data?.features?.[0]?.properties}
 												{locationQuery.data.features[0].properties.name ??
-													locationQuery.data.features[0].properties.place_formatted}
+													locationQuery.data.features[0].properties
+														.place_formatted}
 											{:else}
 												Selected Coordinates
 											{/if}
 										</p>
 										<p class="truncate text-xs text-muted-foreground">
 											{newEventOverlayState.location.lat.toFixed(6)}, {newEventOverlayState.location.lng.toFixed(
-												6
+												6,
 											)}
 										</p>
 									</div>
@@ -576,7 +621,11 @@
 											newEventOverlayState.location = null;
 										}}
 									>
-										<HugeiconsIcon icon={Cancel01Icon} size={16} strokeWidth={2} />
+										<HugeiconsIcon
+											icon={Cancel01Icon}
+											size={16}
+											strokeWidth={2}
+										/>
 									</Button>
 								</div>
 							</div>
@@ -584,7 +633,12 @@
 					{:else}
 						<div class="space-y-3" in:slide={{ duration: 200 }}>
 							<div class="relative">
-								<HugeiconsIcon icon={Search01Icon} size={16} strokeWidth={2} className="absolute left-3 top-3 text-muted-foreground" />
+								<HugeiconsIcon
+									icon={Search01Icon}
+									size={16}
+									strokeWidth={2}
+									className="absolute left-3 top-3 text-muted-foreground"
+								/>
 								<Input
 									placeholder={m.event_location_placeholder()}
 									class="h-10 border-border/50 bg-muted/30 pl-9 shadow-none focus-visible:bg-background focus-visible:ring-1"
@@ -593,14 +647,19 @@
 									onblur={() => setTimeout(() => (isSearching = false), 200)}
 								/>
 								{#if searchResults.isPending && debouncedSearch.current.length >= 3}
-									<div class="absolute right-3 top-3">
-										<HugeiconsIcon icon={Loading03Icon} size={16} strokeWidth={2} className="animate-spin text-muted-foreground" />
+									<div class="absolute top-3 right-3">
+										<HugeiconsIcon
+											icon={Loading03Icon}
+											size={16}
+											strokeWidth={2}
+											className="animate-spin text-muted-foreground"
+										/>
 									</div>
 								{/if}
 
 								{#if isSearching && searchResults.data?.features?.length}
 									<div
-										class="absolute left-0 right-0 top-full z-20 mt-2 max-h-[240px] origin-top overflow-auto rounded-xl border border-border/50 bg-background/95 p-1 shadow-xl backdrop-blur-md"
+										class="absolute top-full right-0 left-0 z-20 mt-2 max-h-[240px] origin-top overflow-auto rounded-xl border border-border/50 bg-background/95 p-1 shadow-xl backdrop-blur-md"
 										transition:fly={{ y: 10, duration: 200 }}
 									>
 										{#each searchResults.data.features as feature}
@@ -615,9 +674,12 @@
 											>
 												<span class="font-medium"
 													>{feature.properties.name ??
-														feature.properties.place_formatted?.split(",")[0]}</span
+														feature.properties.place_formatted?.split(
+															",",
+														)[0]}</span
 												>
-												<span class="line-clamp-1 text-xs text-muted-foreground"
+												<span
+													class="line-clamp-1 text-xs text-muted-foreground"
 													>{feature.properties.full_address ??
 														feature.properties.place_formatted}</span
 												>
@@ -636,17 +698,28 @@
 											navigator.geolocation.getCurrentPosition(
 												(position) => {
 													const { latitude, longitude } = position.coords;
-													newEventOverlayState.location = { lat: latitude, lng: longitude };
-													map.flyTo({ center: [longitude, latitude], zoom: 14 });
+													newEventOverlayState.location = {
+														lat: latitude,
+														lng: longitude,
+													};
+													map.flyTo({
+														center: [longitude, latitude],
+														zoom: 14,
+													});
 												},
 												(error) => {
 													console.error("Error getting location", error);
-												}
+												},
 											);
 										}
 									}}
 								>
-									<HugeiconsIcon icon={Gps01Icon} size={14} strokeWidth={2} className="mr-2" />
+									<HugeiconsIcon
+										icon={Gps01Icon}
+										size={14}
+										strokeWidth={2}
+										className="mr-2"
+									/>
 									<span class="text-xs">Use Current</span>
 								</Button>
 								<Button
@@ -656,7 +729,12 @@
 										newEventOverlayState.open = false;
 									}}
 								>
-									<HugeiconsIcon icon={MapsLocation01Icon} size={14} strokeWidth={2} className="mr-2" />
+									<HugeiconsIcon
+										icon={MapsLocation01Icon}
+										size={14}
+										strokeWidth={2}
+										className="mr-2"
+									/>
 									<span class="text-xs">Pick on Map</span>
 								</Button>
 							</div>
@@ -667,7 +745,9 @@
 				<!-- Schedule Section -->
 				<div class="space-y-3">
 					<div class="flex items-center justify-between">
-						<Label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+						<Label
+							class="text-xs font-semibold tracking-wider text-muted-foreground uppercase"
+						>
 							{m.event_schedule_section()}
 						</Label>
 						{#if eventWindows.length > 0}
@@ -677,7 +757,12 @@
 								class="h-6 px-2 text-[10px] text-primary hover:bg-primary/10 hover:text-primary"
 								onclick={addEventWindow}
 							>
-								<HugeiconsIcon icon={Add01Icon} size={12} strokeWidth={2} className="mr-1" />
+								<HugeiconsIcon
+									icon={Add01Icon}
+									size={12}
+									strokeWidth={2}
+									className="mr-1"
+								/>
 								{m.event_add_window()}
 							</Button>
 						{/if}
@@ -689,9 +774,17 @@
 							in:slide={{ duration: 200 }}
 						>
 							<div class="grid grid-cols-2 gap-px overflow-hidden rounded-xl">
-								<div class="group relative bg-background/50 p-3 transition-colors focus-within:bg-background hover:bg-background/80">
-									<Label class="mb-1.5 flex items-center gap-1.5 text-[10px] text-muted-foreground">
-										<HugeiconsIcon icon={Calendar03Icon} size={12} strokeWidth={2} /> Starts
+								<div
+									class="group relative bg-background/50 p-3 transition-colors focus-within:bg-background hover:bg-background/80"
+								>
+									<Label
+										class="mb-1.5 flex items-center gap-1.5 text-[10px] text-muted-foreground"
+									>
+										<HugeiconsIcon
+											icon={Calendar03Icon}
+											size={12}
+											strokeWidth={2}
+										/> Starts
 									</Label>
 									<DateTimePicker
 										bind:value={simpleStartTime}
@@ -699,9 +792,17 @@
 										class="w-full"
 									/>
 								</div>
-								<div class="group relative bg-background/50 p-3 transition-colors focus-within:bg-background hover:bg-background/80">
-									<Label class="mb-1.5 flex items-center gap-1.5 text-[10px] text-muted-foreground">
-										<HugeiconsIcon icon={Clock01Icon} size={12} strokeWidth={2} /> Ends
+								<div
+									class="group relative bg-background/50 p-3 transition-colors focus-within:bg-background hover:bg-background/80"
+								>
+									<Label
+										class="mb-1.5 flex items-center gap-1.5 text-[10px] text-muted-foreground"
+									>
+										<HugeiconsIcon
+											icon={Clock01Icon}
+											size={12}
+											strokeWidth={2}
+										/> Ends
 									</Label>
 									<DateTimePicker
 										bind:value={simpleEndTime}
@@ -721,11 +822,13 @@
 							{/if}
 
 							<div class="mt-3 border-t border-border/50 pt-3">
-								<Label class="mb-2 block text-[10px] text-muted-foreground">Window Images</Label>
+								<Label class="mb-2 block text-[10px] text-muted-foreground"
+									>Window Images</Label
+								>
 								{@render imagePicker(
 									simpleWindowImages,
 									(f) => (simpleWindowImages = f),
-									"simple-window-images"
+									"simple-window-images",
 								)}
 							</div>
 						</div>
@@ -738,7 +841,7 @@
 								>
 									<div class="mb-3 flex items-center justify-between">
 										<span
-											class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+											class="flex items-center gap-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
 										>
 											<div class="h-1.5 w-1.5 rounded-full bg-primary"></div>
 											Window {index + 1}
@@ -749,7 +852,11 @@
 											class="h-6 w-6 text-muted-foreground hover:text-destructive"
 											onclick={() => removeEventWindow(window.id)}
 										>
-											<HugeiconsIcon icon={Delete02Icon} size={14} strokeWidth={2} />
+											<HugeiconsIcon
+												icon={Delete02Icon}
+												size={14}
+												strokeWidth={2}
+											/>
 										</Button>
 									</div>
 
@@ -771,16 +878,22 @@
 											</div>
 										</div>
 
-										<div class="grid grid-cols-2 gap-4 rounded-lg bg-muted/30 p-3">
+										<div
+											class="grid grid-cols-2 gap-4 rounded-lg bg-muted/30 p-3"
+										>
 											<div class="space-y-1">
-												<Label class="text-[10px] text-muted-foreground">Start Time</Label>
+												<Label class="text-[10px] text-muted-foreground"
+													>Start Time</Label
+												>
 												<DateTimePicker
 													bind:value={window.startTime}
 													placeholder={m.event_start_time_placeholder()}
 												/>
 											</div>
 											<div class="space-y-1">
-												<Label class="text-[10px] text-muted-foreground">End Time</Label>
+												<Label class="text-[10px] text-muted-foreground"
+													>End Time</Label
+												>
 												<DateTimePicker
 													bind:value={window.endTime}
 													placeholder={m.event_end_time_placeholder()}
@@ -789,21 +902,33 @@
 										</div>
 
 										<div>
-											<Label class="mb-2 block text-[10px] text-muted-foreground">Window Images</Label>
+											<Label
+												class="mb-2 block text-[10px] text-muted-foreground"
+												>Window Images</Label
+											>
 											{@render imagePicker(
 												windowImages[window.id] || [],
 												(f) => {
 													windowImages[window.id] = f;
 												},
-												`window-images-${window.id}`
+												`window-images-${window.id}`,
 											)}
 										</div>
 									</div>
 								</div>
 							{/each}
 							{#if eventWindows.length === 0}
-								<Button variant="outline" class="w-full border-dashed" onclick={addEventWindow}>
-									<HugeiconsIcon icon={Add01Icon} size={16} strokeWidth={2} className="mr-2" /> Create Schedule
+								<Button
+									variant="outline"
+									class="w-full border-dashed"
+									onclick={addEventWindow}
+								>
+									<HugeiconsIcon
+										icon={Add01Icon}
+										size={16}
+										strokeWidth={2}
+										className="mr-2"
+									/> Create Schedule
 								</Button>
 							{/if}
 						</div>
@@ -813,7 +938,9 @@
 				<!-- Tags Section -->
 				<div class="space-y-3">
 					<div class="flex items-center justify-between">
-						<Label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+						<Label
+							class="text-xs font-semibold tracking-wider text-muted-foreground uppercase"
+						>
 							{m.event_categories_section()}
 						</Label>
 					</div>
@@ -822,7 +949,12 @@
 							{#snippet children({})}
 								<div class="space-y-3">
 									<div class="relative">
-										<HugeiconsIcon icon={Search01Icon} size={14} strokeWidth={2} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+										<HugeiconsIcon
+											icon={Search01Icon}
+											size={14}
+											strokeWidth={2}
+											className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+										/>
 										<Input
 											placeholder={m.event_categories_placeholder()}
 											bind:value={tagSearchQuery}
@@ -839,11 +971,13 @@
 													"group flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:scale-105 active:scale-95",
 													isSelected
 														? "border-primary/20 bg-primary/10 text-primary hover:bg-primary/20"
-														: "border-transparent bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+														: "border-transparent bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground",
 												)}
 												onclick={() => {
 													if (isSelected) {
-														$formData.tags = $formData.tags.filter((t: string) => t !== tag);
+														$formData.tags = $formData.tags.filter(
+															(t: string) => t !== tag,
+														);
 													} else {
 														$formData.tags = [...$formData.tags, tag];
 													}
@@ -856,11 +990,15 @@
 														strokeWidth={2}
 														className={cn(
 															"transition-colors",
-															isSelected ? "text-primary" : "text-muted-foreground/70"
+															isSelected
+																? "text-primary"
+																: "text-muted-foreground/70",
 														)}
 													/>
 												{/if}
-												{config ? m[config.translationKey as keyof typeof m]() : tag}
+												{config
+													? m[config.translationKey as keyof typeof m]()
+													: tag}
 											</button>
 										{/each}
 									</div>
@@ -895,11 +1033,21 @@
 						createWindowImagesMutation.isPending}
 				>
 					{#if createEventMutation.isPending || createEventWindowMutation.isPending || createEventImagesMutation.isPending || createWindowImagesMutation.isPending}
-						<HugeiconsIcon icon={Loading03Icon} size={16} strokeWidth={2} className="mr-2 animate-spin" />
+						<HugeiconsIcon
+							icon={Loading03Icon}
+							size={16}
+							strokeWidth={2}
+							className="mr-2 animate-spin"
+						/>
 						{m.event_publishing()}
 					{:else}
 						<span class="mr-2">{m.event_publish()}</span>
-						<HugeiconsIcon icon={ArrowRight01Icon} size={16} strokeWidth={2} className="opacity-50" />
+						<HugeiconsIcon
+							icon={ArrowRight01Icon}
+							size={16}
+							strokeWidth={2}
+							className="opacity-50"
+						/>
 					{/if}
 				</Button>
 			</div>
