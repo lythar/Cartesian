@@ -169,5 +169,6 @@
 	"validation_name_required": "Nazwa jest wymagana",
 	"validation_description_required": "Opis jest wymagany",
 	"validation_tag_required": "Wymagany jest co najmniej jeden tag",
-	"error_load_address": "Nie udało się załadować adresu"
+	"error_load_address": "Nie udało się załadować adresu",
+	"theme_color_label": "Kolor motywu:"
 }

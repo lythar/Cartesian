@@ -169,5 +169,6 @@
 	"validation_name_required": "Name is required",
 	"validation_description_required": "Description is required",
 	"validation_tag_required": "At least one tag is required",
-	"error_load_address": "Failed to load address"
+	"error_load_address": "Failed to load address",
+	"theme_color_label": "Theme Color:"
 }
