@@ -13,7 +13,7 @@
 
 <div
 	class={cn(
-		"pointer-events-none overflow-hidden absolute inset-0 z-50 flex w-full max-w-full flex-col transition-all duration-300 ease-in-out lg:inset-auto lg:top-4 lg:bottom-4 lg:left-4 lg:max-w-lg",
+		"pointer-events-none absolute inset-0 z-50 flex w-full max-w-full flex-col overflow-hidden transition-all duration-300 ease-in-out lg:inset-auto lg:top-4 lg:bottom-4 lg:left-4 lg:max-w-lg",
 		open ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0",
 	)}
 >

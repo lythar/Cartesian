@@ -21,7 +21,6 @@
 	const communityId = $derived($page.params.id);
 	const queryClient = useQueryClient();
 
-
 	const communityQuery = createGetCommunityQuery(() => communityId ?? "", {}, queryClient);
 	const membersQuery = createGetCommunityMembersQuery(
 		() => communityId ?? "",
@@ -76,17 +75,19 @@
 	});
 </script>
 
-<div class="flex flex-1 h-full w-full overflow-hidden bg-background">
+<div class="flex h-full w-full flex-1 overflow-hidden bg-background">
 	{#if communityQuery.isLoading}
 		<div class="flex flex-1 items-center justify-center">
-			<div class="flex flex-col gap-4 items-center">
+			<div class="flex flex-col items-center gap-4">
 				<Skeleton class="h-12 w-12 rounded-full" />
 				<Skeleton class="h-4 w-32" />
 			</div>
 		</div>
 	{:else if communityQuery.isError}
 		<div class="flex flex-1 items-center justify-center p-8">
-			<div class="rounded-xl border border-destructive/20 bg-destructive/5 p-8 text-center max-w-md">
+			<div
+				class="max-w-md rounded-xl border border-destructive/20 bg-destructive/5 p-8 text-center"
+			>
 				<h3 class="text-lg font-semibold text-destructive">Error loading community</h3>
 				<p class="mt-2 text-muted-foreground">
 					{communityQuery.error?.message || "Something went wrong."}
@@ -94,7 +95,7 @@
 			</div>
 		</div>
 	{:else if community && chatState}
-		<div class="flex flex-1 flex-col min-w-0">
+		<div class="flex min-w-0 flex-1 flex-col">
 			<CommunityHeader
 				{community}
 				{currentUser}

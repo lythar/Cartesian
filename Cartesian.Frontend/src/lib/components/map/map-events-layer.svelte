@@ -16,16 +16,13 @@
 	const layout = getLayoutContext();
 	const componentContexts = getAllContexts();
 
-	const eventsQuery = createEventsGeojsonQuery(
-		undefined,
-		{
-			query: {
-				enabled: true,
-				refetchInterval: 10 * 60 * 1000,
-				staleTime: 5 * 60 * 1000,
-			},
+	const eventsQuery = createEventsGeojsonQuery(undefined, {
+		query: {
+			enabled: true,
+			refetchInterval: 10 * 60 * 1000,
+			staleTime: 5 * 60 * 1000,
 		},
-	);
+	});
 
 	const eventsData = $derived(eventsQuery.data);
 

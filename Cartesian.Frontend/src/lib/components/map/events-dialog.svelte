@@ -285,7 +285,7 @@
 
 <Dialog.Root bind:open>
 	<Dialog.Content
-		class="fixed inset-0 left-0 top-0 z-50 flex h-full max-h-none w-full max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-0 bg-background/95 p-0 shadow-none backdrop-blur-xl md:fixed md:left-[50%] md:top-[50%] md:h-[600px] md:max-h-[600px] md:w-full md:max-w-[600px] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-3xl md:border md:border-border/40 md:shadow-2xl"
+		class="fixed inset-0 top-0 left-0 z-50 flex h-full max-h-none w-full max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-0 bg-background/95 p-0 shadow-none backdrop-blur-xl md:fixed md:top-[50%] md:left-[50%] md:h-[600px] md:max-h-[600px] md:w-full md:max-w-[600px] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-3xl md:border md:border-border/40 md:shadow-2xl"
 		showCloseButton={false}
 	>
 		<div class="flex flex-none flex-col gap-4 border-b border-border/10 px-6 py-4">

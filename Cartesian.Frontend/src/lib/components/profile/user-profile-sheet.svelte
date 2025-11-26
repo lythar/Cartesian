@@ -142,9 +142,7 @@
 >
 	<SheetContent side="right" class="w-full p-0 sm:max-w-md">
 		<div class="flex h-full flex-col">
-			<div
-				class="flex items-center justify-between border-b border-border/40 px-4 py-3"
-			>
+			<div class="flex items-center justify-between border-b border-border/40 px-4 py-3">
 				<SheetTitle class="text-lg font-semibold">Profile</SheetTitle>
 				<Button
 					variant="ghost"
@@ -159,7 +157,7 @@
 
 			<ScrollArea class="flex-1">
 				{#if userQuery.isLoading}
-					<div class="p-6 space-y-4">
+					<div class="space-y-4 p-6">
 						<div class="flex flex-col items-center gap-4">
 							<Skeleton class="h-24 w-24 rounded-full" />
 							<Skeleton class="h-6 w-32" />
@@ -265,12 +263,12 @@
 											class="w-full rounded-lg border border-border/40 bg-muted/20 p-3 text-left transition-colors hover:bg-muted/40"
 											onclick={() => handleEventClick(event.id)}
 										>
-											<h4 class="font-medium text-sm truncate">
+											<h4 class="truncate text-sm font-medium">
 												{event.name}
 											</h4>
 											{#if event.description}
 												<p
-													class="mt-1 text-xs text-muted-foreground line-clamp-2"
+													class="mt-1 line-clamp-2 text-xs text-muted-foreground"
 												>
 													{event.description}
 												</p>
@@ -280,10 +278,15 @@
 												<div
 													class="mt-2 flex items-center gap-2 text-[10px] text-muted-foreground"
 												>
-													<HugeiconsIcon icon={Calendar03Icon} size={12} />
+													<HugeiconsIcon
+														icon={Calendar03Icon}
+														size={12}
+													/>
 													<span>
 														{format(
-															new Date(firstWindow.startTime as string),
+															new Date(
+																firstWindow.startTime as string,
+															),
 															"MMM d, yyyy",
 														)}
 													</span>

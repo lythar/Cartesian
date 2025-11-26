@@ -70,25 +70,28 @@
 	const bans = $derived(bansQuery.data ?? []);
 </script>
 
-<div class="flex flex-col h-full">
+<div class="flex h-full flex-col">
 	<div
-		class="flex h-16 items-center justify-between border-b border-border/40 bg-background/95 backdrop-blur px-4"
+		class="flex h-16 items-center justify-between border-b border-border/40 bg-background/95 px-4 backdrop-blur"
 	>
-		<h2 class="text-xs font-semibold text-foreground/70 uppercase tracking-wider">
+		<h2 class="text-xs font-semibold tracking-wider text-foreground/70 uppercase">
 			Banned Users
 		</h2>
-		<Badge variant="outline" class="text-[10px] py-0 h-4 border-border/50 text-muted-foreground">
+		<Badge
+			variant="outline"
+			class="h-4 border-border/50 py-0 text-[10px] text-muted-foreground"
+		>
 			{bans.length}
 		</Badge>
 	</div>
 
 	<ScrollArea class="flex-1">
 		{#if bansQuery.isLoading}
-			<div class="p-4 text-center text-muted-foreground text-sm">Loading...</div>
+			<div class="p-4 text-center text-sm text-muted-foreground">Loading...</div>
 		{:else if bans.length === 0}
-			<div class="p-4 text-center text-muted-foreground text-sm">No banned users</div>
+			<div class="p-4 text-center text-sm text-muted-foreground">No banned users</div>
 		{:else}
-			<div class="p-2 space-y-0.5">
+			<div class="space-y-0.5 p-2">
 				{#each bans as ban (ban.userId)}
 					<div
 						class="group flex items-center justify-between rounded-md px-2 py-1.5 transition-colors hover:bg-muted/50"
@@ -96,24 +99,30 @@
 						<div class="flex items-center gap-3 overflow-hidden">
 							<Avatar.Root class="h-8 w-8 rounded-full border border-border/40">
 								<Avatar.Image
-									src={ban.user?.avatar ? `${baseUrl}/media/api/${ban.user.avatar.id}` : null}
+									src={ban.user?.avatar
+										? `${baseUrl}/media/api/${ban.user.avatar.id}`
+										: null}
 									alt={ban.user?.name}
 									class="object-cover"
 								/>
-								<Avatar.Fallback class="bg-muted text-[10px] font-medium text-foreground/70">
+								<Avatar.Fallback
+									class="bg-muted text-[10px] font-medium text-foreground/70"
+								>
 									{ban.user?.name?.substring(0, 2).toUpperCase() ?? "??"}
 								</Avatar.Fallback>
 							</Avatar.Root>
 							<div class="min-w-0">
-								<p class="text-sm font-medium leading-none text-foreground truncate">
+								<p
+									class="truncate text-sm leading-none font-medium text-foreground"
+								>
 									{ban.user?.name ?? "Unknown"}
 								</p>
 								{#if ban.reason}
-									<p class="text-[10px] text-muted-foreground truncate">
+									<p class="truncate text-[10px] text-muted-foreground">
 										{ban.reason}
 									</p>
 								{/if}
-								<p class="text-[10px] text-muted-foreground truncate">
+								<p class="truncate text-[10px] text-muted-foreground">
 									Banned {new Date(ban.createdAt as string).toLocaleDateString()}
 								</p>
 							</div>
@@ -122,7 +131,7 @@
 						<Button
 							variant="ghost"
 							size="icon"
-							class="h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100 text-destructive hover:text-destructive"
+							class="h-6 w-6 text-destructive opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive"
 							onclick={() => openUnbanDialog(ban.userId, ban.user?.name ?? "Unknown")}
 						>
 							<HugeiconsIcon icon={Cancel01Icon} size={14} strokeWidth={1.5} />
@@ -140,7 +149,9 @@
 		<AlertDialog.Header>
 			<AlertDialog.Title>Unban User</AlertDialog.Title>
 			<AlertDialog.Description>
-				Are you sure you want to unban <span class="font-semibold">{selectedBan?.userName}</span>? They will be able to rejoin the community.
+				Are you sure you want to unban <span class="font-semibold"
+					>{selectedBan?.userName}</span
+				>? They will be able to rejoin the community.
 			</AlertDialog.Description>
 		</AlertDialog.Header>
 		<AlertDialog.Footer>

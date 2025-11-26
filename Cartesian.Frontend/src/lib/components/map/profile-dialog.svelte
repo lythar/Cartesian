@@ -76,7 +76,10 @@
 	const blocksQuery = createQuery(() => ({
 		queryKey: ["myBlocks"],
 		queryFn: async () => {
-			const res = await customInstance<UserBlockDto[]>({ url: "/account/api/blocks", method: "GET" });
+			const res = await customInstance<UserBlockDto[]>({
+				url: "/account/api/blocks",
+				method: "GET",
+			});
 			return res;
 		},
 		enabled: open,
@@ -196,7 +199,7 @@
 
 <Dialog.Root bind:open>
 	<Dialog.Content
-		class="fixed inset-0 left-0 top-0 z-50 flex h-full max-h-none w-full max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-0 bg-background/95 p-0 shadow-none backdrop-blur-xl md:fixed md:left-[50%] md:top-[50%] md:h-[600px] md:max-h-[600px] md:w-full md:max-w-[600px] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-3xl md:border md:border-border/40 md:shadow-2xl"
+		class="fixed inset-0 top-0 left-0 z-50 flex h-full max-h-none w-full max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-0 bg-background/95 p-0 shadow-none backdrop-blur-xl md:fixed md:top-[50%] md:left-[50%] md:h-[600px] md:max-h-[600px] md:w-full md:max-w-[600px] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-3xl md:border md:border-border/40 md:shadow-2xl"
 		showCloseButton={false}
 	>
 		<div
@@ -413,7 +416,8 @@
 							<div class="space-y-1">
 								<h4 class="text-sm font-medium">Blocked Users</h4>
 								<p class="text-xs text-muted-foreground">
-									Users you've blocked can't send you direct messages. You won't see their messages in DMs.
+									Users you've blocked can't send you direct messages. You won't
+									see their messages in DMs.
 								</p>
 							</div>
 						</div>
@@ -421,40 +425,55 @@
 
 					<ScrollArea class="h-[300px]">
 						{#if blocksQuery.isLoading}
-							<div class="text-center text-muted-foreground text-sm py-8">Loading...</div>
+							<div class="py-8 text-center text-sm text-muted-foreground">
+								Loading...
+							</div>
 						{:else if blocks.length === 0}
-							<div class="text-center text-muted-foreground text-sm py-8">
+							<div class="py-8 text-center text-sm text-muted-foreground">
 								You haven't blocked anyone
 							</div>
 						{:else}
 							<div class="space-y-2">
 								{#each blocks as block (block.blockedUserId)}
-									<div class="flex items-center justify-between rounded-lg border border-border/50 bg-muted/20 p-3">
+									<div
+										class="flex items-center justify-between rounded-lg border border-border/50 bg-muted/20 p-3"
+									>
 										<div class="flex items-center gap-3">
 											<Avatar.Root class="h-10 w-10">
 												<Avatar.Image
-													src={block.blockedUser?.avatar ? `${baseUrl}/media/api/${block.blockedUser.avatar.id}` : null}
+													src={block.blockedUser?.avatar
+														? `${baseUrl}/media/api/${block.blockedUser.avatar.id}`
+														: null}
 													alt={block.blockedUser?.name}
 												/>
 												<Avatar.Fallback class="text-sm">
-													{block.blockedUser?.name?.substring(0, 2).toUpperCase() ?? "??"}
+													{block.blockedUser?.name
+														?.substring(0, 2)
+														.toUpperCase() ?? "??"}
 												</Avatar.Fallback>
 											</Avatar.Root>
 											<div>
-												<p class="text-sm font-medium">{block.blockedUser?.name ?? "Unknown"}</p>
+												<p class="text-sm font-medium">
+													{block.blockedUser?.name ?? "Unknown"}
+												</p>
 												<p class="text-xs text-muted-foreground">
-													Blocked {new Date(block.createdAt as string).toLocaleDateString()}
+													Blocked {new Date(
+														block.createdAt as string,
+													).toLocaleDateString()}
 												</p>
 											</div>
 										</div>
 										<Button
 											variant="outline"
 											size="sm"
-											class="text-destructive hover:text-destructive hover:bg-destructive/10"
-											onclick={() => unblockMutation.mutate(block.blockedUserId)}
+											class="text-destructive hover:bg-destructive/10 hover:text-destructive"
+											onclick={() =>
+												unblockMutation.mutate(block.blockedUserId)}
 											disabled={unblockMutation.isPending}
 										>
-											{unblockMutation.isPending ? "Unblocking..." : "Unblock"}
+											{unblockMutation.isPending
+												? "Unblocking..."
+												: "Unblock"}
 										</Button>
 									</div>
 								{/each}

@@ -240,7 +240,7 @@
 </div>
 
 <div
-	class="scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6"
+	class="scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6"
 >
 	<div class="mb-6 space-y-4">
 		<h2 class="text-xl font-bold tracking-tight break-words hyphens-auto sm:text-2xl">
@@ -274,7 +274,7 @@
 							<HugeiconsIcon icon={Location01Icon} size={18} />
 						</div>
 						<div class="flex flex-col gap-0.5">
-							<span class="font-medium text-foreground leading-snug break-words"
+							<span class="leading-snug font-medium break-words text-foreground"
 								>{address}</span
 							>
 							<span class="text-xs text-muted-foreground/80">
@@ -286,7 +286,9 @@
 			</div>
 		{/if}
 
-		<div class="flex items-center justify-between gap-4 rounded-lg border bg-card p-3 shadow-sm">
+		<div
+			class="flex items-center justify-between gap-4 rounded-lg border bg-card p-3 shadow-sm"
+		>
 			<div class="flex items-center gap-3">
 				<Avatar class="h-10 w-10 border">
 					<AvatarImage
@@ -302,7 +304,7 @@
 					</AvatarFallback>
 				</Avatar>
 				<div class="flex flex-col">
-					<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider"
+					<span class="text-xs font-medium tracking-wider text-muted-foreground uppercase"
 						>Hosted by</span
 					>
 					{#if event.communityId}
@@ -352,14 +354,12 @@
 							onclick={toggleFavorite}
 							disabled={favoriteMutation.isPending || unfavoriteMutation.isPending}
 						>
-							<div class={isFavorited ? "text-red-500 fill-red-500" : ""}>
-								<HugeiconsIcon
-									icon={FavouriteIcon}
-									size={20}
-									strokeWidth={1.5}
-								/>
+							<div class={isFavorited ? "fill-red-500 text-red-500" : ""}>
+								<HugeiconsIcon icon={FavouriteIcon} size={20} strokeWidth={1.5} />
 							</div>
-							<span class="ml-2 sm:hidden">{isFavorited ? "Unfavorite" : "Favorite"}</span>
+							<span class="ml-2 sm:hidden"
+								>{isFavorited ? "Unfavorite" : "Favorite"}</span
+							>
 						</Button>
 					</Tooltip.Trigger>
 					<Tooltip.Content>{isFavorited ? "Unfavorite" : "Favorite"}</Tooltip.Content>
@@ -415,12 +415,8 @@
 					)}
 				>
 					{#if config?.icon}
-						<span class="opacity-70 flex items-center">
-							<HugeiconsIcon
-								icon={config.icon}
-								size={14}
-								strokeWidth={2}
-							/>
+						<span class="flex items-center opacity-70">
+							<HugeiconsIcon icon={config.icon} size={14} strokeWidth={2} />
 						</span>
 					{/if}
 					{config ? m[config.translationKey as keyof typeof m]() : tag}
@@ -428,7 +424,7 @@
 			{/each}
 			{#if remainingTags > 0 && !showAllTags}
 				<button
-					class="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted/80 transition-colors"
+					class="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/80"
 					onclick={() => (showAllTags = true)}
 				>
 					+{remainingTags} more
@@ -443,8 +439,8 @@
 			<h3 class="mb-3 text-sm font-semibold tracking-wider text-muted-foreground uppercase">
 				About
 			</h3>
-			<div class="prose prose-sm prose-muted text-foreground/90 max-w-none">
-				<p class="whitespace-pre-wrap leading-relaxed">
+			<div class="prose prose-sm prose-muted max-w-none text-foreground/90">
+				<p class="leading-relaxed whitespace-pre-wrap">
 					{eventDetails.description}
 				</p>
 			</div>

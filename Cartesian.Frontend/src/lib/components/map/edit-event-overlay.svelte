@@ -42,11 +42,12 @@
 	import { Debounced } from "runed";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import { EVENT_TAG_CONFIG } from "$lib/constants/event-tags";
-import { m } from "$lib/paraglide/messages";
-import { fly, slide, fade } from "svelte/transition";
-import DateTimePicker from "./date-time-picker.svelte";
-import { Effect } from "effect";
-import { Completion } from "@ai-sdk/svelte";	interface Props {
+	import { m } from "$lib/paraglide/messages";
+	import { fly, slide, fade } from "svelte/transition";
+	import DateTimePicker from "./date-time-picker.svelte";
+	import { Effect } from "effect";
+	import { Completion } from "@ai-sdk/svelte";
+	interface Props {
 		map: mapboxgl.Map;
 	}
 

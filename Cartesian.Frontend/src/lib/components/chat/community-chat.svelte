@@ -1,5 +1,11 @@
 <script lang="ts">
-	import type { MyUserDto, MembershipDto, CartesianUserDto, ReactionSummaryDto, PinnedChatMessageDto } from "$lib/api/cartesian-client";
+	import type {
+		MyUserDto,
+		MembershipDto,
+		CartesianUserDto,
+		ReactionSummaryDto,
+		PinnedChatMessageDto,
+	} from "$lib/api/cartesian-client";
 	import ChatInput from "$lib/components/chat/chat-input.svelte";
 	import ChatMessage from "$lib/components/chat/chat-message.svelte";
 	import { ScrollArea } from "$lib/components/ui/scroll-area";
@@ -21,7 +27,9 @@
 		onPinUpdate?: () => void;
 	}>();
 
-	const pinnedMessageIds = $derived(new Set(pinnedMessages.map((p: PinnedChatMessageDto) => p.message.id)));
+	const pinnedMessageIds = $derived(
+		new Set(pinnedMessages.map((p: PinnedChatMessageDto) => p.message.id)),
+	);
 
 	function getAuthor(userId: string): CartesianUserDto | undefined {
 		const member = members.find((m: MembershipDto) => m.userId === userId);
@@ -98,11 +106,11 @@
 	}
 </script>
 
-<div class="flex flex-1 flex-col overflow-hidden relative">
+<div class="relative flex flex-1 flex-col overflow-hidden">
 	<!-- Messages Area -->
 	<div class="absolute inset-0 bottom-[73px] overflow-hidden">
 		{#if chatState.isLoading}
-			<div class="absolute inset-0 p-4 space-y-4">
+			<div class="absolute inset-0 space-y-4 p-4">
 				{#each Array(3) as _}
 					<div class="flex items-start gap-3">
 						<Skeleton class="h-10 w-10 rounded-full" />
@@ -115,15 +123,17 @@
 			</div>
 		{:else}
 			<ScrollArea class="h-full pr-4" bind:viewportRef={scrollViewport}>
-				<div class="flex flex-col justify-end min-h-full py-4 px-4">
+				<div class="flex min-h-full flex-col justify-end px-4 py-4">
 					{#if chatState.isFetchingMore}
 						<div class="flex justify-center py-2">
 							<Skeleton class="h-4 w-24" />
 						</div>
 					{/if}
 					{#if chatState.messages.length === 0}
-						<div class="flex flex-1 flex-col items-center justify-center text-center text-muted-foreground p-8">
-							<div class="bg-muted/50 p-4 rounded-full mb-4">
+						<div
+							class="flex flex-1 flex-col items-center justify-center p-8 text-center text-muted-foreground"
+						>
+							<div class="mb-4 rounded-full bg-muted/50 p-4">
 								<svg
 									xmlns="http://www.w3.org/2000/svg"
 									width="24"
@@ -134,19 +144,19 @@
 									stroke-width="2"
 									stroke-linecap="round"
 									stroke-linejoin="round"
-									class="w-6 h-6"
-									><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></svg
+									class="h-6 w-6"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></svg
 								>
 							</div>
-							<h3 class="font-semibold text-foreground mb-1">Welcome to the beginning</h3>
+							<h3 class="mb-1 font-semibold text-foreground">
+								Welcome to the beginning
+							</h3>
 							<p class="text-sm">Be the first to say something.</p>
 						</div>
 					{:else}
 						{#each chatState.messages as message, index (message.id)}
 							{@const previousMessage = chatState.messages[index - 1]}
 							{@const isStacked =
-								previousMessage &&
-								previousMessage.authorId === message.authorId}
+								previousMessage && previousMessage.authorId === message.authorId}
 							<ChatMessage
 								{message}
 								author={getAuthor(message.authorId)}
@@ -166,13 +176,13 @@
 	</div>
 
 	<!-- Input Area -->
-	<div class="absolute bottom-0 left-0 right-0 p-4 bg-background border-t border-border/50">
+	<div class="absolute right-0 bottom-0 left-0 border-t border-border/50 bg-background p-4">
 		<ChatInput
 			onSend={handleSend}
 			disabled={!chatState.channelId || chatState.error !== null}
 		/>
 		{#if chatState.error}
-			<p class="text-xs text-destructive mt-2 text-center">{chatState.error}</p>
+			<p class="mt-2 text-center text-xs text-destructive">{chatState.error}</p>
 		{/if}
 	</div>
 </div>

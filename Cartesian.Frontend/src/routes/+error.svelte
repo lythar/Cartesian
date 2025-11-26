@@ -12,7 +12,7 @@
 		<h2 class="text-2xl font-semibold tracking-tight">
 			{page.error?.message || m.error_something_went_wrong()}
 		</h2>
-		<p class="text-muted-foreground max-w-[500px]">
+		<p class="max-w-[500px] text-muted-foreground">
 			{#if page.status === 404}
 				{m.error_page_not_found()}
 			{:else}

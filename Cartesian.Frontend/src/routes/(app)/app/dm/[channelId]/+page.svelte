@@ -6,7 +6,11 @@
 		getAccountApiPublicAccountId,
 		getGetAccountApiPublicAccountIdQueryKey,
 	} from "$lib/api/cartesian-client";
-	import type { ChatMessageDto, CartesianUserDto, ChatChannelDto } from "$lib/api/cartesian-client";
+	import type {
+		ChatMessageDto,
+		CartesianUserDto,
+		ChatChannelDto,
+	} from "$lib/api/cartesian-client";
 	import { customInstance } from "$lib/api/client";
 	import { createSendMessageMutation } from "$lib/api/queries/chat.query";
 	import { createGetMeQuery } from "$lib/api/queries/user.query";
@@ -55,7 +59,10 @@
 	const messagesQuery = createInfiniteQuery(() => ({
 		queryKey: ["chat", "messages", channelId, "infinite"],
 		queryFn: ({ signal, pageParam }) =>
-			getChatApiMessages({ channelId: channelId ?? "", limit: 50, before: pageParam }, signal),
+			getChatApiMessages(
+				{ channelId: channelId ?? "", limit: 50, before: pageParam },
+				signal,
+			),
 		enabled: !!channelId,
 		initialPageParam: undefined as string | undefined,
 		getNextPageParam: (lastPage) => {
@@ -242,18 +249,18 @@
 					</Avatar.Fallback>
 				</Avatar.Root>
 				<div>
-					<h2 class="text-left text-sm font-semibold leading-none">{otherUser.name}</h2>
+					<h2 class="text-left text-sm leading-none font-semibold">{otherUser.name}</h2>
 					<p class="text-xs text-muted-foreground">Direct Message</p>
 				</div>
 			</button>
 		{/if}
 	</div>
 
-	<div class="flex flex-1 flex-col relative overflow-hidden">
+	<div class="relative flex flex-1 flex-col overflow-hidden">
 		<!-- Messages Area -->
 		<div class="absolute inset-0 bottom-[73px] overflow-hidden">
 			{#if messagesQuery.isLoading}
-				<div class="absolute inset-0 p-4 space-y-4">
+				<div class="absolute inset-0 space-y-4 p-4">
 					{#each Array(3) as _}
 						<div class="flex items-start gap-3">
 							<Skeleton class="h-10 w-10 rounded-full" />
@@ -266,7 +273,7 @@
 				</div>
 			{:else}
 				<ScrollArea class="h-full pr-4" bind:viewportRef={scrollViewport}>
-					<div class="flex flex-col justify-end min-h-full py-4 px-4">
+					<div class="flex min-h-full flex-col justify-end px-4 py-4">
 						{#if messagesQuery.isFetchingNextPage}
 							<div class="flex justify-center py-2">
 								<div
@@ -292,7 +299,9 @@
 						{/each}
 
 						{#if messages.length === 0}
-							<div class="flex flex-1 flex-col items-center justify-center text-center">
+							<div
+								class="flex flex-1 flex-col items-center justify-center text-center"
+							>
 								{#if otherUser}
 									<Avatar.Root class="h-16 w-16 border-2 border-border/40">
 										<Avatar.Image
@@ -319,7 +328,7 @@
 		</div>
 
 		<!-- Input Area -->
-		<div class="absolute bottom-0 left-0 right-0 p-4 bg-background border-t border-border/40">
+		<div class="absolute right-0 bottom-0 left-0 border-t border-border/40 bg-background p-4">
 			<ChatInput onSend={handleSend} disabled={!channelId} />
 		</div>
 	</div>
