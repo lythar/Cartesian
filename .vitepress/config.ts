@@ -2,14 +2,11 @@ import { defineConfig } from "vitepress";
 
 // refer https://vitepress.dev/reference/site-config for details
 export default defineConfig({
+  srcDir: "docs",
   lang: "pl",
   title: "Lythar",
   description:
     'Dokumentacja techniczna z projektu na hackathon hackheroes.pl',
-
-  vite: {
-    assetsInclude: ['**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.gif', '**/*.svg'],
-  },
 
   themeConfig: {
     logo: "./logo.svg",
