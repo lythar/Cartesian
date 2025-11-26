@@ -9,6 +9,7 @@
 	import { Button } from "$lib/components/ui/button";
 	import { newEventOverlayState } from "./map-state.svelte";
 	import { cn } from "$lib/utils";
+	import * as m from "$lib/paraglide/messages";
 
 	let open = $state(false);
 	let previousDrawerState = $state(!!$page.state.previewDrawer);
@@ -34,11 +35,9 @@
 			mapInteractionState.eventDetailsOpen = true;
 			newEventOverlayState.open = false;
 
-			// Close the drawer immediately
 			mapInteractionState.previewEventOpen = false;
 			mapInteractionState.previewEvent = null;
 
-			// Pop history state if it exists to keep history clean
 			if (browser && $page.state.previewDrawer) {
 				history.back();
 			}
@@ -51,11 +50,9 @@
 		if (mapInteractionState.previewEventOpen) {
 			if (!currentDrawerState) {
 				if (previousDrawerState) {
-					// State was present, now gone -> Back button pressed
 					mapInteractionState.previewEventOpen = false;
 					mapInteractionState.previewEvent = null;
 				} else {
-					// State wasn't present, still isn't -> Initial open
 					if (browser) {
 						pushState("", { previewDrawer: true });
 					}
@@ -71,20 +68,22 @@
 	<Drawer.Content hideHandle>
 		<div class="relative mx-auto w-full pb-8">
 			<div
-				class="absolute left-1/2 top-3 z-10 h-1.5 w-[100px] -translate-x-1/2 rounded-full bg-white/50 backdrop-blur-sm"
+				class="absolute top-3 left-1/2 z-10 h-1.5 w-[100px] -translate-x-1/2 rounded-full bg-white/50 backdrop-blur-sm"
 			></div>
 			{#if mapInteractionState.previewEvent}
 				<EventPreview
 					event={mapInteractionState.previewEvent}
 					hideCloseButton
 					hideViewButton
-					class="w-full rounded-b-none rounded-t-lg shadow-none"
+					class="w-full rounded-t-lg rounded-b-none shadow-none"
 				/>
 			{/if}
 			<div class="px-0 lg:px-4">
 				<Drawer.Footer class="pt-0">
-					<Button onclick={openDetails} class="w-full h-10">View Details</Button>
-					<Drawer.Close class={cn(buttonVariants({ variant: "outline" }), "h-10")}>Close</Drawer.Close>
+					<Button onclick={openDetails} class="h-10 w-full">{m.view_details()}</Button>
+					<Drawer.Close class={cn(buttonVariants({ variant: "outline" }), "h-10")}
+						>{m.close()}</Drawer.Close
+					>
 				</Drawer.Footer>
 			</div>
 		</div>

@@ -12,11 +12,14 @@
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import { MessageMultiple01Icon } from "@hugeicons/core-free-icons";
 
-	const recentDmsQuery = createGetChatApiDmChannels({ limit: 10 }, {
-		query: {
-			refetchInterval: 30000,
+	const recentDmsQuery = createGetChatApiDmChannels(
+		{ limit: 10 },
+		{
+			query: {
+				refetchInterval: 30000,
+			},
 		},
-	});
+	);
 
 	let channels = $derived(recentDmsQuery.data?.channels ?? []);
 

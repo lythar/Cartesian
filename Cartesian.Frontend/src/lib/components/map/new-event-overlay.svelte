@@ -45,10 +45,12 @@
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import { AiEditingIcon } from "@hugeicons/core-free-icons";
 	import { EVENT_TAG_CONFIG } from "$lib/constants/event-tags";
-import { m } from "$lib/paraglide/messages";
-import { fly, fade, slide } from "svelte/transition";
-import DateTimePicker from "./date-time-picker.svelte";
-import { Completion } from "@ai-sdk/svelte";	const queryClient = useQueryClient();
+	import { m } from "$lib/paraglide/messages";
+	import { fly, fade, slide } from "svelte/transition";
+	import DateTimePicker from "./date-time-picker.svelte";
+	import { Completion } from "@ai-sdk/svelte";
+
+	const queryClient = useQueryClient();
 
 	interface Props {
 		map: mapboxgl.Map;
@@ -491,13 +493,13 @@ import { Completion } from "@ai-sdk/svelte";	const queryClient = useQueryClient(
 <div
 	bind:this={overlayContainer}
 	class={cn(
-		"pointer-events-none overflow-hidden absolute inset-0 lg:left-auto lg:top-4 lg:right-4 lg:bottom-4 z-50 flex w-full max-w-full lg:max-w-lg origin-top-right flex-col",
+		"pointer-events-none absolute inset-0 z-50 flex w-full max-w-full origin-top-right flex-col overflow-hidden lg:top-4 lg:right-4 lg:bottom-4 lg:left-auto lg:max-w-lg",
 		open ? "" : "",
 	)}
 >
 	<div
 		class={cn(
-			"flex h-full flex-col overflow-hidden lg:rounded-3xl border border-border/40 bg-background shadow-2xl transition-all",
+			"flex h-full flex-col overflow-hidden border border-border/40 bg-background shadow-2xl transition-all lg:rounded-3xl",
 			open ? "pointer-events-auto " : "pointer-events-none",
 		)}
 	>

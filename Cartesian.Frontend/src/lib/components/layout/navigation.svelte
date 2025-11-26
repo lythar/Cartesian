@@ -15,6 +15,7 @@
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import MobileNavigation from "./mobile-navigation.svelte";
 	import NavigationHeader from "./navigation-header.svelte";
+	import * as m from "$lib/paraglide/messages";
 
 	const layout = getLayoutContext();
 
@@ -53,33 +54,31 @@
 						href="/login"
 						class="mt-4 inline-block rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
 					>
-						Sign in
+						{m.sign_in()}
 					</a>
 				</div>
 			{:else}
 				<div class="flex-1 overflow-auto px-3 py-4">
-          <Sidebar.Group>
-            <Sidebar.Menu>
-              <Sidebar.MenuItem>
-                <Sidebar.MenuButton
-                  isActive={isActive('/app')}
-                >
-                  {#snippet child({ props })}
-                    <a href="/app" {...props}>
-                      <HugeiconsIcon
-                        icon={MapsGlobal01Icon}
-                        size={16}
-                        strokeWidth={2}
-                      />
-                      <span>Map</span>
-                    </a>
-                  {/snippet}
-                </Sidebar.MenuButton>
-              </Sidebar.MenuItem>
-            </Sidebar.Menu>
-          </Sidebar.Group>
+					<Sidebar.Group>
+						<Sidebar.Menu>
+							<Sidebar.MenuItem>
+								<Sidebar.MenuButton isActive={isActive("/app")}>
+									{#snippet child({ props })}
+										<a href="/app" {...props}>
+											<HugeiconsIcon
+												icon={MapsGlobal01Icon}
+												size={16}
+												strokeWidth={2}
+											/>
+											<span>{m.nav_map()}</span>
+										</a>
+									{/snippet}
+								</Sidebar.MenuButton>
+							</Sidebar.MenuItem>
+						</Sidebar.Menu>
+					</Sidebar.Group>
 
-          <Sidebar.Group>
+					<Sidebar.Group>
 						<DmSidebar />
 					</Sidebar.Group>
 
@@ -87,7 +86,7 @@
 						<Sidebar.GroupLabel
 							class="px-2 text-[10px] font-semibold tracking-wider text-muted-foreground/40 uppercase"
 						>
-							Your Communities
+							{m.your_communities()}
 						</Sidebar.GroupLabel>
 
 						<Sidebar.GroupContent>
@@ -110,7 +109,7 @@
 								{:else if myMembershipsQuery.isError}
 									<Sidebar.MenuItem>
 										<span class="px-2 text-xs text-destructive"
-											>Error loading communities</span
+											>{m.error_loading_communities()}</span
 										>
 									</Sidebar.MenuItem>
 								{:else if myMembershipsQuery.data}
@@ -130,25 +129,36 @@
 													>
 														{#if membership.community?.avatar && getAvatarUrl(membership.community.avatar)}
 															<img
-																src={getAvatarUrl(membership.community.avatar)}
-																alt={membership.community?.name ?? membership.communityId}
+																src={getAvatarUrl(
+																	membership.community.avatar,
+																)}
+																alt={membership.community?.name ??
+																	membership.communityId}
 																class="h-5 w-5 rounded-md object-cover transition-transform group-hover:scale-105"
 															/>
 														{:else}
 															<div
 																class="flex h-5 w-5 items-center justify-center rounded-md bg-muted text-[9px] font-medium text-muted-foreground group-data-[active=true]:bg-primary/10 group-data-[active=true]:text-primary"
 															>
-																{(membership.community?.name ?? membership.communityId)
+																{(
+																	membership.community?.name ??
+																	membership.communityId
+																)
 																	.substring(0, 2)
 																	.toUpperCase()}
 															</div>
 														{/if}
 														<span class="flex-1 truncate"
-															>{membership.community?.name ?? membership.communityId}</span
+															>{membership.community?.name ??
+																membership.communityId}</span
 														>
 														{#if unreadCount > 0}
-															<span class="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground">
-																{unreadCount > 99 ? "99+" : unreadCount}
+															<span
+																class="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground"
+															>
+																{unreadCount > 99
+																	? "99+"
+																	: unreadCount}
 															</span>
 														{/if}
 													</a>
@@ -159,7 +169,7 @@
 									{#if myMembershipsQuery.data.length === 0}
 										<Sidebar.MenuItem>
 											<span class="px-2 text-xs text-muted-foreground"
-												>No communities joined</span
+												>{m.no_communities_joined()}</span
 											>
 										</Sidebar.MenuItem>
 									{/if}
@@ -172,7 +182,7 @@
 						<Sidebar.GroupLabel
 							class="px-2 text-[10px] font-semibold tracking-wider text-muted-foreground/40 uppercase"
 						>
-							Discover
+							{m.discover()}
 						</Sidebar.GroupLabel>
 
 						<Sidebar.GroupContent>
@@ -195,7 +205,7 @@
 								{:else if publicCommunitiesQuery.isError}
 									<Sidebar.MenuItem>
 										<span class="px-2 text-xs text-destructive"
-											>Error loading communities</span
+											>{m.error_loading_communities()}</span
 										>
 									</Sidebar.MenuItem>
 								{:else if publicCommunitiesQuery.data}
@@ -248,7 +258,7 @@
 												strokeWidth={2}
 											/>
 										</div>
-										<span class="font-medium">New Community</span>
+										<span class="font-medium">{m.new_community()}</span>
 									</Sidebar.MenuButton>
 								</Sidebar.MenuItem>
 							</Sidebar.Menu>
@@ -260,11 +270,7 @@
 	</Sidebar.Root>
 
 	<Sidebar.Inset>
-		<main
-			class="relative flex flex-1 flex-col overflow-hidden {layout.isMobile
-				? ''
-				: ''}"
-		>
+		<main class="relative flex flex-1 flex-col overflow-hidden {layout.isMobile ? '' : ''}">
 			{#if !layout.isMobile}
 				<!-- <div class="absolute left-2 top-2 z-10">
           <Sidebar.Trigger />

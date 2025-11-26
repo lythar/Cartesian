@@ -2,11 +2,12 @@
 	import * as AlertDialog from "$lib/components/ui/alert-dialog";
 	import { Button } from "$lib/components/ui/button";
 	import { goto } from "$app/navigation";
+	import * as m from "$lib/paraglide/messages";
 
 	let {
 		open = $bindable(false),
-		title = "Account Required",
-		description = "You need to sign up before you can create an event."
+		title = m.account_required(),
+		description = m.account_required_description(),
 	}: { open: boolean; title?: string; description?: string } = $props();
 </script>
 
@@ -19,7 +20,7 @@
 			</AlertDialog.Description>
 		</AlertDialog.Header>
 		<AlertDialog.Footer>
-			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Cancel>{m.cancel()}</AlertDialog.Cancel>
 			<Button
 				variant="outline"
 				onclick={() => {
@@ -27,7 +28,7 @@
 					goto("/login");
 				}}
 			>
-				Log In
+				{m.log_in()}
 			</Button>
 			<Button
 				onclick={() => {
@@ -35,7 +36,7 @@
 					goto("/register");
 				}}
 			>
-				Sign Up
+				{m.sign_up()}
 			</Button>
 		</AlertDialog.Footer>
 	</AlertDialog.Content>

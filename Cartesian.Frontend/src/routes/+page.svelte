@@ -57,15 +57,15 @@
 			>
 				Lythar
 			</div>
-		<nav>
-			<Button
-				href="/login"
-				variant="ghost"
-				class="text-xs font-medium tracking-widest text-white/70 uppercase hover:bg-white/10 hover:text-white"
-			>
-				Login
-			</Button>
-		</nav>
+			<nav>
+				<Button
+					href="/login"
+					variant="ghost"
+					class="text-xs font-medium tracking-widest text-white/70 uppercase hover:bg-white/10 hover:text-white"
+				>
+					Login
+				</Button>
+			</nav>
 		</div>
 	</header>
 
@@ -86,52 +86,59 @@
 				</p>
 			</div>
 
-		<div class="hero-text z-40 flex gap-4 pt-4 opacity-0">
-			<Button
-				href="/app"
-				size="lg"
-				class="group relative h-14 overflow-hidden rounded-full border-none bg-white px-8 text-zinc-950 shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] transition-all duration-500 hover:bg-zinc-200"
-			>
-				<span class="relative z-10 flex items-center gap-2 font-bold tracking-tight">
-					Launch Map
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="16"
-						height="16"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						class="transition-transform group-hover:translate-x-1"
-						><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg
-					>
-				</span>
-			</Button>
-			<Button
-				href="https://lythar-docs.kyi.ro/"
-				size="lg"
-				class="group relative h-14 overflow-hidden rounded-full border border-white/20 bg-white/10 px-8 text-white shadow-[0_0_40px_-10px_rgba(255,255,255,0.2)] backdrop-blur-sm transition-all duration-500 hover:bg-white/20"
-			>
-				<span class="relative z-10 flex items-center gap-2 font-bold tracking-tight">
-					Docs
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="16"
-						height="16"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						class="transition-transform group-hover:translate-x-1"
-						><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg
-					>
-				</span>
-			</Button>
-		</div>
+			<div class="hero-text z-40 flex gap-4 pt-4 opacity-0">
+				<Button
+					href="/app"
+					size="lg"
+					class="group relative h-14 overflow-hidden rounded-full border-none bg-white px-8 text-zinc-950 shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] transition-all duration-500 hover:bg-zinc-200"
+				>
+					<span class="relative z-10 flex items-center gap-2 font-bold tracking-tight">
+						Launch Map
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="16"
+							height="16"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							class="transition-transform group-hover:translate-x-1"
+							><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg
+						>
+					</span>
+				</Button>
+				<Button
+					href="https://lythar-docs.kyi.ro/"
+					size="lg"
+					class="group relative h-14 overflow-hidden rounded-full border border-white/20 bg-white/10 px-8 text-white shadow-[0_0_40px_-10px_rgba(255,255,255,0.2)] backdrop-blur-sm transition-all duration-500 hover:bg-white/20"
+				>
+					<span class="relative z-10 flex items-center gap-2 font-bold tracking-tight">
+						Docs
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="16"
+							height="16"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							class="transition-transform group-hover:translate-x-1"
+							><path
+								d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+							/><polyline points="15 3 21 3 21 9" /><line
+								x1="10"
+								y1="14"
+								x2="21"
+								y2="3"
+							/></svg
+						>
+					</span>
+				</Button>
+			</div>
 		</div>
 
 		<div
@@ -195,8 +202,6 @@
 			<span>Loc: Global</span>
 		</div>
 
-		<div class="text-right font-mono text-[10px] tracking-widest uppercase">
-			Made with ♥
-		</div>
+		<div class="text-right font-mono text-[10px] tracking-widest uppercase">Made with ♥</div>
 	</footer>
 </div>

@@ -25,6 +25,7 @@
 	} from "./map-state.svelte";
 	import { getLayoutContext } from "$lib/context/layout.svelte";
 	import LoginAlertDialog from "../auth/login-alert-dialog.svelte";
+	import * as m from "$lib/paraglide/messages";
 
 	const { class: className } = $props();
 
@@ -33,9 +34,9 @@
 	let openProfile = $state(false);
 	let openEvents = $state(false);
 	let openSettings = $state(false);
-  let openLoginAlert = $state(false);
+	let openLoginAlert = $state(false);
 
-  const layout = getLayoutContext();
+	const layout = getLayoutContext();
 
 	async function handleLogout() {
 		try {
@@ -68,28 +69,32 @@
 </script>
 
 {#if !auth.isAuthenticated}
-  {#if layout.isMobile}
-    <div class={cn("z-20", className)}>
-      <LoginAlertDialog bind:open={openLoginAlert} description="Login to access account features" title="Account" />
-      <Button
-        variant="secondary"
-        size="icon-lg"
-        onclick={() => {
-          openLoginAlert = true;
-        }}
-        class="size-12 bg-secondary/30 text-foreground rounded-full"
-      >
-        <HugeiconsIcon icon={UserIcon} size={20}  className="duotone-fill size-5" />
-      </Button>
-    </div>
-  {:else}
-    <div class={cn("z-20", className)}>
-      <div class="flex gap-2">
-        <Button variant="ghost" size="sm" href="/login">Sign in</Button>
-        <Button size="sm" href="/register">Sign up</Button>
-      </div>
-    </div>
-  {/if}
+	{#if layout.isMobile}
+		<div class={cn("z-20", className)}>
+			<LoginAlertDialog
+				bind:open={openLoginAlert}
+				description={m.account_required_description()}
+				title={m.account_required()}
+			/>
+			<Button
+				variant="secondary"
+				size="icon-lg"
+				onclick={() => {
+					openLoginAlert = true;
+				}}
+				class="size-12 rounded-full bg-secondary/30 text-foreground"
+			>
+				<HugeiconsIcon icon={UserIcon} size={20} className="duotone-fill size-5" />
+			</Button>
+		</div>
+	{:else}
+		<div class={cn("z-20", className)}>
+			<div class="flex gap-2">
+				<Button variant="ghost" size="sm" href="/login">{m.sign_in()}</Button>
+				<Button size="sm" href="/register">{m.sign_up()}</Button>
+			</div>
+		</div>
+	{/if}
 {:else if auth.user}
 	<DropdownMenu.Root>
 		<div class={cn("z-20", className)}>
@@ -141,15 +146,18 @@
 					onclick={() => (openProfile = true)}
 				>
 					<HugeiconsIcon icon={UserIcon} className="size-5 duotone-fill" />
-					<span class="font-medium">Profile</span>
+					<span class="font-medium">{m.profile()}</span>
 				</DropdownMenu.Item>
 				<DropdownMenu.Item class="cursor-pointer gap-3" onclick={() => (openEvents = true)}>
 					<HugeiconsIcon icon={Calendar03Icon} className="size-5 duotone-fill" />
-					<span class="font-medium">Events</span>
+					<span class="font-medium">{m.events()}</span>
 				</DropdownMenu.Item>
-				<DropdownMenu.Item class="cursor-pointer gap-3" onclick={() => (openSettings = true)}>
+				<DropdownMenu.Item
+					class="cursor-pointer gap-3"
+					onclick={() => (openSettings = true)}
+				>
 					<HugeiconsIcon icon={Settings01Icon} className="size-5 duotone-fill" />
-					<span class="font-medium">Settings</span>
+					<span class="font-medium">{m.settings()}</span>
 				</DropdownMenu.Item>
 			</DropdownMenu.Group>
 
@@ -158,7 +166,7 @@
 			<div class="px-2">
 				<DropdownMenu.Item class="cursor-pointer gap-3" onclick={handleLogout}>
 					<LogOut class="size-5" />
-					<span class="font-medium">Logout</span>
+					<span class="font-medium">{m.logout()}</span>
 				</DropdownMenu.Item>
 			</div>
 		</DropdownMenu.Content>

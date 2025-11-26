@@ -12,7 +12,12 @@
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 	import { ScrollArea } from "$lib/components/ui/scroll-area";
 	import { Permissions } from "$lib/constants/permissions";
-	import { MoreHorizontalIcon, UserIcon, Cancel01Icon, UserBlock02Icon } from "@hugeicons/core-free-icons";
+	import {
+		MoreHorizontalIcon,
+		UserIcon,
+		Cancel01Icon,
+		UserBlock02Icon,
+	} from "@hugeicons/core-free-icons";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import { useQueryClient, createMutation } from "@tanstack/svelte-query";
 	import { openUserProfile } from "$lib/components/profile/profile-state.svelte";
@@ -106,28 +111,24 @@
 	}
 </script>
 
-<div class="flex flex-col h-full">
+<div class="flex h-full flex-col">
 	<div
-		class="flex h-16 items-center justify-between border-b border-border/40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 px-4"
+		class="flex h-16 items-center justify-between border-b border-border/40 bg-background/95 px-4 backdrop-blur supports-backdrop-filter:bg-background/60"
 	>
-		<h2 class="text-xs font-semibold text-foreground/70 uppercase tracking-wider">
-			Members
-		</h2>
-		<Badge variant="outline" class="text-[10px] py-0 h-4 border-border/50 text-muted-foreground"
+		<h2 class="text-xs font-semibold tracking-wider text-foreground/70 uppercase">Members</h2>
+		<Badge variant="outline" class="h-4 border-border/50 py-0 text-[10px] text-muted-foreground"
 			>{members.length}</Badge
 		>
 	</div>
 
 	<ScrollArea class="flex-1">
-		<div class="p-2 space-y-0.5">
+		<div class="space-y-0.5 p-2">
 			{#each members as membership (membership.id)}
 				<div
 					class="group flex items-center justify-between rounded-md px-2 py-1.5 transition-colors hover:bg-muted/50"
 				>
 					<div class="flex items-center gap-3 overflow-hidden">
-						<Avatar.Root
-							class="h-8 w-8 rounded-full border border-border/40"
-						>
+						<Avatar.Root class="h-8 w-8 rounded-full border border-border/40">
 							<Avatar.Image
 								src={membership.user.avatar?.url}
 								alt={membership.user.name}
@@ -141,15 +142,20 @@
 						</Avatar.Root>
 						<div class="min-w-0">
 							<div class="flex items-center gap-1.5">
-								<p class="text-sm font-medium leading-none text-foreground truncate">
+								<p
+									class="truncate text-sm leading-none font-medium text-foreground"
+								>
 									{membership.user.name}
 								</p>
 								{#if (membership.permissions & Permissions.Admin) === Permissions.Admin}
-									<span class="text-[10px] text-primary font-semibold">Admin</span>
+									<span class="text-[10px] font-semibold text-primary">Admin</span
+									>
 								{/if}
 							</div>
-							<p class="text-[10px] text-muted-foreground truncate">
-								Joined {new Date(membership.createdAt as string).toLocaleDateString()}
+							<p class="truncate text-[10px] text-muted-foreground">
+								Joined {new Date(
+									membership.createdAt as string,
+								).toLocaleDateString()}
 							</p>
 						</div>
 					</div>
@@ -171,7 +177,9 @@
 								</Button>
 							</DropdownMenu.Trigger>
 							<DropdownMenu.Content align="end">
-								<DropdownMenu.Item onclick={() => openUserProfile(membership.userId)}>
+								<DropdownMenu.Item
+									onclick={() => openUserProfile(membership.userId)}
+								>
 									<HugeiconsIcon icon={UserIcon} size={14} />
 									<span class="ml-2">View Profile</span>
 								</DropdownMenu.Item>
@@ -226,7 +234,9 @@
 		<AlertDialog.Header>
 			<AlertDialog.Title>Kick Member</AlertDialog.Title>
 			<AlertDialog.Description>
-				Are you sure you want to kick <span class="font-semibold">{selectedMember?.user.name}</span> from this community? They will be removed but can rejoin.
+				Are you sure you want to kick <span class="font-semibold"
+					>{selectedMember?.user.name}</span
+				> from this community? They will be removed but can rejoin.
 			</AlertDialog.Description>
 		</AlertDialog.Header>
 		<AlertDialog.Footer>
@@ -247,19 +257,19 @@
 		<AlertDialog.Header>
 			<AlertDialog.Title>Ban Member</AlertDialog.Title>
 			<AlertDialog.Description>
-				Are you sure you want to ban <span class="font-semibold">{selectedMember?.user.name}</span> from this community? They will be removed and cannot rejoin until unbanned.
+				Are you sure you want to ban <span class="font-semibold"
+					>{selectedMember?.user.name}</span
+				> from this community? They will be removed and cannot rejoin until unbanned.
 			</AlertDialog.Description>
 		</AlertDialog.Header>
 		<div class="py-4">
-			<label for="ban-reason" class="text-sm font-medium">
-				Reason (optional)
-			</label>
+			<label for="ban-reason" class="text-sm font-medium"> Reason (optional) </label>
 			<input
 				id="ban-reason"
 				type="text"
 				bind:value={banReason}
 				placeholder="Enter reason for ban..."
-				class="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+				class="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
 			/>
 		</div>
 		<AlertDialog.Footer>

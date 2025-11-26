@@ -88,7 +88,7 @@
 </script>
 
 <div
-	class="flex h-16 items-center justify-between border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4"
+	class="flex h-16 items-center justify-between border-b border-border/40 bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60"
 >
 	<div class="flex items-center gap-3">
 		<div class="md:hidden">
@@ -103,7 +103,7 @@
 
 		<div class="flex flex-col">
 			<div class="flex items-center gap-2">
-				<h1 class="text-sm font-semibold leading-none tracking-tight">{community.name}</h1>
+				<h1 class="text-sm leading-none font-semibold tracking-tight">{community.name}</h1>
 				{#if community.inviteOnly}
 					<Tooltip.Root>
 						<Tooltip.Trigger>
@@ -116,7 +116,7 @@
 				{/if}
 			</div>
 			{#if community.description}
-				<p class="text-xs text-muted-foreground truncate max-w-[300px] md:max-w-[500px]">
+				<p class="max-w-[300px] truncate text-xs text-muted-foreground md:max-w-[500px]">
 					{community.description}
 				</p>
 			{/if}
@@ -130,7 +130,7 @@
 					<Button
 						variant="ghost"
 						size="icon"
-						class="h-8 w-8 text-amber-500 hover:text-amber-600 hover:bg-amber-500/10"
+						class="h-8 w-8 text-amber-500 hover:bg-amber-500/10 hover:text-amber-600"
 						onclick={() => (pinsSheetOpen = true)}
 					>
 						<HugeiconsIcon icon={Pin02Icon} size={16} strokeWidth={1.5} />
@@ -229,16 +229,20 @@
 			<div class="flex flex-col gap-2 p-4">
 				{#each pinnedMessages as pin (pin.pinId)}
 					<div class="rounded-lg border border-border/40 bg-muted/20 p-3">
-						<p class="text-sm text-foreground/90 whitespace-pre-wrap break-words">
+						<p class="text-sm break-words whitespace-pre-wrap text-foreground/90">
 							{pin.message.content}
 						</p>
-						<div class="mt-2 flex items-center justify-between text-[10px] text-muted-foreground">
+						<div
+							class="mt-2 flex items-center justify-between text-[10px] text-muted-foreground"
+						>
 							<span>Pinned by {pin.pinnedByUsername}</span>
 							<span>{format(new Date(pin.pinnedAt as string), "MMM d, h:mm a")}</span>
 						</div>
 					</div>
 				{:else}
-					<div class="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+					<div
+						class="flex flex-col items-center justify-center py-8 text-center text-muted-foreground"
+					>
 						<HugeiconsIcon icon={Pin02Icon} size={32} className="mb-2 opacity-50" />
 						<p class="text-sm">No pinned messages</p>
 					</div>

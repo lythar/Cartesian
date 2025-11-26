@@ -48,7 +48,7 @@
 		<Button
 			variant="ghost"
 			size="icon"
-			class="absolute right-2 top-2 z-10 h-8 w-8 rounded-full bg-black/40 text-white hover:bg-black/60"
+			class="absolute top-2 right-2 z-10 h-8 w-8 rounded-full bg-black/40 text-white hover:bg-black/60"
 			onclick={() => {
 				onclose?.();
 			}}

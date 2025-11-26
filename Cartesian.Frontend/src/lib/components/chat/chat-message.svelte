@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { goto } from "$app/navigation";
-	import type { CartesianUserDto, ChatMessageDto, ReactionSummaryDto } from "$lib/api/cartesian-client";
+	import type {
+		CartesianUserDto,
+		ChatMessageDto,
+		ReactionSummaryDto,
+	} from "$lib/api/cartesian-client";
 	import {
 		getEventApiEventId,
 		postChatApiMessageMessageIdReact,
@@ -151,7 +155,9 @@
 		showReactionPicker = false;
 
 		try {
-			const existingReaction = reactions.find((r: ReactionSummaryDto) => r.emoji === emoji && r.currentUserReacted);
+			const existingReaction = reactions.find(
+				(r: ReactionSummaryDto) => r.emoji === emoji && r.currentUserReacted,
+			);
 
 			if (existingReaction) {
 				await deleteChatApiMessageMessageIdReact(message.id, { emoji });
@@ -173,7 +179,9 @@
 				onReactionUpdate?.(message.id, updatedReactions);
 			} else {
 				await postChatApiMessageMessageIdReact(message.id, { emoji });
-				const existingIdx = reactions.findIndex((r: ReactionSummaryDto) => r.emoji === emoji);
+				const existingIdx = reactions.findIndex(
+					(r: ReactionSummaryDto) => r.emoji === emoji,
+				);
 				let updatedReactions: ReactionSummaryDto[];
 
 				if (existingIdx >= 0) {
@@ -212,7 +220,7 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
 	class={cn(
-		"group flex w-full gap-3 -mx-4 px-4 transition-colors relative",
+		"group relative -mx-4 flex w-full gap-3 px-4 transition-colors",
 		isStacked ? "hover:bg-muted/30" : "pt-3 hover:bg-muted/30",
 		isPinned && "bg-amber-500/5",
 	)}
@@ -224,47 +232,49 @@
 	}}
 >
 	{#if !isStacked}
-		<button
-			class="h-8 w-8 shrink-0 mt-0.5"
-			onclick={handleAuthorClick}
-			type="button"
-		>
+		<button class="mt-0.5 h-8 w-8 shrink-0" onclick={handleAuthorClick} type="button">
 			<Avatar.Root class="h-8 w-8 border border-border/20">
-				<Avatar.Image src={getAvatarUrl(author?.avatar)} alt={author?.name} class="object-cover" />
+				<Avatar.Image
+					src={getAvatarUrl(author?.avatar)}
+					alt={author?.name}
+					class="object-cover"
+				/>
 				<Avatar.Fallback class="bg-primary/5 text-[10px] font-medium text-foreground/70">
 					{author?.name?.substring(0, 2).toUpperCase() ?? "??"}
 				</Avatar.Fallback>
 			</Avatar.Root>
 		</button>
 	{:else}
-		<div class="w-8 shrink-0 flex items-start justify-end">
-			<span class="absolute top-1/2 -translate-y-1/2 hidden group-hover:block text-[10px] text-muted-foreground/50 pr-1">
+		<div class="flex w-8 shrink-0 items-start justify-end">
+			<span
+				class="absolute top-1/2 hidden -translate-y-1/2 pr-1 text-[10px] text-muted-foreground/50 group-hover:block"
+			>
 				{format(new Date(message.createdAt as string), "h:mm a")}
 			</span>
 		</div>
 	{/if}
 
-	<div class="flex flex-col min-w-0 flex-1">
+	<div class="flex min-w-0 flex-1 flex-col">
 		{#if !isStacked}
 			<div class="flex items-center gap-2">
 				<button
 					type="button"
 					onclick={handleAuthorClick}
 					class={cn(
-						"text-xs font-semibold leading-none hover:underline cursor-pointer",
+						"cursor-pointer text-xs leading-none font-semibold hover:underline",
 						isCurrentUser ? "text-primary" : "text-foreground",
 					)}
 				>
 					{author?.name ?? "Unknown User"}
 				</button>
-				<span class="text-[10px] text-muted-foreground/50 select-none whitespace-nowrap">
+				<span class="text-[10px] whitespace-nowrap text-muted-foreground/50 select-none">
 					{format(new Date(message.createdAt as string), "h:mm a")}
 				</span>
 			</div>
 		{/if}
 		<div
 			class={cn(
-				"message-content text-sm leading-relaxed text-foreground/90 wrap-break-word",
+				"message-content text-sm leading-relaxed wrap-break-word text-foreground/90",
 				isStacked ? "" : "mt-0.5",
 			)}
 		>
@@ -275,7 +285,9 @@
 			<div class="mt-2 space-y-2">
 				{#each eventEmbeds as embed}
 					{#if embed.loading}
-						<div class="flex items-center gap-3 rounded-lg border border-border/40 bg-muted/30 p-3">
+						<div
+							class="flex items-center gap-3 rounded-lg border border-border/40 bg-muted/30 p-3"
+						>
 							<div class="h-12 w-12 animate-pulse rounded-md bg-muted"></div>
 							<div class="flex-1 space-y-2">
 								<div class="h-4 w-32 animate-pulse rounded bg-muted"></div>
@@ -283,7 +295,9 @@
 							</div>
 						</div>
 					{:else if embed.error}
-						<div class="rounded-lg border border-border/40 bg-muted/30 p-3 text-xs text-muted-foreground">
+						<div
+							class="rounded-lg border border-border/40 bg-muted/30 p-3 text-xs text-muted-foreground"
+						>
 							Failed to load event
 						</div>
 					{:else}
@@ -291,17 +305,54 @@
 							onclick={() => handleEventClick(embed.id)}
 							class="flex w-full items-start gap-3 rounded-lg border border-border/40 bg-muted/20 p-3 text-left transition-colors hover:bg-muted/40"
 						>
-							<div class="flex h-14 w-14 items-center justify-center rounded-md bg-primary/10">
-								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
+							<div
+								class="flex h-14 w-14 items-center justify-center rounded-md bg-primary/10"
+							>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="24"
+									height="24"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									class="text-primary"
+									><path d="M8 2v4" /><path d="M16 2v4" /><rect
+										width="18"
+										height="18"
+										x="3"
+										y="4"
+										rx="2"
+									/><path d="M3 10h18" /></svg
+								>
 							</div>
-							<div class="flex-1 min-w-0">
-								<h4 class="text-sm font-medium text-foreground truncate">{embed.name}</h4>
-								<p class="text-xs text-muted-foreground line-clamp-2">{embed.description}</p>
-								<p class="mt-1 text-[10px] text-muted-foreground/70">by {embed.authorName}</p>
+							<div class="min-w-0 flex-1">
+								<h4 class="truncate text-sm font-medium text-foreground">
+									{embed.name}
+								</h4>
+								<p class="line-clamp-2 text-xs text-muted-foreground">
+									{embed.description}
+								</p>
+								<p class="mt-1 text-[10px] text-muted-foreground/70">
+									by {embed.authorName}
+								</p>
 							</div>
 							<div class="flex items-center text-xs text-primary">
 								<span>View</span>
-								<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1"><path d="m9 18 6-6-6-6"/></svg>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="14"
+									height="14"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									class="ml-1"><path d="m9 18 6-6-6-6" /></svg
+								>
 							</div>
 						</button>
 					{/if}
@@ -333,7 +384,7 @@
 
 	{#if showToolbar}
 		<div
-			class="absolute right-2 top-0 -translate-y-1/2 z-10"
+			class="absolute top-0 right-2 z-10 -translate-y-1/2"
 			onmouseenter={() => (isHovered = true)}
 			onmouseleave={() => {
 				if (!showReactionPicker) {
@@ -341,7 +392,9 @@
 				}
 			}}
 		>
-			<div class="flex items-center gap-0.5 rounded-md border border-border/50 bg-background p-0.5 shadow-md">
+			<div
+				class="flex items-center gap-0.5 rounded-md border border-border/50 bg-background p-0.5 shadow-md"
+			>
 				{#each QUICK_REACTIONS as emoji}
 					<button
 						type="button"
@@ -374,14 +427,16 @@
 									disabled={isReacting}
 									class="rounded p-1.5 transition-colors hover:bg-muted"
 								>
-									<span class="reaction-picker-emoji">{@html getCachedEmoji(emoji)}</span>
+									<span class="reaction-picker-emoji"
+										>{@html getCachedEmoji(emoji)}</span
+									>
 								</button>
 							{/each}
 						</div>
 					</Popover.Content>
 				</Popover.Root>
 
-				<div class="w-px h-4 bg-border/50 mx-0.5"></div>
+				<div class="mx-0.5 h-4 w-px bg-border/50"></div>
 
 				<Tooltip.Root>
 					<Tooltip.Trigger>
@@ -391,7 +446,7 @@
 							disabled={isPinning}
 							class={cn(
 								"rounded p-1 transition-colors hover:bg-muted",
-								isPinned && "text-amber-500"
+								isPinned && "text-amber-500",
 							)}
 						>
 							<HugeiconsIcon icon={Pin02Icon} className="size-4" />
