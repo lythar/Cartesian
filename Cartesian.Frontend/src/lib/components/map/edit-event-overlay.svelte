@@ -47,6 +47,7 @@
 	import DateTimePicker from "./date-time-picker.svelte";
 	import { Effect } from "effect";
 	import { Completion } from "@ai-sdk/svelte";
+
 	interface Props {
 		map: mapboxgl.Map;
 	}
