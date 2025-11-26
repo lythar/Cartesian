@@ -222,6 +222,7 @@ Available tags: ${EVENT_TAGS.join(", ")}`,
 			};
 		} catch (err) {
 			const message = err instanceof Error ? err.message : "Unknown error";
+			console.error("Discover Events Tool Error:", err);
 			return { error: `Event discovery failed: ${message}` };
 		}
 	},
