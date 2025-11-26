@@ -22,7 +22,7 @@ Lythar (kryptonim: Cartesian) to platforma społecznościowa do budowania autent
 - Proxy: Caddy
 - Konteneryzacja: Docker
 
-Szczegółowy opis znajduje się w [opisie rozwiązania](/opis-rozwiazania)
+Szczegółowy opis znajduje się w [opisie rozwiązania](./opis-rozwiazania.md)
 
 ## Kod źródłowy
 
