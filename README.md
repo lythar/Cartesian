@@ -6,7 +6,7 @@ Lythar to platforma społecznościowa skupiona na budowaniu autentycznych relacj
 
 ## 📚 Dokumentacja
 
-**[Pełna dokumentacja projektu → docs-cartesian.pages.dev](https://docs-cartesian.pages.dev/)**
+**[Pełna dokumentacja projektu → lythar-docs.kyi.ro](https://lythar-docs.kyi.ro/)**
 
 Dokumentacja zawiera szczegółowe informacje o architekturze systemu, interfejsie użytkownika i implementacji rozwiązania.
 

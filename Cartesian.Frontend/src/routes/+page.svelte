@@ -110,7 +110,7 @@
 				</span>
 			</Button>
 			<Button
-				href="https://docs-cartesian.pages.dev/"
+				href="https://lythar-docs.kyi.ro/"
 				size="lg"
 				class="group relative h-14 overflow-hidden rounded-full border border-white/20 bg-white/10 px-8 text-white shadow-[0_0_40px_-10px_rgba(255,255,255,0.2)] backdrop-blur-sm transition-all duration-500 hover:bg-white/20"
 			>
