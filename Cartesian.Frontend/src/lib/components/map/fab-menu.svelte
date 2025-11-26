@@ -7,6 +7,7 @@
 	import { authStore } from "$lib/stores/auth.svelte";
 	import LoginAlertDialog from "$lib/components/auth/login-alert-dialog.svelte";
 	import { getLayoutContext } from "$lib/context/layout.svelte";
+	import * as m from "$lib/paraglide/messages";
 
   const layout = getLayoutContext();
 
@@ -57,7 +58,7 @@
       )}
     >
       <HugeiconsIcon icon={PlusSignIcon} size={24} strokeWidth={2} />
-      <span class="font-bold">Create an Event</span>
+      <span class="font-bold">{m.create_an_event()}</span>
     </Button>
   {/if}
 </div>

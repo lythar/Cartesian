@@ -14,6 +14,7 @@
 	import { page } from "$app/stores";
 	import { pushState } from "$app/navigation";
 	import { browser } from "$app/environment";
+	import * as m from "$lib/paraglide/messages";
 
 	let { open = $bindable(false) } = $props();
 
@@ -60,15 +61,15 @@
 <Dialog.Root bind:open>
 	<Dialog.Content class="max-w-md">
 		<Dialog.Header>
-			<Dialog.Title class="text-xl font-semibold">Settings</Dialog.Title>
+			<Dialog.Title class="text-xl font-semibold">{m.settings()}</Dialog.Title>
 			<Dialog.Description class="text-muted-foreground">
-				Customize your experience
+				{m.settings_description()}
 			</Dialog.Description>
 		</Dialog.Header>
 
 		<div class="space-y-6 py-4">
 			<div class="space-y-3">
-				<h3 class="text-sm font-medium text-foreground">Theme</h3>
+				<h3 class="text-sm font-medium text-foreground">{m.theme()}</h3>
 				<div class="flex gap-2">
 					<Button
 						variant={currentMode === "light" ? "default" : "outline"}
@@ -77,7 +78,7 @@
 						onclick={() => setMode("light")}
 					>
 						<HugeiconsIcon icon={Sun02Icon} size={16} />
-						Light
+						{m.light()}
 					</Button>
 					<Button
 						variant={currentMode === "dark" ? "default" : "outline"}
@@ -86,7 +87,7 @@
 						onclick={() => setMode("dark")}
 					>
 						<HugeiconsIcon icon={Moon02Icon} size={16} />
-						Dark
+						{m.dark()}
 					</Button>
 					<Button
 						variant={currentMode === undefined ? "default" : "outline"}
@@ -95,13 +96,13 @@
 						onclick={() => setMode("system")}
 					>
 						<HugeiconsIcon icon={ComputerIcon} size={16} />
-						System
+						{m.system()}
 					</Button>
 				</div>
 			</div>
 
 			<div class="space-y-3">
-				<h3 class="text-sm font-medium text-foreground">Language</h3>
+				<h3 class="text-sm font-medium text-foreground">{m.language()}</h3>
 				<div class="flex gap-2">
 					{#each locales as locale}
 						<Button
@@ -121,7 +122,7 @@
 			<Dialog.Close>
 				<Button variant="outline" class="gap-2">
 					<HugeiconsIcon icon={Cancel01Icon} size={16} />
-					Close
+					{m.close()}
 				</Button>
 			</Dialog.Close>
 		</Dialog.Footer>

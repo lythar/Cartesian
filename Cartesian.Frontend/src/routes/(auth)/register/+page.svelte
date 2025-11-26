@@ -8,6 +8,7 @@
 	import { schema } from "./schema";
 	import type { PageData } from "./$types";
 	import { authStore } from "$lib/stores/auth.svelte";
+	import * as m from "$lib/paraglide/messages";
 
 	let { data }: { data: PageData } = $props();
 
@@ -56,8 +57,8 @@
 <div class="flex min-h-screen items-center justify-center bg-background p-4">
 	<div class="w-full max-w-md space-y-6">
 		<div class="space-y-2 text-center">
-			<h1 class="text-3xl font-semibold tracking-tight">Create an account</h1>
-			<p class="text-sm text-muted-foreground">Enter your details to get started</p>
+			<h1 class="text-3xl font-semibold tracking-tight">{m.create_account()}</h1>
+			<p class="text-sm text-muted-foreground">{m.create_account_subtitle()}</p>
 		</div>
 
 		<form use:enhance class="space-y-4">
@@ -72,7 +73,7 @@
 			<Form.Field {form} name="username">
 				<Form.Control>
 					{#snippet children({ props })}
-						<Form.Label>Username</Form.Label>
+						<Form.Label>{m.username()}</Form.Label>
 						<Input {...props} type="text" bind:value={$formData.username} />
 					{/snippet}
 				</Form.Control>
@@ -82,7 +83,7 @@
 			<Form.Field {form} name="email">
 				<Form.Control>
 					{#snippet children({ props })}
-						<Form.Label>Email</Form.Label>
+						<Form.Label>{m.email()}</Form.Label>
 						<Input {...props} type="email" bind:value={$formData.email} />
 					{/snippet}
 				</Form.Control>
@@ -92,7 +93,7 @@
 			<Form.Field {form} name="password">
 				<Form.Control>
 					{#snippet children({ props })}
-						<Form.Label>Password</Form.Label>
+						<Form.Label>{m.password()}</Form.Label>
 						<Input {...props} type="password" bind:value={$formData.password} />
 					{/snippet}
 				</Form.Control>
@@ -102,7 +103,7 @@
 			<Form.Field {form} name="confirmPassword">
 				<Form.Control>
 					{#snippet children({ props })}
-						<Form.Label>Confirm Password</Form.Label>
+						<Form.Label>{m.confirm_password()}</Form.Label>
 						<Input {...props} type="password" bind:value={$formData.confirmPassword} />
 					{/snippet}
 				</Form.Control>
@@ -110,14 +111,14 @@
 			</Form.Field>
 
 			<Form.Button type="submit" class="w-full" disabled={registerMutation.isPending}>
-				{registerMutation.isPending ? "Creating account..." : "Create account"}
+				{registerMutation.isPending ? m.creating_account() : m.create_account()}
 			</Form.Button>
 		</form>
 
 		<div class="text-center text-sm text-muted-foreground">
-			Already have an account?
+			{m.already_have_account()}
 			<a href="/login" class="font-medium text-primary underline-offset-4 hover:underline">
-				Sign in
+				{m.sign_in()}
 			</a>
 		</div>
 	</div>

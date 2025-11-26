@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from "$app/state";
 	import { Button } from "$lib/components/ui/button";
+	import * as m from "$lib/paraglide/messages";
 </script>
 
 <div class="flex h-[80vh] flex-col items-center justify-center gap-6 text-center">
@@ -9,16 +10,16 @@
 			{page.status}
 		</h1>
 		<h2 class="text-2xl font-semibold tracking-tight">
-			{page.error?.message || "Something went wrong"}
+			{page.error?.message || m.error_something_went_wrong()}
 		</h2>
 		<p class="text-muted-foreground max-w-[500px]">
 			{#if page.status === 404}
-				The page you are looking for does not exist. It might have been moved or deleted.
+				{m.error_page_not_found()}
 			{:else}
-				An unexpected error occurred. Please try again later.
+				{m.error_unexpected()}
 			{/if}
 		</p>
 	</div>
 
-	<Button href="/" variant="default" size="lg">Return Home</Button>
+	<Button href="/" variant="default" size="lg">{m.return_home()}</Button>
 </div>
