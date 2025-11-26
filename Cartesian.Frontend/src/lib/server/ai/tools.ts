@@ -1,9 +1,11 @@
 import { tool } from "ai";
 import { z } from "zod";
 import { env as publicEnv } from "$env/dynamic/public";
+import { env as privateEnv } from "$env/dynamic/private";
+
 
 const getMapboxToken = () => publicEnv.PUBLIC_MAPBOX_ACCESS_TOKEN || "";
-const getServicesUrl = () => publicEnv.PUBLIC_SERVICES_URL || "http://localhost:5164";
+const getServicesUrl = () => privateEnv.INTERNAL_SERVICES_URL || "http://localhost:5164";
 
 const EVENT_TAGS = [
 	"Sport",

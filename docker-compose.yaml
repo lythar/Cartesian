@@ -71,6 +71,7 @@ services:
       PUBLIC_MAPBOX_ACCESS_TOKEN: "${MAPBOX_PUBLIC_TOKEN}"
       GOOGLE_AI_KEY: "${GOOGLE_AI_KEY}"
       PUBLIC_SERVICES_URL: ""
+      INTERNAL_SERVICES_URL: "http://services:3002"
     expose:
       - "3001"
     networks:
