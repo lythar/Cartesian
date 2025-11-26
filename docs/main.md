@@ -1,7 +1,7 @@
 # Informacje o projekcie
 
 ## Autorzy
-- [Kacper Ł. (Mufaro)](https://github.com/mufaroxyz) - Frontend
+- [Kacper (Mufaro)](https://github.com/mufaroxyz) - Frontend
 - [Radosław K.](https://github.com/Radeqq007) - Frontend
 - [Wiktor K. (Kyiro)](https://github.com/kyiro) - Backend
 
